@@ -1,0 +1,41 @@
+{
+  "title": "Frontend Coding & Implementation Standards",
+  "file_id": "coding-standards.json",
+  "allowed_stack_scope": {
+    "markup": "HTML5 standard semantic markup.",
+    "styling": "Vanilla CSS3 using custom properties (variables) for visual tokens.",
+    "client_logic": "Vanilla ES6+ JavaScript modules running directly in modern web browsers.",
+    "prohibitions": "No TypeScript, no Node.js build steps, no webpack/vite bundles, no frontend frameworks (React, Vue, Angular), no CSS frameworks (Tailwind, Bootstrap)."
+  },
+  "directory_structure": {
+    "index.html": "Main PWA entry HTML",
+    "manifest.json": "Web App Manifest",
+    "sw.js": "Service Worker script",
+    "css/": {
+      "main.css": "Base layout & reset styles",
+      "variables.css": "Design tokens (colors, fonts)",
+      "components/": "UI component styling"
+    },
+    "js/": {
+      "config/": "Firebase & global app configuration",
+      "constants/": "Shared enums and constants",
+      "contracts/": "Shared interfaces and validators",
+      "modules/": "Core system modules (auth, packages, reservation, scheduling, customization, inventory, payments, equipment, reports, audit)",
+      "utils/": "Shared helper functions"
+    }
+  },
+  "javascript_coding_rules": [
+    "Use native ES modules (import/export). Avoid global window scope.",
+    "Naming conventions: camelCase for vars/funcs, UPPER_SNAKE_CASE for constants/enums, PascalCase for classes/modules, snake_case for database fields.",
+    "Business calculations MUST exist in exactly one authoritative utility module.",
+    "Explicit try/catch error handling required for all async operations. No silent catch blocks.",
+    "User inputs MUST be sanitized and validated against shared data types before API calls.",
+    "Use comments to explain business constraints, not obvious code syntax."
+  ],
+  "security_hygiene": [
+    "Never place private API keys, service credentials, or secrets in frontend JS or HTML files.",
+    "Treat all frontend JS as publicly inspectable on GitHub Pages.",
+    "Enforce access control in backend Firebase Security Rules."
+  ],
+  "refactoring_policy": "Edit ONLY files within the assigned task's module scope. Do NOT perform unrequested refactoring in shared code or unrelated modules."
+}

@@ -1,0 +1,244 @@
+{
+  "title": "Database Schema Specification",
+  "file_id": "database-schema.json",
+  "record_classifications": [
+    {
+      "name": "Permanent or Master Records",
+      "description": "Reusable, stable business entities. Updates allowed but MUST NOT retroactively rewrite historical transaction snapshots.",
+      "entities": ["Role", "User", "Catering Package", "Menu Item", "Package Menu Item", "Inventory Item", "Equipment Item"]
+    },
+    {
+      "name": "Operational Transaction Records",
+      "description": "Customer requests, schedules, and event-level orders. Follow traceable workflow statuses.",
+      "entities": ["Reservation", "Event Schedule", "Package Customization", "Reservation Menu Item", "Reservation Service Requirement", "Reservation Inventory Requirement", "Catering Order", "Event Equipment Accountability", "Event Equipment Accountability Item"]
+    },
+    {
+      "name": "Transaction-History Records",
+      "description": "Chronological activity logs. Strictly APPEND-ONLY. Silently modifying or deleting history records is forbidden.",
+      "entities": ["Inventory Movement", "Payment Transaction", "Audit Trail"]
+    }
+  ],
+  "entities": {
+    "Role": {
+      "classification": "Permanent Record",
+      "fields": {
+        "role_id": {"key": "PK", "type": "string", "required": true, "allowed_values": ["administrator", "authorized_staff", "customer"]},
+        "role_name": {"key": "UQ", "type": "string", "required": true}
+      },
+      "constraints": ["Exactly three allowed values: administrator, authorized_staff, customer. Unique role name."]
+    },
+    "User": {
+      "classification": "Permanent Record",
+      "fields": {
+        "user_id": {"key": "PK", "type": "string", "required": true},
+        "authentication_id": {"key": "UQ", "type": "string", "required": true},
+        "role_id": {"key": "FK → Role", "type": "string", "required": true},
+        "full_name": {"type": "string", "required": true},
+        "contact_details": {"type": "string/object", "required_for_customers": true, "details": "UNDEFINED_BY_SOURCE"},
+        "created_at": {"type": "datetime", "required": true}
+      },
+      "constraints": ["authentication_id must be unique. Must reference valid Role."]
+    },
+    "CateringPackage": {
+      "classification": "Permanent Record",
+      "fields": {
+        "package_id": {"key": "PK", "type": "string", "required": true},
+        "package_name": {"type": "string", "required": true},
+        "package_details": {"type": "string", "required": true},
+        "package_price": {"type": "monetary number", "required": true}
+      },
+      "constraints": ["package_price >= 0. Updating price must NOT change existing confirmed orders."]
+    },
+    "MenuItem": {
+      "classification": "Permanent Record",
+      "fields": {
+        "menu_item_id": {"key": "PK", "type": "string", "required": true},
+        "menu_item_name": {"type": "string", "required": true},
+        "menu_item_details": {"type": "string", "nullable": true}
+      }
+    },
+    "PackageMenuItem": {
+      "classification": "Permanent Record",
+      "fields": {
+        "package_menu_item_id": {"key": "PK", "type": "string", "required": true},
+        "package_id": {"key": "FK → CateringPackage", "type": "string", "required": true},
+        "menu_item_id": {"key": "FK → MenuItem", "type": "string", "required": true}
+      },
+      "constraints": ["Unique combination of (package_id, menu_item_id)."]
+    },
+    "InventoryItem": {
+      "classification": "Permanent Record",
+      "fields": {
+        "inventory_item_id": {"key": "PK", "type": "string", "required": true},
+        "item_name": {"type": "string", "required": true},
+        "item_type": {"type": "enum", "required": true, "allowed_values": ["ingredient", "supply"]},
+        "unit_of_measure": {"type": "string", "required": true, "details": "UNDEFINED_BY_SOURCE"},
+        "quantity_on_hand": {"type": "number", "required": true},
+        "quantity_reserved": {"type": "number", "required": true},
+        "available_quantity": {"type": "Derived number", "formula": "quantity_on_hand - quantity_reserved"},
+        "low_stock_threshold": {"type": "number", "required": true}
+      },
+      "constraints": ["Quantities >= 0. quantity_reserved <= quantity_on_hand. Every movement requires an Inventory Movement record."]
+    },
+    "EquipmentItem": {
+      "classification": "Permanent Record",
+      "fields": {
+        "equipment_item_id": {"key": "PK", "type": "string", "required": true},
+        "equipment_name": {"type": "string", "required": true},
+        "total_quantity": {"type": "whole number", "required": true}
+      },
+      "constraints": ["Non-negative whole numbers. Automated sensor detection excluded."]
+    },
+    "Reservation": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "reservation_id": {"key": "PK", "type": "string", "required": true},
+        "customer_user_id": {"key": "FK → User", "type": "string", "required": true},
+        "preferred_start_datetime": {"type": "datetime", "required": true},
+        "preferred_end_datetime": {"type": "datetime", "required": true},
+        "event_location": {"type": "string", "required": true},
+        "event_details": {"type": "string", "required": true},
+        "reservation_status": {"type": "enum", "required": true, "allowed_values": ["requested", "confirmed", "cancelled"]},
+        "submitted_at": {"type": "datetime", "required": true},
+        "confirmed_at": {"type": "datetime", "nullable": true},
+        "confirmed_by_user_id": {"key": "FK → User", "type": "string", "nullable": true}
+      },
+      "constraints": ["End time > Start time. Customers cannot directly edit confirmed reservations. Confirmed reservations cannot overlap existing confirmed schedules."]
+    },
+    "EventSchedule": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "schedule_id": {"key": "PK", "type": "string", "required": true},
+        "reservation_id": {"key": "FK → Reservation, UQ", "type": "string", "required": true},
+        "start_datetime": {"type": "datetime", "required": true},
+        "end_datetime": {"type": "datetime", "required": true},
+        "updated_by_user_id": {"key": "FK → User", "type": "string", "required": true}
+      },
+      "constraints": ["End time > Start time. Conflicting date ranges MUST be rejected."]
+    },
+    "PackageCustomization": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "customization_id": {"key": "PK", "type": "string", "required": true},
+        "reservation_id": {"key": "FK → Reservation, UQ", "type": "string", "required": true},
+        "package_id": {"key": "FK → CateringPackage", "type": "string", "required": true},
+        "guest_count": {"type": "whole number", "required": true},
+        "total_package_price": {"type": "Snapshot monetary number", "required": true},
+        "calculated_at": {"type": "datetime", "required": true},
+        "updated_by_user_id": {"key": "FK → User", "type": "string", "required": true}
+      },
+      "constraints": ["guest_count > 0. Price snapshot preserved upon order confirmation."]
+    },
+    "ReservationMenuItem": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "reservation_menu_item_id": {"key": "PK", "type": "string", "required": true},
+        "customization_id": {"key": "FK → PackageCustomization", "type": "string", "required": true},
+        "menu_item_id": {"key": "FK → MenuItem", "type": "string", "required": true},
+        "menu_item_name_snapshot": {"type": "Snapshot string", "required": true}
+      },
+      "constraints": ["Selected menu item must belong to the package. No duplicate menu items per customization."]
+    },
+    "ReservationServiceRequirement": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "service_requirement_id": {"key": "PK", "type": "string", "required": true},
+        "customization_id": {"key": "FK → PackageCustomization", "type": "string", "required": true},
+        "requirement_details": {"type": "string", "required": true},
+        "required_quantity": {"type": "number", "nullable": true}
+      }
+    },
+    "ReservationInventoryRequirement": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "inventory_requirement_id": {"key": "PK", "type": "string", "required": true},
+        "customization_id": {"key": "FK → PackageCustomization", "type": "string", "required": true},
+        "inventory_item_id": {"key": "FK → InventoryItem", "type": "string", "required": true},
+        "required_quantity": {"type": "number", "required": true}
+      },
+      "constraints": ["Unique (customization_id, inventory_item_id). No stock reservation/deduction until Catering Order creation."]
+    },
+    "CateringOrder": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "order_id": {"key": "PK", "type": "string", "required": true},
+        "reservation_id": {"key": "FK → Reservation, UQ", "type": "string", "required": true},
+        "order_status": {"type": "enum", "required": true, "allowed_values": ["confirmed", "completed", "cancelled"]},
+        "total_amount": {"type": "Snapshot monetary number", "required": true},
+        "total_paid": {"type": "Derived monetary number", "formula": "sum of valid payment transactions"},
+        "remaining_balance": {"type": "Derived monetary number", "formula": "total_amount - total_paid"},
+        "payment_status": {"type": "Derived enum", "allowed_values": ["unpaid", "partially_paid", "paid"]},
+        "confirmed_at": {"type": "datetime", "required": true},
+        "completed_at": {"type": "datetime", "nullable": true}
+      },
+      "constraints": ["1:1 with confirmed Reservation. total_paid <= total_amount."]
+    },
+    "EventEquipmentAccountability": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "accountability_id": {"key": "PK", "type": "string", "required": true},
+        "order_id": {"key": "FK → CateringOrder, UQ", "type": "string", "required": true},
+        "release_recorded_by_user_id": {"key": "FK → User", "type": "string", "required": true},
+        "release_recorded_at": {"type": "datetime", "required": true},
+        "verified_by_user_id": {"key": "FK → User", "type": "string", "nullable": true},
+        "verified_at": {"type": "datetime", "nullable": true}
+      },
+      "constraints": ["Requires physical manual verification by authorized staff."]
+    },
+    "EventEquipmentAccountabilityItem": {
+      "classification": "Operational Transaction Record",
+      "fields": {
+        "accountability_item_id": {"key": "PK", "type": "string", "required": true},
+        "accountability_id": {"key": "FK → EventEquipmentAccountability", "type": "string", "required": true},
+        "equipment_item_id": {"key": "FK → EquipmentItem", "type": "string", "required": true},
+        "released_quantity": {"type": "whole number", "required": true},
+        "returned_quantity": {"type": "whole number", "required_after_verification": true},
+        "missing_quantity": {"type": "whole number", "required_after_verification": true},
+        "damaged_quantity": {"type": "whole number", "required_after_verification": true},
+        "checked_at": {"type": "datetime", "nullable": true}
+      },
+      "constraints": ["Finalized check rule: released_quantity = returned_quantity + missing_quantity + damaged_quantity."]
+    },
+    "InventoryMovement": {
+      "classification": "Transaction History (Append-Only)",
+      "fields": {
+        "inventory_movement_id": {"key": "PK", "type": "string", "required": true},
+        "inventory_item_id": {"key": "FK → InventoryItem", "type": "string", "required": true},
+        "order_id": {"key": "FK → CateringOrder", "type": "string", "nullable": true},
+        "movement_type": {"type": "enum", "required": true, "allowed_values": ["addition", "reservation", "deduction"]},
+        "quantity": {"type": "number", "required": true},
+        "quantity_on_hand_after": {"type": "Snapshot number", "required": true},
+        "quantity_reserved_after": {"type": "Snapshot number", "required": true},
+        "performed_by_user_id": {"key": "FK → User", "type": "string", "required": true},
+        "occurred_at": {"type": "datetime", "required": true}
+      },
+      "constraints": ["Append-only. Updates/deletions forbidden. Movement must not create negative stock."]
+    },
+    "PaymentTransaction": {
+      "classification": "Transaction History (Append-Only)",
+      "fields": {
+        "payment_transaction_id": {"key": "PK", "type": "string", "required": true},
+        "order_id": {"key": "FK → CateringOrder", "type": "string", "required": true},
+        "payment_type": {"type": "enum", "required": true, "allowed_values": ["deposit", "payment"]},
+        "amount": {"type": "monetary number", "required": true},
+        "paid_at": {"type": "datetime", "required": true},
+        "recorded_by_user_id": {"key": "FK → User", "type": "string", "required": true}
+      },
+      "constraints": ["Append-only. Total paid must not exceed total_amount."]
+    },
+    "AuditTrail": {
+      "classification": "Transaction History (Append-Only)",
+      "fields": {
+        "audit_trail_id": {"key": "PK", "type": "string", "required": true},
+        "user_id": {"key": "FK → User", "type": "string", "required": true},
+        "action_type": {"type": "string", "required": true},
+        "record_type": {"type": "string", "required": true},
+        "record_id": {"type": "string", "required": true},
+        "previous_values": {"type": "object/json", "nullable": true},
+        "new_values": {"type": "object/json", "nullable": true},
+        "occurred_at": {"type": "datetime", "required": true}
+      },
+      "constraints": ["Append-only. No edits or deletions permitted."]
+    }
+  }
+}

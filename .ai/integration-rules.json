@@ -1,0 +1,34 @@
+{
+  "title": "Integration & System Transaction Rules",
+  "file_id": "integration-rules.json",
+  "communication_boundary": [
+    "Modules MUST communicate exclusively through approved shared interfaces (.ai/contracts/shared-interfaces.json) and logical API contracts (.ai/contracts/api-contracts.json).",
+    "No module may directly read or mutate undocumented internal data structures, private variables, or UI state of another module."
+  ],
+  "transaction_sequence": [
+    "Step 1: Customer submits Reservation Request (Module 03)",
+    "Step 2: Customer/Staff completes Package Customization (Module 05)",
+    "Step 3: Staff reviews and Confirms Reservation + Creates Event Schedule (Module 04)",
+    "Step 4: System creates Catering Order (Module 07 / Milestone)",
+    "Step 5: Operational Sub-processes (Inventory Deduction, Payment Recording, Equipment Release)",
+    "Step 6: Event Completion & Final Reporting (Module 09)"
+  ],
+  "sequence_constraints": [
+    "A Catering Order CANNOT be created before its parent Reservation is formally confirmed by authorized staff.",
+    "Inventory reservation/deduction, payment transactions, and equipment dispatch CANNOT occur without an active, confirmed Catering Order."
+  ],
+  "history_append_only_enforcement": [
+    "Inventory Movements: Every stock addition, reservation, or deduction MUST append a new record to Inventory Movement.",
+    "Payment Transactions: Every deposit or payment MUST append a new record to Payment Transaction.",
+    "Audit Trails: Every protected system action MUST append a record to Audit Trail."
+  ],
+  "historical_snapshot_preservation": "When a master record (Catering Package, Menu Item, Inventory Item) is updated, previous completed or confirmed orders MUST preserve their original historical price and name snapshots.",
+  "authoritative_derived_calculation_locations": {
+    "available_quantity": "quantity_on_hand - quantity_reserved (Module 06)",
+    "total_paid": "SUM(valid Payment Transactions) (Module 07)",
+    "remaining_balance": "total_amount - total_paid (Module 07)",
+    "payment_status": "unpaid | partially_paid | paid (Module 07)"
+  },
+  "schedule_conflict_prevention": "Date availability checks and schedule creation MUST validate against approved Event Schedule records associated with confirmed reservations. Overlapping date-time ranges MUST be rejected.",
+  "report_generation_isolation": "Report Generation (Module 09) is strictly a read-only consumer of source transaction entities. It MUST NOT modify, insert, or delete source records."
+}

@@ -1,0 +1,32 @@
+{
+  "title": "User Interface & PWA Display Standards",
+  "file_id": "interface-standards.json",
+  "responsive_pwa_boundary": {
+    "unified_app": "Single responsive Progressive Web App serving desktop and mobile users.",
+    "no_separate_native": "MUST NOT maintain separate codebase branches or templates for desktop vs mobile.",
+    "pwa_shell": "Implement standard web app manifest (manifest.json) and Service Worker (sw.js).",
+    "no_offline_indication": "MUST NOT display offline mode banners or imply offline transaction support."
+  },
+  "role_based_ui_rendering": [
+    "Permission-Driven Action Visibility: Automatically hide or disable non-permitted controls/buttons.",
+    "Customer Views: Never show admin controls, stock forms, payment inputs, or equipment check forms. Render confirmed details as read-only.",
+    "Staff & Admin Views: Display operational queues (pending reservations, upcoming event schedules, low stock warnings, unverified equipment dispatches)."
+  ],
+  "ui_component_display_standards": {
+    "date_availability": "Available and booked dates visually distinct. Overlapping confirmed time slots flagged as unavailable.",
+    "status_badges": {
+      "reservation_status": ["Requested", "Confirmed", "Cancelled"],
+      "order_status": ["Confirmed", "Completed", "Cancelled"],
+      "payment_status": ["Unpaid", "Partially Paid", "Paid"]
+    },
+    "inventory_stock_insufficiency": "Visual alert badge LOW STOCK when available < threshold. INSUFFICIENT STOCK FOR ORDER when required > available.",
+    "equipment_accountability_grid": "Columns: Equipment Name, Released Quantity, Returned Quantity (Input), Missing Quantity (Input), Damaged Quantity (Input), Discrepancy Status."
+  },
+  "user_interaction": [
+    "Mandatory fields clearly marked (e.g. *).",
+    "Inline validation messages near input fields in plain language.",
+    "Consequential authorized actions require deliberate confirmation via modal dialogs.",
+    "Printable report views use @media print stylesheets to format clean paper outputs."
+  ],
+  "visual_styling": "Exact color palette, typography fonts, and branding remain UNDEFINED_BY_SOURCE."
+}

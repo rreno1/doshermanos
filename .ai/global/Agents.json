@@ -1,0 +1,67 @@
+{
+  "title": "Global AI Development Instructions",
+  "file_id": "Agents.json",
+  "project": "Dos Hermanos Progressive Web App Integrated Catering Management System",
+  "source_hierarchy": [
+    {
+      "level": 1,
+      "name": "Primary Source of Truth",
+      "source": "Approved Chapter 1 Manuscript",
+      "governs": ["Project purpose", "System users", "System modules", "Required functions", "Scope", "Delimitations", "Limitations", "Reports", "Testing requirements", "Excluded functions"]
+    },
+    {
+      "level": 2,
+      "name": "Technical Authority",
+      "source": "Approved Project Initialization Specification",
+      "governs": ["Technology stack", "Module boundaries", "Data entities", "Keys", "Constraints", "Implementation sequence", "Shared contracts"]
+    },
+    {
+      "level": 3,
+      "name": "Locked Technology Decision",
+      "source": "Approved Project Stack",
+      "governs": ["Plain HTML", "Plain CSS", "Plain JavaScript", "GitHub Pages", "Firebase Services", "Progressive Web App"]
+    }
+  ],
+  "conflict_rule": "Chapter 1 governs business scope; Initialization Spec governs technical structure. Missing information MUST be marked as UNDEFINED_BY_SOURCE. AI agents must NOT invent business rules.",
+  "locked_roles": [
+    "administrator",
+    "authorized_staff",
+    "customer"
+  ],
+  "locked_modules": [
+    "Module 01 — User Access and Role-Based Access Control",
+    "Module 02 — Catering Packages and Menu",
+    "Module 03 — Online Reservation",
+    "Module 04 — Event Scheduling",
+    "Module 05 — Package Customization",
+    "Module 06 — Inventory Tracking",
+    "Module 07 — Payment Tracking",
+    "Module 08 — Event Equipment Accountability",
+    "Module 09 — Report Generation",
+    "Module 10 — Audit Trails"
+  ],
+  "explicit_exclusions": [
+    "Marketplace or multi-vendor capabilities",
+    "Native Android or iOS applications",
+    "Offline business operations or data synchronization",
+    "HR, payroll, employee compensation, attendance",
+    "General ledger accounting, tax calculation, formal financial statements",
+    "Automatic purchase orders or direct supplier communication",
+    "AI, machine learning, automated forecasting",
+    "Live GPS tracking (delivery, vehicles, staff, equipment)",
+    "RFID, sensors, automated equipment condition detection",
+    "Fully automated cancellation processing"
+  ],
+  "architectural_rules": {
+    "permanent_master_records": "May be updated, but MUST NOT retroactively rewrite historical transaction snapshots.",
+    "operational_transaction_records": "Track operational status changes traceably.",
+    "transaction_history_records": "STRICTLY APPEND-ONLY. Deletions or updates forbidden."
+  },
+  "execution_directives": [
+    "Read applicable instructions before modifying code.",
+    "Focus strictly on one assigned module/task at a time.",
+    "Do NOT perform broad refactoring across unrelated files.",
+    "Preserve historical data integrity.",
+    "Log any approved contract alterations in .ai/contract-change-log.json."
+  ]
+}

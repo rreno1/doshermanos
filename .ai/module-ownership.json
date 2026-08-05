@@ -1,0 +1,71 @@
+{
+  "title": "Module Ownership Matrix",
+  "file_id": "module-ownership.json",
+  "ownership_rules": [
+    "Exclusive Entity Ownership: Every database entity has exactly ONE primary module owner responsible for schema updates.",
+    "No Unilateral Alterations: A module developer MUST NOT modify an entity or contract owned by another module without an approved entry in .ai/contract-change-log.json.",
+    "Shared Milestone Entity (Catering Order): Primary Creation Owner is Module 04 (Event Scheduling); Primary Financial Derivation Owner is Module 07 (Payment Tracking)."
+  ],
+  "modules": {
+    "Module 01 — User Access & RBAC": {
+      "owned_entities": ["Role", "User"],
+      "owned_contracts": ["AuthenticatedUserContext", "RoleContext", "CheckModulePermission"],
+      "permitted_modifications": ["User registration", "Role assignments", "Profile contact updates"],
+      "prohibited_modifications": ["Cannot modify reservations, packages, inventory, or payments."]
+    },
+    "Module 02 — Catering Packages & Menu": {
+      "owned_entities": ["Catering Package", "Menu Item", "Package Menu Item"],
+      "owned_contracts": ["PackageSummary", "PackageDetails", "MenuSelection"],
+      "permitted_modifications": ["Master package catalog", "Dish catalog", "Package-menu junction"],
+      "prohibited_modifications": ["Cannot modify customer customizations or active order prices."]
+    },
+    "Module 03 — Online Reservation": {
+      "owned_entities": ["Reservation"],
+      "owned_contracts": ["ReservationRequestPayload", "ReservationSummary"],
+      "permitted_modifications": ["Capturing customer reservation requests and event details."],
+      "prohibited_modifications": ["Cannot confirm reservations or alter approved schedules."]
+    },
+    "Module 04 — Event Scheduling": {
+      "owned_entities": ["Event Schedule", "Catering Order (Creation Milestone)"],
+      "owned_contracts": ["EventScheduleContract", "CheckDateAvailability", "ConfirmReservationAndCreateSchedule"],
+      "permitted_modifications": ["Schedule creation", "Conflict validation", "Reservation confirmation status update"],
+      "prohibited_modifications": ["Cannot record payment transactions or alter inventory stock."]
+    },
+    "Module 05 — Package Customization": {
+      "owned_entities": ["Package Customization", "Reservation Menu Item", "Reservation Service Requirement", "Reservation Inventory Requirement"],
+      "owned_contracts": ["PackageCustomizationPayload", "ServiceRequirement", "InventoryRequirement", "CalculateCustomizationResults"],
+      "permitted_modifications": ["Calculating guest counts", "Dish selections", "Price snapshots", "Supply requirements"],
+      "prohibited_modifications": ["Cannot directly alter master package prices or issue inventory deductions."]
+    },
+    "Module 06 — Inventory Tracking": {
+      "owned_entities": ["Inventory Item", "Inventory Movement"],
+      "owned_contracts": ["InventoryAvailability", "InventoryMovementPayload", "ReadInventoryAvailability", "AddInventoryStock", "ProcessOrderInventoryDeduction"],
+      "permitted_modifications": ["Master stock levels", "Stock additions", "Stock reservations", "Deduction processing", "Low stock flags"],
+      "prohibited_modifications": ["Cannot edit catering order totals or equipment records."]
+    },
+    "Module 07 — Payment Tracking": {
+      "owned_entities": ["Payment Transaction", "Catering Order (Derived Payment Status)"],
+      "owned_contracts": ["PaymentSummary", "PaymentTransactionPayload", "RecordPaymentTransaction"],
+      "permitted_modifications": ["Appending payment records", "Calculating total_paid, remaining_balance, payment_status"],
+      "prohibited_modifications": ["Cannot overwrite past payment transactions or alter package prices."]
+    },
+    "Module 08 — Event Equipment Accountability": {
+      "owned_entities": ["Equipment Item", "Event Equipment Accountability", "Event Equipment Accountability Item"],
+      "owned_contracts": ["EquipmentReleasePayload", "EquipmentVerificationPayload", "RecordEquipmentRelease", "RecordEquipmentVerification"],
+      "permitted_modifications": ["Master equipment catalog", "Dispatch release logs", "Physical check verification inputs"],
+      "prohibited_modifications": ["Cannot modify order payments or customer reservations."]
+    },
+    "Module 09 — Report Generation": {
+      "owned_entities": ["None (Read-Only Consumer)"],
+      "owned_contracts": ["ReportRequest", "GenerateReport"],
+      "permitted_modifications": ["Report layout", "CSV/Excel formatting", "Print stylesheet preparation"],
+      "prohibited_modifications": ["Strictly PROHIBITED from modifying, creating, or deleting source transaction entities."]
+    },
+    "Module 10 — Audit Trails": {
+      "owned_entities": ["Audit Trail"],
+      "owned_contracts": ["AuditEventPayload", "RecordAuditEvent", "ReadAuditTrail"],
+      "permitted_modifications": ["Appending audit logs", "Providing audit view to Administrators"],
+      "prohibited_modifications": ["Strictly PROHIBITED from editing or deleting existing audit logs."]
+    }
+  }
+}

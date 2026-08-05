@@ -1,0 +1,40 @@
+{
+  "title": "System Testing Specifications & Verification Rules",
+  "file_id": "testing-rules.json",
+  "test_categories": {
+    "functional_testing": [
+      "Module 01: User login via Google/Facebook auth, role resolution, permission enforcement.",
+      "Module 02: Package listing, package details display, menu item association.",
+      "Module 03: Customer reservation form submission, guest count validation, mandatory field checking.",
+      "Module 04: Date availability checks, single-day & multi-day scheduling, schedule conflict prevention.",
+      "Module 05: Package customization price calculations, menu selection validation, requirement generation.",
+      "Module 06: Stock additions, reservation on order confirmation, stock deduction, low stock & insufficient stock alerts.",
+      "Module 07: Deposit & installment recording, total_paid derivation, remaining_balance derivation, payment_status derivation.",
+      "Module 08: Equipment release recording, physical check verification, classification of returned/missing/damaged quantities.",
+      "Module 09: Generation of reservation, sales, payment, inventory, and equipment reports; CSV/Excel export; print view rendering.",
+      "Module 10: Audit logging for protected actions, immutable log verification."
+    ],
+    "database_schema_testing": [
+      "Required Fields & Types: Verify missing required fields produce validation errors.",
+      "Foreign Key Integrity: Verify non-existent foreign keys fail cleanly.",
+      "Enum Enforcement: Verify invalid enum strings are rejected.",
+      "Derived Value Calculations: Verify available_quantity, total_paid, remaining_balance, payment_status match formulas.",
+      "Snapshot Preservation: Verify altering master package price does NOT modify confirmed orders.",
+      "Append-Only Verification: Verify Inventory Movement, Payment Transaction, Audit Trail cannot be overwritten or deleted."
+    ],
+    "security_testing": [
+      "Unauthorized Access: Verify unauthenticated users cannot access staff/admin interfaces.",
+      "Role Restrictions: Verify customer role cannot confirm reservations, modify schedules, update stock, record payments, or verify equipment.",
+      "Customer Ownership: Verify customer cannot read/modify another customer's records.",
+      "Confirmed Lock: Verify customer cannot edit reservations or package details once confirmed.",
+      "Financial Safeguards: Verify payments exceeding remaining balance are rejected.",
+      "Schedule Conflicts: Verify overlapping schedule creation is rejected."
+    ],
+    "performance_usability": [
+      "Test responsiveness under GitHub Pages static hosting and Firebase connection conditions.",
+      "Verify desktop browser and installable PWA mobile usability for all three roles.",
+      "Report accuracy depends on correct, complete, and timely manual data entry by authorized staff."
+    ]
+  },
+  "testing_framework_boundary": "Do NOT introduce custom automated testing frameworks (Jest, Cypress, Selenium) unless specified in a Phase 2 decision. Use plain JS assertions and browser console integration tests."
+}

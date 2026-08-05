@@ -1,0 +1,40 @@
+{
+  "title": "Stable Project Memory",
+  "file_id": "Memory.json",
+  "project_identification": {
+    "full_title": "Design and Development of a Progressive Web App Integrated Catering Management System for Dos Hermanos with Online Reservation, Package Customization, Inventory and Payment Tracking, Event Equipment Accountability, and Report Generation",
+    "short_name": "Dos Hermanos Catering Management System",
+    "client": "Dos Hermanos Catering",
+    "stage": "Demonstration & Test Version Development (Phase 1 Complete, Stage 1 Initialization)"
+  },
+  "core_business_purpose": "Replace scattered paper notebooks, verbal checking, and mobile-phone records with a unified, web-based Progressive Web App (PWA) connecting reservations, date availability, event scheduling, package customization, inventory tracking, deposit/payment tracking, equipment release/returns, report generation, and audit trails.",
+  "technology_stack": {
+    "markup": "Plain HTML5",
+    "styling": "Plain CSS3",
+    "client_logic": "Vanilla JavaScript (ES6+)",
+    "hosting": "GitHub Pages",
+    "backend": "Firebase Services (exact products UNDEFINED_BY_SOURCE)",
+    "application_model": "Single Progressive Web App (PWA) accessible via desktop browsers and installable on mobile devices",
+    "offline_status": "Strictly EXCLUDED. Internet connection required."
+  },
+  "system_roles": [
+    "administrator",
+    "authorized_staff",
+    "customer"
+  ],
+  "database_classifications": {
+    "permanent_master_records": ["Role", "User", "Catering Package", "Menu Item", "Package Menu Item", "Inventory Item", "Equipment Item"],
+    "operational_transaction_records": ["Reservation", "Event Schedule", "Package Customization", "Reservation Menu Item", "Reservation Service Requirement", "Reservation Inventory Requirement", "Catering Order", "Event Equipment Accountability", "Event Equipment Accountability Item"],
+    "transaction_history_records": ["Inventory Movement", "Payment Transaction", "Audit Trail"]
+  },
+  "undefined_by_source_elements": [
+    "Exact Firebase database engine (Firestore vs Realtime DB)",
+    "Exact Firebase authentication method/providers",
+    "Exact customer contact fields and registration details",
+    "Specific package names, menu item catalog, and base price figures",
+    "Exact mathematical formulas for guest-to-food, guest-to-service, and guest-to-supply calculations",
+    "Exact stock thresholds, ingredient measurement units, and initial stock quantities",
+    "Exact inventory behavior upon order cancellation",
+    "Specific visual layout, UI branding, color scheme, and typography guidelines"
+  ]
+}

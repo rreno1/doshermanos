@@ -1,0 +1,201 @@
+{
+  "title": "Shared Interface Contracts",
+  "file_id": "shared-interfaces.json",
+  "interfaces": {
+    "AuthenticatedUserContext": {
+      "producer": "Module 01 (User Access & RBAC)",
+      "consumers": ["All Modules"],
+      "classification": "Source metadata",
+      "properties": {
+        "user_id": {"type": "string", "required": true},
+        "authentication_id": {"type": "string", "required": true},
+        "role_id": {"type": "string", "required": true, "allowed_values": ["administrator", "authorized_staff", "customer"]},
+        "full_name": {"type": "string", "required": true}
+      }
+    },
+    "RoleContext": {
+      "producer": "Module 01",
+      "consumers": ["All Modules"],
+      "classification": "Source metadata",
+      "properties": {
+        "role_id": {"type": "string", "required": true},
+        "permissions": {"type": "array of strings", "required": true}
+      }
+    },
+    "PackageSummary": {
+      "producer": "Module 02 (Packages & Menu)",
+      "consumers": ["Module 03", "Module 05"],
+      "classification": "Source",
+      "properties": {
+        "package_id": {"type": "string", "required": true},
+        "package_name": {"type": "string", "required": true},
+        "package_price": {"type": "monetary number", "required": true}
+      }
+    },
+    "PackageDetails": {
+      "producer": "Module 02",
+      "consumers": ["Module 03", "Module 05"],
+      "classification": "Source",
+      "properties": {
+        "package_id": {"type": "string", "required": true},
+        "package_name": {"type": "string", "required": true},
+        "package_details": {"type": "string", "required": true},
+        "package_price": {"type": "monetary number", "required": true},
+        "permitted_menu_items": {"type": "array of MenuSelection", "required": true}
+      }
+    },
+    "MenuSelection": {
+      "producer": "Module 02",
+      "consumers": ["Module 05"],
+      "classification": "Source",
+      "properties": {
+        "menu_item_id": {"type": "string", "required": true},
+        "menu_item_name": {"type": "string", "required": true},
+        "menu_item_details": {"type": "string", "optional": true}
+      }
+    },
+    "ReservationRequestPayload": {
+      "producer": "Module 03 (Online Reservation)",
+      "consumers": ["Module 04", "Module 05"],
+      "properties": {
+        "customer_user_id": {"type": "string", "required": true},
+        "preferred_start_datetime": {"type": "ISO string", "required": true},
+        "preferred_end_datetime": {"type": "ISO string", "required": true},
+        "event_location": {"type": "string", "required": true},
+        "event_details": {"type": "string", "required": true},
+        "package_id": {"type": "string", "required": true},
+        "guest_count": {"type": "integer (> 0)", "required": true},
+        "selected_menu_item_ids": {"type": "array of strings", "required": true}
+      },
+      "validation": "preferred_end_datetime > preferred_start_datetime"
+    },
+    "ReservationSummary": {
+      "producer": "Module 03",
+      "consumers": ["Module 04", "Module 07", "Module 09"],
+      "classification": "Source",
+      "properties": {
+        "reservation_id": {"type": "string", "required": true},
+        "customer_user_id": {"type": "string", "required": true},
+        "reservation_status": {"type": "string", "required": true, "allowed_values": ["requested", "confirmed", "cancelled"]},
+        "submitted_at": {"type": "ISO string", "required": true}
+      }
+    },
+    "EventScheduleContract": {
+      "producer": "Module 04 (Event Scheduling)",
+      "consumers": ["Module 03", "Module 07"],
+      "properties": {
+        "schedule_id": {"type": "string", "required": true},
+        "reservation_id": {"type": "string", "required": true},
+        "start_datetime": {"type": "ISO string", "required": true},
+        "end_datetime": {"type": "ISO string", "required": true}
+      },
+      "validation": "Must not overlap any existing confirmed EventSchedule."
+    },
+    "PackageCustomizationPayload": {
+      "producer": "Module 05 (Package Customization)",
+      "consumers": ["Module 04", "Module 06", "Module 07"],
+      "properties": {
+        "customization_id": {"type": "string", "required": true},
+        "reservation_id": {"type": "string", "required": true},
+        "package_id": {"type": "string", "required": true},
+        "guest_count": {"type": "integer (> 0)", "required": true},
+        "selected_menu_items": {"type": "array of objects", "required": true},
+        "service_requirements": {"type": "array of ServiceRequirement", "optional": true},
+        "inventory_requirements": {"type": "array of InventoryRequirement", "required": true},
+        "total_package_price": {"type": "monetary number (Snapshot)", "required": true}
+      }
+    },
+    "CateringOrderSummary": {
+      "producer": "Module 04 / Module 07 (Catering Order)",
+      "consumers": ["Module 06", "Module 07", "Module 08", "Module 09"],
+      "properties": {
+        "order_id": {"type": "string", "required": true},
+        "reservation_id": {"type": "string", "required": true},
+        "order_status": {"type": "string", "required": true, "allowed_values": ["confirmed", "completed", "cancelled"]},
+        "total_amount": {"type": "monetary number (Snapshot)", "required": true},
+        "total_paid": {"type": "monetary number (Derived)", "required": true},
+        "remaining_balance": {"type": "monetary number (Derived)", "required": true},
+        "payment_status": {"type": "string (Derived)", "required": true, "allowed_values": ["unpaid", "partially_paid", "paid"]}
+      }
+    },
+    "InventoryAvailability": {
+      "producer": "Module 06",
+      "consumers": ["Module 05", "Module 09"],
+      "properties": {
+        "inventory_item_id": {"type": "string", "required": true},
+        "item_name": {"type": "string", "required": true},
+        "quantity_on_hand": {"type": "number", "required": true},
+        "quantity_reserved": {"type": "number", "required": true},
+        "available_quantity": {"type": "number (Derived)", "required": true},
+        "is_insufficient": {"type": "boolean", "required": true}
+      }
+    },
+    "InventoryMovementPayload": {
+      "producer": "Module 06",
+      "consumers": ["Module 09", "Module 10"],
+      "properties": {
+        "inventory_movement_id": {"type": "string", "required": true},
+        "inventory_item_id": {"type": "string", "required": true},
+        "order_id": {"type": "string", "optional": true},
+        "movement_type": {"type": "string", "required": true, "allowed_values": ["addition", "reservation", "deduction"]},
+        "quantity": {"type": "number (> 0)", "required": true},
+        "performed_by_user_id": {"type": "string", "required": true}
+      }
+    },
+    "PaymentTransactionPayload": {
+      "producer": "Module 07",
+      "consumers": ["Module 09", "Module 10"],
+      "properties": {
+        "payment_transaction_id": {"type": "string", "required": true},
+        "order_id": {"type": "string", "required": true},
+        "payment_type": {"type": "string", "required": true, "allowed_values": ["deposit", "payment"]},
+        "amount": {"type": "monetary number (> 0)", "required": true},
+        "paid_at": {"type": "ISO string", "required": true},
+        "recorded_by_user_id": {"type": "string", "required": true}
+      }
+    },
+    "EquipmentReleasePayload": {
+      "producer": "Module 08",
+      "consumers": ["Module 09"],
+      "properties": {
+        "accountability_id": {"type": "string", "required": true},
+        "order_id": {"type": "string", "required": true},
+        "released_items": {"type": "array of objects", "required": true},
+        "release_recorded_by_user_id": {"type": "string", "required": true}
+      }
+    },
+    "EquipmentVerificationPayload": {
+      "producer": "Module 08",
+      "consumers": ["Module 09"],
+      "properties": {
+        "accountability_id": {"type": "string", "required": true},
+        "verified_by_user_id": {"type": "string", "required": true},
+        "verified_items": {"type": "array of objects", "required": true}
+      },
+      "validation": "released_quantity == returned_quantity + missing_quantity + damaged_quantity"
+    },
+    "ReportRequest": {
+      "producer": "Module 09",
+      "consumers": ["Module 09"],
+      "properties": {
+        "report_type": {"type": "string", "required": true, "allowed_values": ["reservation", "sales", "payment", "inventory", "equipment"]},
+        "start_date": {"type": "ISO string", "optional": true},
+        "end_date": {"type": "ISO string", "optional": true},
+        "export_format": {"type": "string", "optional": true, "allowed_values": ["view", "csv", "excel", "print"]}
+      }
+    },
+    "AuditEventPayload": {
+      "producer": "All Modules",
+      "consumers": ["Module 10"],
+      "properties": {
+        "audit_trail_id": {"type": "string", "required": true},
+        "user_id": {"type": "string", "required": true},
+        "action_type": {"type": "string", "required": true},
+        "record_type": {"type": "string", "required": true},
+        "record_id": {"type": "string", "required": true},
+        "previous_values": {"type": "object", "optional": true},
+        "new_values": {"type": "object", "optional": true}
+      }
+    }
+  }
+}

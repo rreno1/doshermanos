@@ -1,0 +1,74 @@
+{
+  "title": "Shared Data Types & Enums Specification",
+  "file_id": "shared-data-types.json",
+  "enums": {
+    "UserRole": ["administrator", "authorized_staff", "customer"],
+    "ReservationStatus": ["requested", "confirmed", "cancelled"],
+    "OrderStatus": ["confirmed", "completed", "cancelled"],
+    "PaymentStatus": ["unpaid", "partially_paid", "paid"],
+    "InventoryItemType": ["ingredient", "supply"],
+    "InventoryMovementType": ["addition", "reservation", "deduction"],
+    "PaymentTransactionType": ["deposit", "payment"]
+  },
+  "typedefs": {
+    "RecordId": {
+      "type": "string",
+      "description": "Standard unique identifier string (e.g. Firebase push key / UUID v4).",
+      "classification": "System-generated"
+    },
+    "ISODateTimeString": {
+      "type": "string",
+      "description": "ISO 8601 UTC date-time string (e.g. '2026-08-05T14:30:00.000Z').",
+      "classification": "System-generated / User-entered"
+    },
+    "MonetaryAmount": {
+      "type": "number",
+      "description": "Floating point number rounded to 2 decimal places (>= 0).",
+      "classification": "Derived / Snapshot / User-entered"
+    },
+    "WholeNumberQuantity": {
+      "type": "number",
+      "description": "Non-negative integer (>= 0).",
+      "classification": "User-entered / System-generated"
+    },
+    "CustomerContactDetails": {
+      "type": "object",
+      "properties": {
+        "phone": "string",
+        "email": "string",
+        "address": "string"
+      },
+      "classification": "User-entered"
+    },
+    "AuditValueSnapshot": {
+      "type": "object",
+      "properties": {
+        "previous_values": "object | null",
+        "new_values": "object | null"
+      },
+      "classification": "Snapshot / Append-only"
+    }
+  },
+  "field_classification_categories": [
+    {
+      "category": "User-Entered",
+      "description": "Provided directly by users through input forms (e.g. guest_count, event_location)."
+    },
+    {
+      "category": "System-Generated",
+      "description": "Generated automatically by client logic or database engines (e.g. reservation_id, created_at)."
+    },
+    {
+      "category": "Derived",
+      "description": "Dynamically calculated from other fields or child tables. Never stored as primary source data (e.g. available_quantity, remaining_balance, payment_status)."
+    },
+    {
+      "category": "Snapshot",
+      "description": "Immutable historical values copied at a specific milestone (e.g. total_package_price, menu_item_name_snapshot)."
+    },
+    {
+      "category": "Append-Only",
+      "description": "Immutable logs created as new rows without modifying existing records (e.g. Inventory Movement, Payment Transaction, Audit Trail)."
+    }
+  ]
+}

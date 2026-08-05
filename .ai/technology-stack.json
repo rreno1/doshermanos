@@ -1,0 +1,52 @@
+{
+  "title": "Technology Stack Specification",
+  "file_id": "technology-stack.json",
+  "approved_stack": {
+    "markup": {
+      "technology": "HTML5",
+      "details": "Plain semantic HTML5 documents."
+    },
+    "styling": {
+      "technology": "CSS3",
+      "details": "Vanilla CSS3 using custom properties (variables) for design tokens."
+    },
+    "client_logic": {
+      "technology": "Vanilla JavaScript",
+      "details": "Standard ES6+ JavaScript running directly in web browsers."
+    },
+    "frontend_hosting": {
+      "technology": "GitHub Pages",
+      "details": "Static web hosting served via HTTPS."
+    },
+    "backend_services": {
+      "technology": "Firebase Services",
+      "details": "Managed authentication, database, and backend service infrastructure."
+    },
+    "application_model": {
+      "technology": "Progressive Web App (PWA)",
+      "details": "Single codebase with Web App Manifest & Service Worker for installability."
+    }
+  },
+  "platform_access_model": {
+    "desktop": "Fully supported via web browser.",
+    "mobile": "Supported via web browser and installable PWA web app manifest.",
+    "codebase": "Single unified responsive application codebase."
+  },
+  "prohibited_technologies": {
+    "frontend_frameworks": ["React", "Next.js", "Gatsby", "Vue.js", "Nuxt.js", "Angular", "Svelte", "SvelteKit", "Alpine.js", "HTMX", "jQuery", "Lit", "Stencil"],
+    "css_frameworks_preprocessors": ["TailwindCSS", "Bootstrap", "Foundation", "Bulma", "Chakra UI", "Sass", "SCSS", "Less", "Stylus"],
+    "backend_frameworks_platforms": ["Node.js custom servers (Express, Fastify, NestJS)", "Python (Django, Flask, FastAPI)", "PHP (Laravel, Symfony)", "Ruby on Rails", "Java Spring", "Go", "Rust"],
+    "native_mobile_frameworks": ["Native Android (Java/Kotlin)", "Native iOS (Swift/Objective-C)", "React Native", "Expo", "Flutter", "Ionic", "Capacitor", "Cordova"],
+    "cloud_database_platforms": ["AWS", "Azure", "GCP custom VMs/SQL", "MongoDB", "PostgreSQL", "MySQL", "Supabase", "Appwrite"]
+  },
+  "firebase_boundary": {
+    "status": "APPROVED",
+    "undefined_items": [
+      "Exact database service (Firestore vs Realtime DB)",
+      "Exact authentication methods",
+      "Use of Firebase Storage",
+      "Use of Firebase Cloud Functions"
+    ],
+    "rule": "Developers and AI agents MUST NOT hardcode or initialize specific Firebase services until explicitly instructed in Phase 2."
+  }
+}
