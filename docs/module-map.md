@@ -19,11 +19,19 @@
 
 ## Current implementation slice
 
-Implemented first:
+Implemented:
 
 - Firebase project configuration boundary
-- Firestore rules and package index
+- Firestore default-deny security model
+- Firestore rule test suite in CI
 - web package catalog
 - mobile package catalog
+- reservation request Firestore schema
+- customer ownership rules for reservation requests
+- authoritative active-package snapshot checks at reservation creation
+- protection against client-side self-confirmation
+- support for multiple reservation requests on the same event date
 
-Authentication provider selection and protected feature workflows are intentionally deferred until the provider is explicitly approved.
+Authentication provider selection is intentionally still pending. Until authentication is configured, the reservation request UI is not exposed as a production submission path.
+
+Final reservation confirmation is also intentionally pending because Dos Hermanos allows multiple simultaneous events and the exact operational capacity rule has not yet been defined. See `scheduling-policy.md`.
