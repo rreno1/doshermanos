@@ -61,6 +61,8 @@ The authentication implementation does not:
 - use client-side role checks as authorization;
 - persist business records in custom authentication storage.
 
-## Mobile session note
+## Mobile session persistence
 
-The current mobile implementation initializes Firebase Authentication without adding a separate native persistence dependency. Authentication works once Email/Password is enabled, but native persistence behavior should be verified during the mobile release pass before production deployment.
+The mobile app explicitly initializes Firebase Authentication with React Native persistence through `@react-native-async-storage/async-storage`. The storage dependency is used by the Firebase Authentication SDK for the authenticated session; application business records are not copied into AsyncStorage.
+
+Expo currently recommends AsyncStorage 2.2.0 for the installed SDK line, and Firebase exposes `getReactNativePersistence()` specifically for this React Native authentication use case. Session behavior must still be exercised on Android and iOS during the release pass.
