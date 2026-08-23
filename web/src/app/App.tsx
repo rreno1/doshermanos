@@ -1,3 +1,4 @@
+import { AuthMenu } from '../features/auth/AuthMenu';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
 
 export function App() {
@@ -8,7 +9,7 @@ export function App() {
           <span className="brand-name">Dos Hermanos</span>
           <span className="brand-label">Catering</span>
         </a>
-        <span className="location-label">Hilongos, Leyte</span>
+        <AuthMenu />
       </header>
 
       <main id="top">
