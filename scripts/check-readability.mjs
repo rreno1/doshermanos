@@ -83,6 +83,12 @@ async function checkSourceFile(filePath) {
   if (/:\s*any\b|\bas\s+any\b|<any>/.test(source)) {
     violations.push(`${relativePath} uses explicit any. Define the real type instead.`);
   }
+
+  if (/@ts-ignore/.test(source)) {
+    violations.push(
+      `${relativePath} uses @ts-ignore. Use a narrow @ts-expect-error with an explanation when an upstream typing defect requires an exception.`,
+    );
+  }
 }
 
 function isTypeScriptSource(fileName) {
