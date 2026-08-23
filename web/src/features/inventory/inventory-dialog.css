@@ -90,6 +90,37 @@
   line-height: 1.45;
 }
 
+.inventory-checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #d8e0dc;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.inventory-checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.inventory-checkbox-field span,
+.inventory-checkbox-field strong,
+.inventory-checkbox-field small {
+  display: block;
+}
+
+.inventory-checkbox-field small {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
 .inventory-movement-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -155,6 +186,7 @@
 .inventory-close-button:focus-visible,
 .inventory-field input:focus-visible,
 .inventory-field textarea:focus-visible,
+.inventory-checkbox-field input:focus-visible,
 .inventory-movement-option input:focus-visible + span {
   outline: 3px solid rgba(23, 107, 91, 0.25);
   outline-offset: 3px;
