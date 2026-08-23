@@ -54,3 +54,31 @@ jobs:
       - name: Typecheck mobile
         working-directory: mobile
         run: npm run typecheck
+
+  firestore-rules:
+    name: Firestore security rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Firestore test dependencies
+        working-directory: firebase/tests
+        run: npm install --no-audit --no-fund
+
+      - name: Run Firestore security tests
+        working-directory: firebase/tests
+        run: npm test
