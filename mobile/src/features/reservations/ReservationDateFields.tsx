@@ -25,6 +25,7 @@ export function ReservationDateFields({
 }: ReservationDateFieldsProps) {
   const [activeField, setActiveField] = useState<DateField | null>(null);
   const activeDate = activeField === 'start' ? startDate : endDate;
+  const minimumDate = getTodayAtStartOfDay();
 
   function handleDateChange(date: Date) {
     if (activeField === 'start') {
@@ -63,6 +64,7 @@ export function ReservationDateFields({
           <DateTimePicker
             value={activeDate}
             mode="date"
+            minimumDate={activeField === 'end' ? startDate : minimumDate}
             presentation={process.env.EXPO_OS === 'android' ? 'dialog' : 'inline'}
             onValueChange={(_, date) => handleDateChange(date)}
             onDismiss={() => setActiveField(null)}
@@ -114,6 +116,12 @@ function DateButton({
       </Text>
     </Pressable>
   );
+}
+
+function getTodayAtStartOfDay() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
 }
 
 const styles = StyleSheet.create({
