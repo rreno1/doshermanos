@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,8 +23,12 @@ export function PackageCatalogScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const requestNumber = useRef(0);
 
   const loadPackages = useCallback(async (isRefresh = false) => {
+    const currentRequest = requestNumber.current + 1;
+    requestNumber.current = currentRequest;
+
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
@@ -35,31 +39,32 @@ export function PackageCatalogScreen() {
 
     try {
       const activePackages = await loadActivePackages();
+
+      if (requestNumber.current !== currentRequest) {
+        return;
+      }
+
       setPackages(activePackages);
     } catch {
+      if (requestNumber.current !== currentRequest) {
+        return;
+      }
+
       setPackages([]);
       setErrorMessage('We could not load the packages right now. Please try again.');
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      if (requestNumber.current === currentRequest) {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadInitialPackages() {
-      if (!isMounted) {
-        return;
-      }
-
-      await loadPackages();
-    }
-
-    void loadInitialPackages();
+    void loadPackages();
 
     return () => {
-      isMounted = false;
+      requestNumber.current += 1;
     };
   }, [loadPackages]);
 
