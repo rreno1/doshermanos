@@ -5,9 +5,17 @@ export type ReservationStatus =
   | 'cancelled'
   | 'completed';
 
-export type ReservationEvent = {
+export type ReservationRequestInput = {
   startDate: string;
   endDate: string;
+  location: string;
+  guestCount: number;
+  serviceRequirements: string;
+};
+
+export type ReservationEvent = {
+  startDate: Date;
+  endDate: Date;
   location: string;
   guestCount: number;
   serviceRequirements: string;
@@ -26,5 +34,3 @@ export type ReservationRecord = {
   package: ReservationPackageSnapshot;
   createdAt: Date;
 };
-
-export type ReservationRequestInput = ReservationEvent;
