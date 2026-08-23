@@ -13,10 +13,18 @@ export type ReservationRequestInput = {
   serviceRequirements: string;
 };
 
+export type ReservationEvent = {
+  startDate: Date;
+  endDate: Date;
+  location: string;
+  guestCount: number;
+  serviceRequirements: string;
+};
+
 export type ReservationRecord = {
   id: string;
   status: ReservationStatus;
-  event: ReservationRequestInput;
+  event: ReservationEvent;
   package: {
     packageId: string;
     packageName: string;
