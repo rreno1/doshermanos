@@ -179,16 +179,28 @@
   font-size: 0.9rem;
 }
 
+.inventory-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .inventory-primary-button,
-.inventory-secondary-button {
+.inventory-secondary-button,
+.inventory-text-button {
   border: 0;
-  border-radius: 999px;
   cursor: pointer;
   font-weight: 720;
   transition:
     transform 150ms ease,
     background-color 150ms ease,
     opacity 150ms ease;
+}
+
+.inventory-primary-button,
+.inventory-secondary-button {
+  border-radius: 999px;
 }
 
 .inventory-primary-button {
@@ -212,6 +224,17 @@
   background: #d7ebe5;
 }
 
+.inventory-text-button {
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--accent-dark);
+  background: transparent;
+}
+
+.inventory-text-button:hover {
+  background: #eef5f2;
+}
+
 .inventory-primary-button:disabled,
 .inventory-secondary-button:disabled {
   cursor: not-allowed;
@@ -219,7 +242,8 @@
 }
 
 .inventory-primary-button:focus-visible,
-.inventory-secondary-button:focus-visible {
+.inventory-secondary-button:focus-visible,
+.inventory-text-button:focus-visible {
   outline: 3px solid rgba(23, 107, 91, 0.25);
   outline-offset: 3px;
 }
@@ -344,7 +368,7 @@
     grid-column: auto;
   }
 
-  .inventory-item-row .inventory-secondary-button {
-    justify-self: start;
+  .inventory-row-actions {
+    justify-content: flex-start;
   }
 }
