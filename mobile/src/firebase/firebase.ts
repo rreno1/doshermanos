@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApps, initializeApp } from 'firebase/app';
-import {
-  getAuth,
-  getReactNativePersistence,
-  initializeAuth,
-} from 'firebase/auth';
+import { getAuth, initializeAuth } from 'firebase/auth';
+// Firebase's React Native runtime exports this function, but its Expo TypeScript
+// resolution currently omits the export from the public declaration file.
+// @ts-expect-error Remove this when Firebase's Expo typings expose the documented export.
+import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
