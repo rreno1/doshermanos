@@ -54,8 +54,8 @@ Fields:
 
 - `customerId`: Firebase Authentication UID of the customer
 - `status`: `pending_review | confirmed | rejected | cancelled | completed`
-- `event.startDate`: date-only string in `YYYY-MM-DD`
-- `event.endDate`: date-only string in `YYYY-MM-DD`
+- `event.startDate`: Firestore timestamp representing the selected business date at 00:00 UTC
+- `event.endDate`: Firestore timestamp representing the selected business date at 00:00 UTC
 - `event.location`: string, 1-300 characters
 - `event.guestCount`: integer, 1-10,000
 - `event.serviceRequirements`: string, up to 1,000 characters; may be empty
@@ -70,8 +70,11 @@ Customer creation rules:
 - the caller must be an active customer;
 - `customerId` must equal the authenticated UID;
 - the initial status must be `pending_review`;
+- `event.startDate` and `event.endDate` must be timestamps and the end date cannot be earlier than the start date;
 - package name and base price must match the referenced active package;
 - customers cannot directly edit or delete a submitted request.
+
+The application validates that the selected start date is not in the past before submission. Firestore independently enforces the persisted date type and chronological ordering so a client cannot submit an invalid date string or reverse the event range.
 
 Customer read pattern:
 
