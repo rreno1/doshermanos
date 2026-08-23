@@ -18,6 +18,14 @@ import type { CateringPackage } from '../packages/package.types';
 import { createReservationRequest } from './reservation.service';
 import { validateReservationForm } from './reservation.validation';
 
+type DateField = 'start' | 'end';
+
+const displayDateFormatter = new Intl.DateTimeFormat('en-PH', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
 function formatDateOnly(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -36,6 +44,7 @@ export function ReservationRequestScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [activeDateField, setActiveDateField] = useState<DateField | null>(null);
   const [location, setLocation] = useState('');
   const [guestCount, setGuestCount] = useState('');
   const [serviceRequirements, setServiceRequirements] = useState('');
@@ -87,6 +96,20 @@ export function ReservationRequestScreen() {
     };
   }, [packageId]);
 
+  function handleDateChange(field: DateField, date: Date) {
+    if (field === 'start') {
+      setStartDate(date);
+    } else {
+      setEndDate(date);
+    }
+
+    setErrorMessage(null);
+
+    if (Platform.OS === 'android') {
+      setActiveDateField(null);
+    }
+  }
+
   async function handleSubmit() {
     if (!cateringPackage) {
       return;
@@ -127,6 +150,7 @@ export function ReservationRequestScreen() {
   }
 
   const canRequest = authState.status === 'active' && authState.profile?.role === 'customer';
+  const activeDate = activeDateField === 'start' ? startDate : endDate;
 
   return (
     <>
@@ -183,16 +207,50 @@ export function ReservationRequestScreen() {
                 </View>
               ) : (
                 <View style={styles.form}>
-                  <FieldLabel label="Start date" />
-                  <DateTimePicker value={startDate} mode="date" onValueChange={(_, date) => setStartDate(date)} />
+                  <FieldLabel label="Event dates" />
+                  <View style={styles.dateRow}>
+                    <DateButton
+                      label="Start"
+                      date={startDate}
+                      isActive={activeDateField === 'start'}
+                      onPress={() => setActiveDateField('start')}
+                    />
+                    <DateButton
+                      label="End"
+                      date={endDate}
+                      isActive={activeDateField === 'end'}
+                      onPress={() => setActiveDateField('end')}
+                    />
+                  </View>
 
-                  <FieldLabel label="End date" />
-                  <DateTimePicker value={endDate} mode="date" onValueChange={(_, date) => setEndDate(date)} />
+                  {activeDateField ? (
+                    <View style={styles.datePickerBox}>
+                      <DateTimePicker
+                        value={activeDate}
+                        mode="date"
+                        presentation={Platform.OS === 'android' ? 'dialog' : 'inline'}
+                        onValueChange={(_, date) => handleDateChange(activeDateField, date)}
+                        onDismiss={() => setActiveDateField(null)}
+                      />
+                      {Platform.OS !== 'android' ? (
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={() => setActiveDateField(null)}
+                          style={({ pressed }) => [styles.dateDoneButton, pressed && styles.dateDonePressed]}
+                        >
+                          <Text style={styles.dateDoneText}>Done</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  ) : null}
 
                   <FieldLabel label="Event location" />
                   <TextInput
                     value={location}
-                    onChangeText={setLocation}
+                    onChangeText={(value) => {
+                      setLocation(value);
+                      setErrorMessage(null);
+                    }}
                     placeholder="Venue or complete event location"
                     maxLength={300}
                     style={styles.input}
@@ -201,7 +259,10 @@ export function ReservationRequestScreen() {
                   <FieldLabel label="Guest count" />
                   <TextInput
                     value={guestCount}
-                    onChangeText={setGuestCount}
+                    onChangeText={(value) => {
+                      setGuestCount(value);
+                      setErrorMessage(null);
+                    }}
                     placeholder="Expected number of guests"
                     keyboardType="number-pad"
                     maxLength={5}
@@ -211,7 +272,10 @@ export function ReservationRequestScreen() {
                   <FieldLabel label="Service requirements" optional />
                   <TextInput
                     value={serviceRequirements}
-                    onChangeText={setServiceRequirements}
+                    onChangeText={(value) => {
+                      setServiceRequirements(value);
+                      setErrorMessage(null);
+                    }}
                     placeholder="Setup, service, dietary, or other event requirements"
                     maxLength={1000}
                     multiline
@@ -245,6 +309,34 @@ export function ReservationRequestScreen() {
   );
 }
 
+function DateButton({
+  label,
+  date,
+  isActive,
+  onPress,
+}: {
+  label: string;
+  date: Date;
+  isActive: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: isActive }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.dateButton,
+        isActive && styles.dateButtonActive,
+        pressed && styles.dateButtonPressed,
+      ]}
+    >
+      <Text style={styles.dateButtonLabel}>{label}</Text>
+      <Text selectable style={styles.dateButtonValue}>{displayDateFormatter.format(date)}</Text>
+    </Pressable>
+  );
+}
+
 function FieldLabel({ label, optional = false }: { label: string; optional?: boolean }) {
   return (
     <View style={styles.labelRow}>
@@ -265,6 +357,16 @@ const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 6 },
   label: { color: '#263732', fontSize: 14, fontWeight: '700' },
   optional: { color: '#74817D', fontSize: 12 },
+  dateRow: { flexDirection: 'row', gap: 10 },
+  dateButton: { flex: 1, gap: 5, borderWidth: 1, borderColor: '#D8E0DC', borderRadius: 16, backgroundColor: '#FFFFFF', padding: 14 },
+  dateButtonActive: { borderColor: '#176B5B', backgroundColor: '#F0F8F5' },
+  dateButtonPressed: { transform: [{ scale: 0.99 }] },
+  dateButtonLabel: { color: '#64716D', fontSize: 12, fontWeight: '700' },
+  dateButtonValue: { color: '#17211F', fontSize: 15, fontWeight: '700' },
+  datePickerBox: { gap: 10, borderWidth: 1, borderColor: '#DDE5E1', borderRadius: 18, backgroundColor: '#FFFFFF', padding: 12 },
+  dateDoneButton: { alignSelf: 'flex-end', borderRadius: 999, backgroundColor: '#E5F3EF', paddingHorizontal: 16, paddingVertical: 9 },
+  dateDonePressed: { backgroundColor: '#D8ECE6' },
+  dateDoneText: { color: '#0E5144', fontSize: 14, fontWeight: '700' },
   input: { minHeight: 50, borderWidth: 1, borderColor: '#D8E0DC', borderRadius: 14, backgroundColor: '#FFFFFF', paddingHorizontal: 14, color: '#17211F', fontSize: 15 },
   textArea: { minHeight: 112, paddingTop: 14 },
   primaryButton: { alignSelf: 'flex-start', marginTop: 8, borderRadius: 999, backgroundColor: '#176B5B', paddingHorizontal: 20, paddingVertical: 14 },
