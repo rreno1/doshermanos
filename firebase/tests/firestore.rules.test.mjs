@@ -180,6 +180,30 @@ test('a new signed-in user can create only an active customer profile for themse
     }),
   );
 
+  const secondDatabase = testEnvironment
+    .authenticatedContext('second-new-customer')
+    .firestore();
+
+  await assertFails(
+    setDoc(doc(secondDatabase, 'users', 'second-new-customer'), {
+      displayName: 'Forged Administrator',
+      role: 'admin',
+      status: 'active',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }),
+  );
+
+  await assertFails(
+    setDoc(doc(secondDatabase, 'users', 'second-new-customer'), {
+      displayName: 'Inactive Customer',
+      role: 'customer',
+      status: 'inactive',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }),
+  );
+
   await assertFails(
     setDoc(doc(database, 'users', 'different-user'), {
       displayName: 'Different User',

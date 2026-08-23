@@ -1,6 +1,7 @@
 import { FirebaseError } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
@@ -41,14 +42,8 @@ function parseUserProfile(userId: string, value: unknown): UserProfile {
   };
 }
 
-async function createCustomerProfile(user: User): Promise<UserProfile> {
-  const displayName = user.displayName?.trim();
-
-  if (!displayName) {
-    throw new Error('Your account profile is incomplete.');
-  }
-
-  const profileRef = doc(firestore, 'users', user.uid);
+async function createCustomerProfile(userId: string, displayName: string): Promise<void> {
+  const profileRef = doc(firestore, 'users', userId);
 
   await setDoc(profileRef, {
     displayName,
@@ -57,21 +52,14 @@ async function createCustomerProfile(user: User): Promise<UserProfile> {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-
-  return {
-    id: user.uid,
-    displayName,
-    role: 'customer',
-    status: 'active',
-  };
 }
 
-export async function loadUserProfile(user: User): Promise<UserProfile> {
+export async function loadUserProfile(user: User): Promise<UserProfile | null> {
   const profileRef = doc(firestore, 'users', user.uid);
   const profileSnapshot = await getDoc(profileRef);
 
   if (!profileSnapshot.exists()) {
-    return createCustomerProfile(user);
+    return null;
   }
 
   return parseUserProfile(user.uid, profileSnapshot.data());
@@ -89,17 +77,27 @@ export async function registerCustomer(
   email: string,
   password: string,
 ): Promise<void> {
+  const cleanDisplayName = displayName.trim();
   const credential = await createUserWithEmailAndPassword(
     firebaseAuth,
     email.trim(),
     password,
   );
 
-  await updateProfile(credential.user, {
-    displayName: displayName.trim(),
-  });
+  try {
+    await updateProfile(credential.user, {
+      displayName: cleanDisplayName,
+    });
+    await createCustomerProfile(credential.user.uid, cleanDisplayName);
+  } catch (error) {
+    try {
+      await deleteUser(credential.user);
+    } catch {
+      await signOut(firebaseAuth);
+    }
 
-  await createCustomerProfile(credential.user);
+    throw error;
+  }
 }
 
 export async function resetPassword(email: string): Promise<void> {

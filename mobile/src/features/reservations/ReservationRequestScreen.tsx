@@ -39,12 +39,14 @@ export function ReservationRequestScreen() {
       return;
     }
 
+    const selectedPackageId = packageId;
+
     async function loadPackage() {
       setIsLoading(true);
       setLoadError(null);
 
       try {
-        const activePackage = await loadActivePackageById(packageId);
+        const activePackage = await loadActivePackageById(selectedPackageId);
 
         if (requestNumber.current !== currentRequest) {
           return;

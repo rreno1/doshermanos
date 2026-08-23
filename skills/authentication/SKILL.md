@@ -49,12 +49,16 @@ Firebase Authentication provides identity. Firestore Security Rules provide the 
 22. Do not store user passwords in Firestore, application state beyond the active form field, logs, analytics, or custom files.
 23. Password-reset UI must avoid revealing whether an email address belongs to an account when Firebase behavior permits a generic response.
 24. Authentication provider configuration errors must fail closed and show a safe setup message rather than bypassing authentication.
+25. Customer profile creation must occur only inside the explicit registration flow. Normal sign-in must never silently create a missing Firestore profile.
+26. A missing Firestore profile after sign-in is an account-setup error and must fail closed.
+27. If registration creates a Firebase Authentication identity but cannot finish the required Firestore profile, attempt to remove the newly created identity. If cleanup cannot complete, sign the session out and surface a safe error.
+28. A bounded retry is acceptable only to bridge the short registration window between Firebase Authentication identity creation and Firestore profile creation. It must not turn missing-profile recovery into an indefinite loop.
 
 ## User profile rule
 
 Keep authentication identity and application profile concerns clear. A Firestore user/profile document may contain application fields such as role, status, display name, or business metadata, but clients must not be able to alter protected role/status fields unless an explicitly authorized administrative workflow permits it.
 
-If a signed-in identity does not yet have a Firestore profile, the client may create one only when the rules constrain that profile to the current UID, `customer` role, and `active` status. Never use missing-profile recovery as a role-elevation path.
+Self-registration may explicitly create the signed-in user's profile only when Firestore Rules constrain that document to the current UID, `customer` role, and `active` status. Do not create a profile merely because an authenticated user signed in and no document was found. Missing-profile recovery must never become an implicit account-provisioning path.
 
 ## Account-status rule
 
@@ -70,6 +74,8 @@ On authentication change:
 4. resolve the minimum required profile/role information;
 5. allow permitted feature queries;
 6. show denied or inactive state without leaking previous data.
+
+For a brand-new registration, a short bounded retry may be used while the explicit profile write completes. After that bounded window, a missing profile must become an error state rather than being created automatically.
 
 ## Provider rule
 

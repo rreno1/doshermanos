@@ -31,6 +31,8 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const profileCreationRetryCount = 4;
+const profileCreationRetryDelayMs = 250;
 
 const signedOutState: AuthState = {
   status: 'signed_out',
@@ -56,9 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthState({ status: 'loading', profile: null });
 
     try {
-      const profile = await loadUserProfile(user);
+      const profile = await loadProfileAfterAuthChange(user);
 
       if (resolutionNumber.current !== currentResolution) {
+        return;
+      }
+
+      if (!profile) {
+        setAuthState({ status: 'error', profile: null });
         return;
       }
 
@@ -105,4 +112,27 @@ export function useAuth() {
   }
 
   return context;
+}
+
+async function loadProfileAfterAuthChange(user: User): Promise<UserProfile | null> {
+  for (let attempt = 0; attempt < profileCreationRetryCount; attempt += 1) {
+    const profile = await loadUserProfile(user);
+
+    if (profile) {
+      return profile;
+    }
+
+    const hasAnotherAttempt = attempt < profileCreationRetryCount - 1;
+    if (hasAnotherAttempt) {
+      await wait(profileCreationRetryDelayMs);
+    }
+  }
+
+  return null;
+}
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
 }
