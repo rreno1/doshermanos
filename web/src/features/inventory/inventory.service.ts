@@ -9,6 +9,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  updateDoc,
   type DocumentData,
   type QueryDocumentSnapshot,
   type Unsubscribe,
@@ -16,10 +17,10 @@ import {
 import { firestore } from '../../firebase/firebase';
 import type {
   InventoryItem,
+  InventoryItemDetailsInput,
   InventoryMovement,
   InventoryMovementInput,
   InventoryMovementType,
-  NewInventoryItemInput,
 } from './inventory.types';
 
 const maximumInventoryItems = 100;
@@ -77,7 +78,9 @@ export function subscribeToRecentInventoryMovements(
   );
 }
 
-export async function createInventoryItem(input: NewInventoryItemInput): Promise<void> {
+export async function createInventoryItem(
+  input: InventoryItemDetailsInput,
+): Promise<void> {
   const itemRef = doc(collection(firestore, 'inventory'));
 
   await setDoc(itemRef, {
@@ -88,6 +91,19 @@ export async function createInventoryItem(input: NewInventoryItemInput): Promise
     isActive: true,
     lastMovementId: null,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateInventoryItemDetails(
+  inventoryItemId: string,
+  input: InventoryItemDetailsInput,
+): Promise<void> {
+  await updateDoc(doc(firestore, 'inventory', inventoryItemId), {
+    name: input.name,
+    unit: input.unit,
+    lowStockThreshold: input.lowStockThreshold,
+    isActive: input.isActive,
     updatedAt: serverTimestamp(),
   });
 }
