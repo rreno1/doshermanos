@@ -11,6 +11,9 @@ import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../../firebase/firebase';
 import type { UserProfile, UserRole, UserStatus } from './auth.types';
 
+const validRoles: UserRole[] = ['customer', 'staff', 'admin'];
+const validStatuses: UserStatus[] = ['active', 'inactive', 'suspended'];
+
 function parseUserProfile(userId: string, value: unknown): UserProfile {
   if (!value || typeof value !== 'object') {
     throw new Error('Account profile is invalid.');
@@ -22,8 +25,10 @@ function parseUserProfile(userId: string, value: unknown): UserProfile {
 
   if (
     typeof profileData.displayName !== 'string' ||
-    !['customer', 'staff', 'admin'].includes(String(role)) ||
-    !['active', 'inactive', 'suspended'].includes(String(status))
+    typeof role !== 'string' ||
+    !validRoles.includes(role as UserRole) ||
+    typeof status !== 'string' ||
+    !validStatuses.includes(status as UserStatus)
   ) {
     throw new Error('Account profile is invalid.');
   }
@@ -98,7 +103,15 @@ export async function registerCustomer(
 }
 
 export async function resetPassword(email: string): Promise<void> {
-  await sendPasswordResetEmail(firebaseAuth, email.trim());
+  try {
+    await sendPasswordResetEmail(firebaseAuth, email.trim());
+  } catch (error) {
+    if (error instanceof FirebaseError && error.code === 'auth/user-not-found') {
+      return;
+    }
+
+    throw error;
+  }
 }
 
 export async function signOutCurrentUser(): Promise<void> {
