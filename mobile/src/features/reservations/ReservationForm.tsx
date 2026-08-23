@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { CateringPackage } from '../packages/package.types';
 import { createReservationRequest } from './reservation.service';
@@ -124,11 +124,7 @@ export function ReservationForm({
       </Text>
 
       {errorMessage ? (
-        <Text
-          selectable
-          accessibilityLiveRegion="assertive"
-          style={styles.errorText}
-        >
+        <Text selectable accessibilityLiveRegion="assertive" style={styles.errorText}>
           {errorMessage}
         </Text>
       ) : null}
@@ -159,7 +155,7 @@ function FormField({
 }: {
   label: string;
   optional?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <View style={styles.field}>
