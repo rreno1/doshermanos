@@ -6,7 +6,7 @@ A small web and mobile catering management system for Dos Hermanos in Hilongos, 
 
 - Web: React + TypeScript + Vite
 - Mobile: Expo React Native
-- Authentication: Firebase Authentication
+- Authentication: Firebase Authentication using Email/Password
 - Database: Cloud Firestore
 - Web hosting: Firebase Hosting
 
@@ -20,6 +20,9 @@ The current vertical slices establish:
 - a default-deny Firestore security model;
 - automated Firestore Security Rules tests in CI;
 - a public active-package catalog on web and mobile;
+- Firebase Email/Password registration, sign-in, sign-out, and password reset UI on web and mobile;
+- customer profile creation under `users/{uid}` with customer-only self-registration;
+- centralized authentication-state handling with account status resolution;
 - the protected reservation-request data boundary for authenticated customers;
 - package name/base-price snapshot validation against the authoritative active package;
 - customer ownership isolation for reservation requests;
@@ -27,7 +30,7 @@ The current vertical slices establish:
 
 No sample business data is committed.
 
-Authentication provider selection has not been implemented yet. The repository contains the authorization boundary for customer, staff, and administrator profiles, but no provider is assumed until it is explicitly configured.
+Email/Password authentication can remain disabled in Firebase Console while development continues. When ready, enable it under **Firebase Authentication -> Sign-in method**. No other authentication provider is assumed by the current code. See `docs/authentication.md`.
 
 Dos Hermanos may accept multiple events on the same date and at overlapping times. The system therefore does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the real operational capacity rule is defined. See `docs/scheduling-policy.md`.
 
@@ -40,7 +43,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Fill the Firebase client configuration in `web/.env.local` before running the catalog against Firestore.
+Fill the Firebase client configuration in `web/.env.local` before running the app against Firestore and Authentication.
 
 ## Mobile setup
 
@@ -51,7 +54,7 @@ cp .env.example .env.local
 npm run start
 ```
 
-Fill the Firebase client configuration in `mobile/.env.local` before connecting the app to Firestore.
+Fill the Firebase client configuration in `mobile/.env.local` before connecting the app to Firebase.
 
 ## Firebase setup
 
