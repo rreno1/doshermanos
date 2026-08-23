@@ -1,18 +1,19 @@
 import type {
+  InventoryItemDetailsInput,
   InventoryMovementInput,
   InventoryMovementType,
-  NewInventoryItemInput,
 } from './inventory.types';
 
 type ValidationResult<T> =
   | { value: T; message: null }
   | { value: null; message: string };
 
-export function validateNewInventoryItem(
+export function validateInventoryItemDetails(
   name: string,
   unit: string,
   lowStockThreshold: string,
-): ValidationResult<NewInventoryItemInput> {
+  isActive: boolean,
+): ValidationResult<InventoryItemDetailsInput> {
   const cleanName = name.trim();
   const cleanUnit = unit.trim();
   const parsedThreshold = parseWholeNumber(lowStockThreshold);
@@ -38,6 +39,7 @@ export function validateNewInventoryItem(
       name: cleanName,
       unit: cleanUnit,
       lowStockThreshold: parsedThreshold,
+      isActive,
     },
     message: null,
   };
