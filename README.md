@@ -14,9 +14,22 @@ PayMongo and Cloud Functions are intentionally excluded from the current impleme
 
 ## Current implementation
 
-The first vertical slice establishes the project foundation and public package catalog on both web and mobile. No sample business data is committed. The package screens read only active package documents from Firestore.
+The current vertical slices establish:
 
-Authentication provider selection has not been implemented yet. The repository already contains the security boundary needed for customer, staff, and administrator profiles, but no provider is assumed until it is explicitly approved.
+- Firebase project and Hosting configuration boundaries;
+- a default-deny Firestore security model;
+- automated Firestore Security Rules tests in CI;
+- a public active-package catalog on web and mobile;
+- the protected reservation-request data boundary for authenticated customers;
+- package name/base-price snapshot validation against the authoritative active package;
+- customer ownership isolation for reservation requests;
+- protection against clients creating already-confirmed reservations.
+
+No sample business data is committed.
+
+Authentication provider selection has not been implemented yet. The repository contains the authorization boundary for customer, staff, and administrator profiles, but no provider is assumed until it is explicitly configured.
+
+Dos Hermanos may accept multiple events on the same date and at overlapping times. The system therefore does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the real operational capacity rule is defined. See `docs/scheduling-policy.md`.
 
 ## Web setup
 
@@ -57,6 +70,16 @@ cd web
 npm run build
 cd ..
 firebase deploy --only hosting
+```
+
+## Firestore rule tests
+
+The rule test suite uses the Firebase Emulator Suite and is also executed by GitHub Actions.
+
+```bash
+cd firebase/tests
+npm install
+npm test
 ```
 
 ## Development rules
