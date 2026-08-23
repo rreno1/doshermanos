@@ -1,0 +1,167 @@
+import { useState, type FormEvent } from 'react';
+import type { CateringPackage } from '../packages/package.types';
+import { createReservationRequest } from './reservation.service';
+import {
+  validateReservationForm,
+  type ReservationFormValues,
+} from './reservation.validation';
+
+const emptyForm: ReservationFormValues = {
+  startDate: '',
+  endDate: '',
+  location: '',
+  guestCount: '',
+  serviceRequirements: '',
+};
+
+type ReservationFormProps = {
+  customerId: string;
+  cateringPackage: CateringPackage;
+  onSubmitted: () => void;
+};
+
+export function ReservationForm({
+  customerId,
+  cateringPackage,
+  onSubmitted,
+}: ReservationFormProps) {
+  const [form, setForm] = useState<ReservationFormValues>(emptyForm);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ReservationFormValues, string>>
+  >({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const minimumDate = todayDateOnly();
+
+  function updateField(field: keyof ReservationFormValues, value: string) {
+    setForm((current) => {
+      if (field === 'startDate' && current.endDate && value > current.endDate) {
+        return { ...current, startDate: value, endDate: value };
+      }
+
+      return { ...current, [field]: value };
+    });
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setSubmitMessage(null);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const validation = validateReservationForm(form);
+    setErrors(validation.errors);
+
+    if (!validation.value) {
+      setSubmitMessage('Check the highlighted fields and try again.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+
+    try {
+      await createReservationRequest(customerId, cateringPackage, validation.value);
+      onSubmitted();
+    } catch {
+      setSubmitMessage('We could not send your reservation request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form className="reservation-form" onSubmit={handleSubmit} noValidate>
+      <div className="reservation-form-grid">
+        <label>
+          <span>Start date</span>
+          <input
+            type="date"
+            min={minimumDate}
+            value={form.startDate}
+            onChange={(event) => updateField('startDate', event.target.value)}
+            aria-invalid={Boolean(errors.startDate)}
+          />
+          {errors.startDate ? <small>{errors.startDate}</small> : null}
+        </label>
+
+        <label>
+          <span>End date</span>
+          <input
+            type="date"
+            min={form.startDate || minimumDate}
+            value={form.endDate}
+            onChange={(event) => updateField('endDate', event.target.value)}
+            aria-invalid={Boolean(errors.endDate)}
+          />
+          {errors.endDate ? <small>{errors.endDate}</small> : null}
+        </label>
+      </div>
+
+      <label>
+        <span>Event location</span>
+        <input
+          type="text"
+          value={form.location}
+          onChange={(event) => updateField('location', event.target.value)}
+          maxLength={300}
+          autoComplete="street-address"
+          placeholder="Venue or complete event location"
+          aria-invalid={Boolean(errors.location)}
+        />
+        {errors.location ? <small>{errors.location}</small> : null}
+      </label>
+
+      <label>
+        <span>Guest count</span>
+        <input
+          type="number"
+          value={form.guestCount}
+          onChange={(event) => updateField('guestCount', event.target.value)}
+          min="1"
+          max="10000"
+          inputMode="numeric"
+          placeholder="Expected number of guests"
+          aria-invalid={Boolean(errors.guestCount)}
+        />
+        {errors.guestCount ? <small>{errors.guestCount}</small> : null}
+      </label>
+
+      <label>
+        <span>
+          Service requirements <em>Optional</em>
+        </span>
+        <textarea
+          value={form.serviceRequirements}
+          onChange={(event) => updateField('serviceRequirements', event.target.value)}
+          maxLength={1000}
+          rows={4}
+          placeholder="Setup, service, dietary, or other event requirements"
+          aria-invalid={Boolean(errors.serviceRequirements)}
+        />
+        {errors.serviceRequirements ? <small>{errors.serviceRequirements}</small> : null}
+      </label>
+
+      <p className="reservation-form-note">
+        Sending this form creates a request only. It does not reserve or confirm the event automatically.
+      </p>
+
+      {submitMessage ? (
+        <p className="reservation-submit-message" role="alert">
+          {submitMessage}
+        </p>
+      ) : null}
+
+      <button className="primary-button" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Sending request…' : 'Send reservation request'}
+      </button>
+    </form>
+  );
+}
+
+function todayDateOnly() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
