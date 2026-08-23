@@ -19,7 +19,7 @@ No private Firebase credentials belong in either client. The existing web and mo
 
 ## Account creation
 
-Customer registration creates:
+Customer registration explicitly creates:
 
 1. a Firebase Authentication identity using email and password;
 2. a Firebase display name;
@@ -29,11 +29,15 @@ Customer registration creates:
    - `status: active`;
    - server timestamps.
 
+Profile creation is part of the registration flow. Normal sign-in does not silently create a missing Firestore profile. If registration cannot finish its profile setup, the client attempts to remove the newly created Firebase Authentication identity; if cleanup cannot complete, it signs the session out and reports a safe failure.
+
 Clients cannot register themselves as staff or administrator. The Firestore Security Rules independently enforce the customer-only role and active status during self-registration.
 
 ## Existing users without a profile
 
-If an authenticated identity exists but `users/{uid}` does not, the application may create the missing profile only as an active customer and only for the signed-in UID. This does not provide a role-elevation path because Firestore Security Rules still reject self-assigned staff or administrator roles.
+An authenticated identity without `users/{uid}` is treated as an account-setup problem rather than being silently converted into a customer account during sign-in. Staff and administrator identities therefore cannot accidentally become customer profiles simply because their profile document is missing.
+
+Immediately after a new Firebase Authentication identity is created, the authentication observer may run before the Firestore profile write has completed. The provider performs a small bounded retry while the registration flow finishes. If the profile still does not exist, access fails closed and the account-setup error state is shown.
 
 ## Authorization
 
