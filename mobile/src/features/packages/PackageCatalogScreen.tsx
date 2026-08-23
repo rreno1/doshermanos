@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../auth/AuthProvider';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
 
@@ -19,6 +21,8 @@ const pesoFormatter = new Intl.NumberFormat('en-PH', {
 });
 
 export function PackageCatalogScreen() {
+  const router = useRouter();
+  const { authState } = useAuth();
   const [packages, setPackages] = useState<CateringPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,6 +72,13 @@ export function PackageCatalogScreen() {
     };
   }, [loadPackages]);
 
+  const accountLabel =
+    authState.status === 'active' && authState.profile
+      ? authState.profile.displayName
+      : authState.status === 'loading'
+        ? 'Account'
+        : 'Sign in';
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <FlatList
@@ -80,7 +91,22 @@ export function PackageCatalogScreen() {
           <View style={styles.header}>
             <View style={styles.brandRow}>
               <Text style={styles.brand}>Dos Hermanos</Text>
-              <Text style={styles.location}>Hilongos, Leyte</Text>
+              <View style={styles.accountArea}>
+                <Text style={styles.location}>Hilongos, Leyte</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open account"
+                  onPress={() => router.push('/auth')}
+                  style={({ pressed }) => [
+                    styles.accountButton,
+                    pressed && styles.accountButtonPressed,
+                  ]}
+                >
+                  <Text numberOfLines={1} style={styles.accountButtonText}>
+                    {accountLabel}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
             <Text style={styles.eyebrow}>Catering packages</Text>
             <Text style={styles.title}>Choose a package that fits your event.</Text>
@@ -177,8 +203,9 @@ const styles = StyleSheet.create({
   },
   brandRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: 16,
     marginBottom: 54,
   },
   brand: {
@@ -186,10 +213,34 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.5,
+    paddingTop: 8,
+  },
+  accountArea: {
+    alignItems: 'flex-end',
+    gap: 7,
+    maxWidth: 190,
   },
   location: {
     color: '#64716D',
+    fontSize: 12,
+  },
+  accountButton: {
+    maxWidth: 190,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#DCE3DF',
+    backgroundColor: '#FFFFFF',
+  },
+  accountButtonPressed: {
+    transform: [{ scale: 0.98 }],
+    backgroundColor: '#EDF5F2',
+  },
+  accountButtonText: {
+    color: '#0E5144',
     fontSize: 13,
+    fontWeight: '700',
   },
   eyebrow: {
     color: '#176B5B',
