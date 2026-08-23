@@ -21,7 +21,8 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   const [inventoryError, setInventoryError] = useState(false);
   const [movementError, setMovementError] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [stockItem, setStockItem] = useState<InventoryItem | null>(null);
 
   useEffect(() => {
     setIsLoadingItems(true);
@@ -61,6 +62,21 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
     [activeItems],
   );
 
+  function openNewItemDialog() {
+    setEditingItem(null);
+    setIsItemDialogOpen(true);
+  }
+
+  function openEditItemDialog(item: InventoryItem) {
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
+  }
+
+  function closeItemDialog() {
+    setIsItemDialogOpen(false);
+    setEditingItem(null);
+  }
+
   return (
     <section className="inventory-section" id="inventory" aria-labelledby="inventory-title">
       <div className="inventory-heading">
@@ -74,7 +90,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
         <button
           type="button"
           className="inventory-primary-button"
-          onClick={() => setIsItemDialogOpen(true)}
+          onClick={openNewItemDialog}
         >
           Add inventory item
         </button>
@@ -82,7 +98,11 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 
       <div className="inventory-summary" aria-label="Inventory summary">
         <SummaryValue label="Active items" value={activeItems.length} />
-        <SummaryValue label="Low stock" value={lowStockItems.length} warn={lowStockItems.length > 0} />
+        <SummaryValue
+          label="Low stock"
+          value={lowStockItems.length}
+          warn={lowStockItems.length > 0}
+        />
       </div>
 
       <div className="inventory-layout">
@@ -105,13 +125,14 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 
       <InventoryItemDialog
         isOpen={isItemDialogOpen}
-        onClose={() => setIsItemDialogOpen(false)}
+        item={editingItem}
+        onClose={closeItemDialog}
       />
       <InventoryMovementDialog
-        item={selectedItem}
+        item={stockItem}
         recordedBy={staffId}
         recordedByName={staffName}
-        onClose={() => setSelectedItem(null)}
+        onClose={() => setStockItem(null)}
       />
     </section>
   );
@@ -135,7 +156,8 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
           <InventoryItemRow
             key={item.id}
             item={item}
-            onUpdateStock={() => setSelectedItem(item)}
+            onEdit={() => openEditItemDialog(item)}
+            onUpdateStock={() => setStockItem(item)}
           />
         ))}
       </div>
@@ -179,13 +201,15 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 
 function InventoryItemRow({
   item,
+  onEdit,
   onUpdateStock,
 }: {
   item: InventoryItem;
+  onEdit: () => void;
   onUpdateStock: () => void;
 }) {
   const isLowStock = item.isActive && item.quantity <= item.lowStockThreshold;
-  const statusLabel = item.isActive ? (isLowStock ? 'Low stock' : 'In stock') : 'Inactive';
+  const statusLabel = getInventoryStatusLabel(item, isLowStock);
 
   return (
     <article className="inventory-item-row">
@@ -201,16 +225,23 @@ function InventoryItemRow({
       </div>
       <div className="inventory-threshold">
         <span>Low at</span>
-        <strong>{item.lowStockThreshold} {item.unit}</strong>
+        <strong>
+          {item.lowStockThreshold} {item.unit}
+        </strong>
       </div>
-      <button
-        type="button"
-        className="inventory-secondary-button"
-        onClick={onUpdateStock}
-        disabled={!item.isActive}
-      >
-        Update stock
-      </button>
+      <div className="inventory-row-actions">
+        <button type="button" className="inventory-text-button" onClick={onEdit}>
+          Edit
+        </button>
+        <button
+          type="button"
+          className="inventory-secondary-button"
+          onClick={onUpdateStock}
+          disabled={!item.isActive}
+        >
+          Update stock
+        </button>
+      </div>
     </article>
   );
 }
@@ -224,8 +255,12 @@ function SummaryValue({
   value: number;
   warn?: boolean;
 }) {
+  const className = warn
+    ? 'inventory-summary-value inventory-summary-warn'
+    : 'inventory-summary-value';
+
   return (
-    <div className={warn ? 'inventory-summary-value inventory-summary-warn' : 'inventory-summary-value'}>
+    <div className={className}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -254,6 +289,18 @@ function StatusBox({
       {message}
     </div>
   );
+}
+
+function getInventoryStatusLabel(item: InventoryItem, isLowStock: boolean): string {
+  if (!item.isActive) {
+    return 'Inactive';
+  }
+
+  if (isLowStock) {
+    return 'Low stock';
+  }
+
+  return 'In stock';
 }
 
 function movementLabel(movement: InventoryMovement): string {
