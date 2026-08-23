@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createInventoryItem, getInventoryErrorMessage } from './inventory.service';
 import { validateNewInventoryItem } from './inventory.validation';
+import './inventory-dialog.css';
 
 type InventoryItemDialogProps = {
   isOpen: boolean;
