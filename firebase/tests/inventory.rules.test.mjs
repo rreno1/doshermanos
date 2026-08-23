@@ -65,6 +65,10 @@ async function seedBaseRecords() {
       userProfile('Suspended Staff', 'staff', 'suspended'),
     );
     await setDoc(doc(database, 'inventory', 'plates'), inventoryItem());
+    await setDoc(
+      doc(database, 'inventory', 'inactive-item'),
+      inventoryItem({ name: 'Inactive Item', isActive: false }),
+    );
   });
 }
 
@@ -128,6 +132,27 @@ test('staff can create an item only with zero starting quantity', async () => {
   );
 });
 
+test('staff can edit inventory settings without altering stock history fields', async () => {
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+
+  await assertSucceeds(
+    updateDoc(doc(database, 'inventory', 'plates'), {
+      name: 'Dinner Plates',
+      unit: 'pieces',
+      lowStockThreshold: 8,
+      isActive: false,
+      updatedAt: serverTimestamp(),
+    }),
+  );
+
+  await assertFails(
+    updateDoc(doc(database, 'inventory', 'plates'), {
+      lastMovementId: 'fake-movement',
+      updatedAt: serverTimestamp(),
+    }),
+  );
+});
+
 test('quantity cannot be changed without a matching movement record', async () => {
   const database = testEnvironment.authenticatedContext('staff-a').firestore();
 
@@ -163,6 +188,32 @@ test('staff can atomically add stock with a matching movement record', async () 
   });
 
   await assertSucceeds(batch.commit());
+});
+
+test('inactive items cannot receive stock movements', async () => {
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+  const batch = writeBatch(database);
+
+  batch.update(doc(database, 'inventory', 'inactive-item'), {
+    quantity: 15,
+    lastMovementId: 'inactive-movement',
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(doc(database, 'inventoryMovements', 'inactive-movement'), {
+    inventoryItemId: 'inactive-item',
+    itemName: 'Inactive Item',
+    unit: 'pieces',
+    type: 'stock_in',
+    quantityChange: 5,
+    previousQuantity: 10,
+    newQuantity: 15,
+    note: '',
+    recordedBy: 'staff-a',
+    recordedByName: 'Staff A',
+    createdAt: serverTimestamp(),
+  });
+
+  await assertFails(batch.commit());
 });
 
 test('movement record cannot forge quantities or recorder identity', async () => {
