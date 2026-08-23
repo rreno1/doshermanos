@@ -17,18 +17,29 @@ const statusLabels: Record<ReservationStatus, string> = {
   completed: 'Completed',
 };
 
-const dateFormatter = new Intl.DateTimeFormat('en-PH', {
+const eventDateFormatter = new Intl.DateTimeFormat('en-PH', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+const sentDateFormatter = new Intl.DateTimeFormat('en-PH', {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
 });
 
 function formatEventDates(reservation: ReservationRecord): string {
-  if (reservation.event.startDate === reservation.event.endDate) {
-    return reservation.event.startDate;
+  const startDate = reservation.event.startDate;
+  const endDate = reservation.event.endDate;
+  const startLabel = eventDateFormatter.format(startDate);
+
+  if (startDate.getTime() === endDate.getTime()) {
+    return startLabel;
   }
 
-  return `${reservation.event.startDate} to ${reservation.event.endDate}`;
+  return `${startLabel} to ${eventDateFormatter.format(endDate)}`;
 }
 
 export function MyReservations() {
@@ -67,7 +78,11 @@ export function MyReservations() {
   }
 
   return (
-    <section className="my-reservations" id="my-reservations" aria-labelledby="my-reservations-title">
+    <section
+      className="my-reservations"
+      id="my-reservations"
+      aria-labelledby="my-reservations-title"
+    >
       <div className="section-heading">
         <div>
           <p className="eyebrow">My requests</p>
@@ -77,7 +92,9 @@ export function MyReservations() {
       </div>
 
       {listState.status === 'loading' ? (
-        <div className="catalog-status" role="status">Loading your reservation requests…</div>
+        <div className="catalog-status" role="status">
+          Loading your reservation requests…
+        </div>
       ) : null}
 
       {listState.status === 'error' ? (
@@ -103,14 +120,19 @@ export function MyReservations() {
                     {statusLabels[reservation.status]}
                   </span>
                 </div>
-                <p>{formatEventDates(reservation)} · {reservation.event.guestCount.toLocaleString('en-PH')} guests</p>
+                <p>
+                  {formatEventDates(reservation)} ·{' '}
+                  {reservation.event.guestCount.toLocaleString('en-PH')} guests
+                </p>
                 <p>{reservation.event.location}</p>
                 {reservation.event.serviceRequirements ? (
-                  <p className="reservation-requirements">{reservation.event.serviceRequirements}</p>
+                  <p className="reservation-requirements">
+                    {reservation.event.serviceRequirements}
+                  </p>
                 ) : null}
               </div>
               <time dateTime={reservation.createdAt.toISOString()}>
-                Sent {dateFormatter.format(reservation.createdAt)}
+                Sent {sentDateFormatter.format(reservation.createdAt)}
               </time>
             </article>
           ))}
