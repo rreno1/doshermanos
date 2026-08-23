@@ -13,7 +13,8 @@ When ready to activate authentication:
 1. Open the Firebase project.
 2. Go to **Authentication** -> **Sign-in method**.
 3. Enable **Email/Password**.
-4. Keep other providers disabled unless the project explicitly approves them later.
+4. Configure the Firebase Authentication password policy to match the application's password requirements rather than relying only on client-side validation.
+5. Keep other providers disabled unless the project explicitly approves them later.
 
 No private Firebase credentials belong in either client. The existing web and mobile `.env` files contain only Firebase client configuration values.
 
@@ -69,4 +70,6 @@ The authentication implementation does not:
 
 The mobile app explicitly initializes Firebase Authentication with React Native persistence through `@react-native-async-storage/async-storage`. The storage dependency is used by the Firebase Authentication SDK for the authenticated session; application business records are not copied into AsyncStorage.
 
-Expo currently recommends AsyncStorage 2.2.0 for the installed SDK line, and Firebase exposes `getReactNativePersistence()` specifically for this React Native authentication use case. Session behavior must still be exercised on Android and iOS during the release pass.
+Firebase documents `getReactNativePersistence()` for this React Native use case, and the React Native runtime bundle exports it. Current Firebase 12.x Expo TypeScript resolution can still omit that export from the declaration selected by TypeScript. The mobile Firebase initializer therefore uses one narrow `@ts-expect-error` on that documented import, with an explanation in the source. This exception must be removed as soon as the upstream Expo typing path exposes the export correctly; `@ts-ignore` is not permitted by the repository readability guardrail.
+
+Session behavior must still be exercised on Android and iOS during the release pass.
