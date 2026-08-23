@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.DS_Store
+
+.env
+.env.*
+!.env.example
+
+web/dist/
+web/node_modules/
+mobile/node_modules/
+mobile/.expo/
+mobile/android/
+mobile/ios/
+
+.firebase/

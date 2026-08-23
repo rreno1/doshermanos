@@ -1,0 +1,144 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function currentUserProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isActiveUser() {
+      return isSignedIn()
+        && currentUserProfile().data.status == 'active';
+    }
+
+    function hasRole(role) {
+      return isActiveUser()
+        && currentUserProfile().data.role == role;
+    }
+
+    function isStaffOrAdmin() {
+      return hasRole('staff') || hasRole('admin');
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function validUserDocument() {
+      return request.resource.data.keys().hasOnly([
+          'displayName',
+          'role',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'displayName',
+          'role',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 100
+        && request.resource.data.role in ['customer', 'staff', 'admin']
+        && request.resource.data.status in ['active', 'inactive', 'suspended']
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validPackageDocument() {
+      return request.resource.data.keys().hasOnly([
+          'name',
+          'description',
+          'priceInCentavos',
+          'menuHighlights',
+          'isActive',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name',
+          'description',
+          'priceInCentavos',
+          'menuHighlights',
+          'isActive',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.priceInCentavos is int
+        && request.resource.data.priceInCentavos >= 0
+        && request.resource.data.priceInCentavos <= 100000000
+        && request.resource.data.menuHighlights is list
+        && request.resource.data.menuHighlights.size() <= 20
+        && request.resource.data.isActive is bool
+        && request.resource.data.sortOrder is int
+        && request.resource.data.sortOrder >= 0
+        && request.resource.data.sortOrder <= 10000
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn()
+        && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && validUserDocument()
+        && request.resource.data.role == 'customer'
+        && request.resource.data.status == 'active'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == userId
+        && validUserDocument()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName',
+          'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isAdmin()
+        && validUserDocument()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    match /packages/{packageId} {
+      allow get, list: if resource.data.isActive == true || isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validPackageDocument()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isStaffOrAdmin()
+        && validPackageDocument()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

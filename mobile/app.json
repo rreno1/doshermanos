@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Dos Hermanos Catering",
+    "slug": "dos-hermanos-catering",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "doshermanos",
+    "userInterfaceStyle": "light",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F5F7F5"
+      }
+    }
+  }
+}
