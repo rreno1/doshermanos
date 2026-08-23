@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../auth/AuthProvider';
+import { ReservationRequestDialog } from '../reservations/ReservationRequestDialog';
 import { PackageCard } from './PackageCard';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
@@ -9,10 +11,12 @@ type CatalogState =
   | { status: 'error'; packages: CateringPackage[] };
 
 export function PackageCatalog() {
+  const { authState } = useAuth();
   const [catalogState, setCatalogState] = useState<CatalogState>({
     status: 'loading',
     packages: [],
   });
+  const [selectedPackage, setSelectedPackage] = useState<CateringPackage | null>(null);
 
   useEffect(() => {
     let isCurrentRequest = true;
@@ -38,6 +42,8 @@ export function PackageCatalog() {
     };
   }, []);
 
+  const canRequest = authState.status === 'active' && authState.profile?.role === 'customer';
+
   return (
     <section className="catalog-section" id="packages" aria-labelledby="packages-title">
       <div className="section-heading">
@@ -46,7 +52,9 @@ export function PackageCatalog() {
           <h2 id="packages-title">Find the right starting point.</h2>
         </div>
         <p>
-          Package availability is loaded directly from the current Dos Hermanos catalog.
+          {canRequest
+            ? 'Choose a package and send your event details for review.'
+            : 'Browse the current packages. Sign in from Account when you are ready to request one.'}
         </p>
       </div>
 
@@ -75,10 +83,16 @@ export function PackageCatalog() {
             <PackageCard
               key={cateringPackage.id}
               cateringPackage={cateringPackage}
+              onRequest={canRequest ? () => setSelectedPackage(cateringPackage) : undefined}
             />
           ))}
         </div>
       ) : null}
+
+      <ReservationRequestDialog
+        cateringPackage={selectedPackage}
+        onClose={() => setSelectedPackage(null)}
+      />
     </section>
   );
 }

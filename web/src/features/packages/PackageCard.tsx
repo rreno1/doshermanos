@@ -2,6 +2,7 @@ import type { CateringPackage } from './package.types';
 
 type PackageCardProps = {
   cateringPackage: CateringPackage;
+  onRequest?: () => void;
 };
 
 const pesoFormatter = new Intl.NumberFormat('en-PH', {
@@ -11,7 +12,7 @@ const pesoFormatter = new Intl.NumberFormat('en-PH', {
   maximumFractionDigits: 0,
 });
 
-export function PackageCard({ cateringPackage }: PackageCardProps) {
+export function PackageCard({ cateringPackage, onRequest }: PackageCardProps) {
   const displayedMenuItems = cateringPackage.menuHighlights.slice(0, 4);
   const remainingItemCount = Math.max(
     cateringPackage.menuHighlights.length - displayedMenuItems.length,
@@ -38,10 +39,14 @@ export function PackageCard({ cateringPackage }: PackageCardProps) {
           {displayedMenuItems.map((menuItem) => (
             <span key={menuItem}>{menuItem}</span>
           ))}
-          {remainingItemCount > 0 ? (
-            <span>{remainingItemCount} more</span>
-          ) : null}
+          {remainingItemCount > 0 ? <span>{remainingItemCount} more</span> : null}
         </div>
+      ) : null}
+
+      {onRequest ? (
+        <button className="package-action" type="button" onClick={onRequest}>
+          Request this package
+        </button>
       ) : null}
     </article>
   );

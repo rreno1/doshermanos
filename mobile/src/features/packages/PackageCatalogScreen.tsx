@@ -72,15 +72,7 @@ export function PackageCatalogScreen() {
     };
   }, [loadPackages]);
 
-  let accountLabel = 'Sign in';
-
-  if (authState.status === 'loading') {
-    accountLabel = 'Account';
-  }
-
-  if (authState.status === 'active' && authState.profile) {
-    accountLabel = authState.profile.displayName;
-  }
+  const canRequest = authState.status === 'active' && authState.profile?.role === 'customer';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -94,27 +86,23 @@ export function PackageCatalogScreen() {
           <View style={styles.header}>
             <View style={styles.brandRow}>
               <Text style={styles.brand}>Dos Hermanos</Text>
-              <View style={styles.accountArea}>
-                <Text style={styles.location}>Hilongos, Leyte</Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Open account"
-                  onPress={() => router.push('/auth')}
-                  style={({ pressed }) => [
-                    styles.accountButton,
-                    pressed && styles.accountButtonPressed,
-                  ]}
-                >
-                  <Text numberOfLines={1} style={styles.accountButtonText}>
-                    {accountLabel}
-                  </Text>
+              <View style={styles.headerActions}>
+                {canRequest ? (
+                  <Pressable onPress={() => router.push('/reservations')} hitSlop={8}>
+                    <Text style={styles.headerAction}>My requests</Text>
+                  </Pressable>
+                ) : null}
+                <Pressable onPress={() => router.push('/account')} hitSlop={8}>
+                  <Text style={styles.headerAction}>Account</Text>
                 </Pressable>
               </View>
             </View>
             <Text style={styles.eyebrow}>Catering packages</Text>
             <Text style={styles.title}>Choose a package that fits your event.</Text>
             <Text style={styles.subtitle}>
-              Browse the currently available Dos Hermanos catering packages.
+              {canRequest
+                ? 'Pick a package and send your event details for review.'
+                : 'Browse available packages and sign in when you are ready to request one.'}
             </Text>
           </View>
         }
@@ -130,10 +118,7 @@ export function PackageCatalogScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => void loadPackages()}
-                style={({ pressed }) => [
-                  styles.retryButton,
-                  pressed && styles.retryButtonPressed,
-                ]}
+                style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
               >
                 <Text style={styles.retryButtonText}>Try again</Text>
               </Pressable>
@@ -146,7 +131,16 @@ export function PackageCatalogScreen() {
             </View>
           )
         }
-        renderItem={({ item }) => <PackageCard cateringPackage={item} />}
+        renderItem={({ item }) => (
+          <PackageCard
+            cateringPackage={item}
+            onRequest={
+              canRequest
+                ? () => router.push({ pathname: '/reservation', params: { packageId: item.id } })
+                : undefined
+            }
+          />
+        )}
       />
     </SafeAreaView>
   );
@@ -154,14 +148,12 @@ export function PackageCatalogScreen() {
 
 type PackageCardProps = {
   cateringPackage: CateringPackage;
+  onRequest?: () => void;
 };
 
-function PackageCard({ cateringPackage }: PackageCardProps) {
+function PackageCard({ cateringPackage, onRequest }: PackageCardProps) {
   const displayedMenuItems = cateringPackage.menuHighlights.slice(0, 4);
-  const remainingItemCount = Math.max(
-    cateringPackage.menuHighlights.length - displayedMenuItems.length,
-    0,
-  );
+  const remainingItemCount = Math.max(cateringPackage.menuHighlights.length - displayedMenuItems.length, 0);
 
   return (
     <View style={styles.packageCard}>
@@ -186,175 +178,46 @@ function PackageCard({ cateringPackage }: PackageCardProps) {
           ) : null}
         </View>
       ) : null}
+
+      {onRequest ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onRequest}
+          style={({ pressed }) => [styles.requestButton, pressed && styles.requestButtonPressed]}
+        >
+          <Text style={styles.requestButtonText}>Request this package</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F7F5',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    flexGrow: 1,
-  },
-  header: {
-    paddingTop: 12,
-    paddingBottom: 34,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 16,
-    marginBottom: 54,
-  },
-  brand: {
-    color: '#17211F',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    paddingTop: 8,
-  },
-  accountArea: {
-    alignItems: 'flex-end',
-    gap: 7,
-    maxWidth: 190,
-  },
-  location: {
-    color: '#64716D',
-    fontSize: 12,
-  },
-  accountButton: {
-    maxWidth: 190,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#DCE3DF',
-    backgroundColor: '#FFFFFF',
-  },
-  accountButtonPressed: {
-    transform: [{ scale: 0.98 }],
-    backgroundColor: '#EDF5F2',
-  },
-  accountButtonText: {
-    color: '#0E5144',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  eyebrow: {
-    color: '#176B5B',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 10,
-  },
-  title: {
-    color: '#17211F',
-    fontSize: 42,
-    lineHeight: 44,
-    fontWeight: '700',
-    letterSpacing: -1.8,
-    maxWidth: 500,
-  },
-  subtitle: {
-    color: '#64716D',
-    fontSize: 16,
-    lineHeight: 25,
-    marginTop: 18,
-    maxWidth: 520,
-  },
-  packageCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E6E2',
-    borderRadius: 24,
-    padding: 22,
-    marginBottom: 14,
-  },
-  packageLabel: {
-    color: '#176B5B',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  packageName: {
-    color: '#17211F',
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: -0.8,
-  },
-  packagePrice: {
-    color: '#0E5144',
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 12,
-  },
-  packageDescription: {
-    color: '#64716D',
-    fontSize: 15,
-    lineHeight: 23,
-    marginTop: 16,
-  },
-  menuList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 20,
-  },
-  menuChip: {
-    backgroundColor: '#E5F3EF',
-    borderRadius: 999,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-  },
-  menuChipText: {
-    color: '#0E5144',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  statusBox: {
-    minHeight: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E0E6E2',
-    borderRadius: 22,
-    padding: 24,
-  },
-  statusText: {
-    color: '#64716D',
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: '#7F2C2C',
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  retryButton: {
-    backgroundColor: '#176B5B',
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  retryButtonPressed: {
-    backgroundColor: '#0E5144',
-    transform: [{ scale: 0.98 }],
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
+  safeArea: { flex: 1, backgroundColor: '#F5F7F5' },
+  content: { paddingHorizontal: 20, paddingBottom: 40, flexGrow: 1 },
+  header: { paddingTop: 12, paddingBottom: 34 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 54 },
+  brand: { color: '#17211F', fontSize: 18, fontWeight: '700', letterSpacing: -0.5 },
+  headerActions: { flexDirection: 'row', gap: 16 },
+  headerAction: { color: '#176B5B', fontSize: 13, fontWeight: '700' },
+  eyebrow: { color: '#176B5B', fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10 },
+  title: { color: '#17211F', fontSize: 42, lineHeight: 44, fontWeight: '700', letterSpacing: -1.8, maxWidth: 500 },
+  subtitle: { color: '#64716D', fontSize: 16, lineHeight: 25, marginTop: 18, maxWidth: 520 },
+  packageCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E6E2', borderRadius: 24, padding: 22, marginBottom: 14 },
+  packageLabel: { color: '#176B5B', fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase', marginBottom: 8 },
+  packageName: { color: '#17211F', fontSize: 24, fontWeight: '700', letterSpacing: -0.8 },
+  packagePrice: { color: '#0E5144', fontSize: 16, fontWeight: '700', marginTop: 12 },
+  packageDescription: { color: '#64716D', fontSize: 15, lineHeight: 23, marginTop: 16 },
+  menuList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20 },
+  menuChip: { backgroundColor: '#E5F3EF', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 8 },
+  menuChipText: { color: '#0E5144', fontSize: 13, fontWeight: '600' },
+  requestButton: { alignSelf: 'flex-start', marginTop: 20, backgroundColor: '#176B5B', borderRadius: 999, paddingHorizontal: 17, paddingVertical: 12 },
+  requestButtonPressed: { backgroundColor: '#0E5144', transform: [{ scale: 0.98 }] },
+  requestButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  statusBox: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E6E2', borderRadius: 22, padding: 24 },
+  statusText: { color: '#64716D', fontSize: 15, lineHeight: 22, textAlign: 'center' },
+  errorText: { color: '#7F2C2C', fontSize: 15, lineHeight: 22, textAlign: 'center' },
+  retryButton: { backgroundColor: '#176B5B', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12 },
+  retryButtonPressed: { backgroundColor: '#0E5144', transform: [{ scale: 0.98 }] },
+  retryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 });

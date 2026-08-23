@@ -1,38 +1,36 @@
 # Dos Hermanos Catering System
 
-A small web and mobile catering management system for Dos Hermanos in Hilongos, Leyte.
+A web and mobile catering management system for Dos Hermanos in Hilongos, Leyte.
 
 ## Current stack
 
 - Web: React + TypeScript + Vite
 - Mobile: Expo React Native
-- Authentication: Firebase Authentication using Email/Password
+- Authentication: Firebase Authentication with Email/Password
 - Database: Cloud Firestore
 - Web hosting: Firebase Hosting
 
-PayMongo and Cloud Functions are intentionally excluded from the current implementation phase.
+PayMongo and Cloud Functions remain excluded from the current implementation phase.
 
 ## Current implementation
 
-The current vertical slices establish:
+The current slices provide:
 
 - Firebase project and Hosting configuration boundaries;
-- a default-deny Firestore security model;
+- default-deny Firestore authorization;
 - automated Firestore Security Rules tests in CI;
-- a public active-package catalog on web and mobile;
-- Firebase Email/Password registration, sign-in, sign-out, and password reset UI on web and mobile;
-- customer profile creation under `users/{uid}` with customer-only self-registration;
-- centralized authentication-state handling with account status resolution;
-- the protected reservation-request data boundary for authenticated customers;
+- customer Email/Password registration, sign-in, sign-out, and password reset;
+- public active-package catalogs on web and mobile;
+- protected customer reservation requests;
 - package name/base-price snapshot validation against the authoritative active package;
-- customer ownership isolation for reservation requests;
+- event dates, location, guest count, and optional service requirements;
+- customer-owned reservation tracking with bounded queries;
+- mobile native date selection through Expo UI;
 - protection against clients creating already-confirmed reservations.
 
 No sample business data is committed.
 
-Email/Password authentication can remain disabled in Firebase Console while development continues. When ready, enable it under **Firebase Authentication -> Sign-in method**. No other authentication provider is assumed by the current code. See `docs/authentication.md`.
-
-Dos Hermanos may accept multiple events on the same date and at overlapping times. The system therefore does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the real operational capacity rule is defined. See `docs/scheduling-policy.md`.
+Dos Hermanos may accept multiple events on the same date and at overlapping times. The system does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the operational capacity rule is defined. See `docs/scheduling-policy.md`.
 
 ## Web setup
 
@@ -43,7 +41,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Fill the Firebase client configuration in `web/.env.local` before running the app against Firestore and Authentication.
+Fill the Firebase client configuration in `web/.env.local`.
 
 ## Mobile setup
 
@@ -54,7 +52,11 @@ cp .env.example .env.local
 npm run start
 ```
 
-Fill the Firebase client configuration in `mobile/.env.local` before connecting the app to Firebase.
+Fill the Firebase client configuration in `mobile/.env.local`. Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
+
+## Authentication setup
+
+The account UI is already implemented. When ready, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
 
 ## Firebase setup
 
@@ -77,13 +79,13 @@ firebase deploy --only hosting
 
 ## Firestore rule tests
 
-The rule test suite uses the Firebase Emulator Suite and is also executed by GitHub Actions.
-
 ```bash
 cd firebase/tests
 npm install
 npm test
 ```
+
+The test command runs every `*.test.mjs` Firestore rules suite through the emulator.
 
 ## Development rules
 

@@ -1,6 +1,6 @@
 # Firestore Schema
 
-This document records only data shapes that are currently implemented or required by the active implementation slice. Additional collections are added when their access patterns and security rules are defined.
+This document records data shapes that are implemented or required by the active implementation slices. New collections are added only after their access patterns and security rules are defined.
 
 ## `users/{uid}`
 
@@ -24,7 +24,7 @@ Security:
 
 ## `packages/{packageId}`
 
-Purpose: public-facing catering package catalog. Do not place staff-only notes, internal costing, or other private fields in this document because active package documents are readable by the public catalog.
+Purpose: public-facing catering package catalog. Staff-only notes, internal costing, and private fields do not belong in this document because active package documents are public-readable.
 
 Fields:
 
@@ -46,68 +46,53 @@ order by sortOrder ascending
 limit 24
 ```
 
-Security:
-
-- active packages may be read by the public catalog;
-- active staff and administrators may read all package documents;
-- active staff and administrators may create or update package documents;
-- only active administrators may delete package documents.
-
 ## `reservations/{reservationId}`
 
-Purpose: customer-visible reservation request record. The document contains only information that the owning customer and authorized staff may read. Staff-only notes must not be added to this document.
+Purpose: customer reservation requests and their protected review status.
 
 Fields:
 
-- `customerId`: Firebase Authentication UID of the owning customer
+- `customerId`: Firebase Authentication UID of the customer
 - `status`: `pending_review | confirmed | rejected | cancelled | completed`
-- `event.startDate`: date-only string in `YYYY-MM-DD` form
-- `event.endDate`: date-only string in `YYYY-MM-DD` form
-- `event.location`: event location, 1-300 characters
-- `event.guestCount`: positive integer, currently bounded at 10,000
+- `event.startDate`: date-only string in `YYYY-MM-DD`
+- `event.endDate`: date-only string in `YYYY-MM-DD`
+- `event.location`: string, 1-300 characters
+- `event.guestCount`: integer, 1-10,000
+- `event.serviceRequirements`: string, up to 1,000 characters; may be empty
 - `package.packageId`: selected package document ID
-- `package.packageName`: immutable request-time package name snapshot
-- `package.priceInCentavos`: immutable request-time base package price snapshot
+- `package.packageName`: immutable request-time package-name snapshot
+- `package.priceInCentavos`: immutable request-time base-price snapshot
 - `createdAt`: Firestore server timestamp
 - `updatedAt`: Firestore server timestamp
 
-Creation rules:
+Customer creation rules:
 
-- only an active authenticated customer may create a request;
-- the `customerId` must match the authenticated user;
+- the caller must be an active customer;
+- `customerId` must equal the authenticated UID;
 - the initial status must be `pending_review`;
-- the selected package must exist and be active;
-- the submitted package name and base price must match the authoritative package document;
-- the customer cannot submit a reservation as already confirmed.
+- package name and base price must match the referenced active package;
+- customers cannot directly edit or delete a submitted request.
 
-Read rules:
+Customer read pattern:
 
-- customers may read only reservation records whose `customerId` matches their own UID;
-- staff and administrators may read reservation records for operational review;
-- unauthenticated access is denied.
+```text
+reservations
+where customerId == currentUser.uid
+order by createdAt descending
+limit 20
+```
 
-Update rules in the current slice:
-
-- customers cannot directly modify submitted reservation records;
-- staff and administrators may reject a `pending_review` request;
-- normal client operations cannot transition a request to `confirmed` yet;
-- deletion is denied.
-
-The restriction on confirmation is deliberate. Dos Hermanos has confirmed that multiple events may occur simultaneously, so a global one-event-per-date lock would be wrong. The actual capacity rule for final confirmation is still undefined. See `docs/scheduling-policy.md`.
+The query has a matching compound index. Customer ownership is enforced again by Firestore Security Rules; frontend filtering is not the security boundary.
 
 ### Package snapshot reason
 
-The request stores the selected package name and base price so later package edits do not silently rewrite the meaning of an older request. Firestore Security Rules compare these fields with the active package document at request creation so a customer cannot forge a different name or base price.
+A reservation keeps the package name and base price that were presented when the request was created. Later package edits therefore do not silently rewrite the historical request.
 
-This is only the base package snapshot. Final package customization and authoritative total-price logic remain deferred until the actual pricing and customization rules are approved.
+### Current confirmation boundary
 
-### Date semantics
-
-`startDate` and `endDate` are date-only business values, not timestamps. They use the sortable `YYYY-MM-DD` representation to avoid ambiguous locale formatting. Application validation must ensure the end date is not earlier than the start date before submission.
+Dos Hermanos can handle multiple simultaneous events. A global one-event-per-date lock is therefore incorrect. Final confirmation remains blocked from normal client writes until the actual operational capacity rule is approved and can be enforced safely.
 
 ## Planned collections
-
-The following project modules remain in scope but their final schemas are intentionally deferred until their workflows are implemented:
 
 - inventory
 - inventoryMovements
@@ -116,4 +101,4 @@ The following project modules remain in scope but their final schemas are intent
 - equipmentTransactions
 - auditLogs
 
-They remain denied by the default Firestore rule until explicit rules are added.
+These remain denied by the default Firestore rule until explicit access models are implemented.

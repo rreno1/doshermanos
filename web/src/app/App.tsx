@@ -1,5 +1,6 @@
 import { AuthMenu } from '../features/auth/AuthMenu';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
+import { MyReservations } from '../features/reservations/MyReservations';
 
 export function App() {
   return (
@@ -17,7 +18,7 @@ export function App() {
           <p className="eyebrow">Catering made easier</p>
           <h1 id="hero-title">Choose a package that fits your event.</h1>
           <p className="hero-copy">
-            Browse the currently available Dos Hermanos catering packages in one clear place.
+            Browse available packages, send your event details, and track the request in one place.
           </p>
           <a className="primary-link" href="#packages">
             View packages
@@ -25,6 +26,7 @@ export function App() {
         </section>
 
         <PackageCatalog />
+        <MyReservations />
       </main>
 
       <footer className="site-footer">

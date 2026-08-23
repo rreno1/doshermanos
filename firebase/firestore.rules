@@ -34,18 +34,10 @@ service cloud.firestore {
 
     function validUserDocument() {
       return request.resource.data.keys().hasOnly([
-          'displayName',
-          'role',
-          'status',
-          'createdAt',
-          'updatedAt'
+          'displayName', 'role', 'status', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
-          'displayName',
-          'role',
-          'status',
-          'createdAt',
-          'updatedAt'
+          'displayName', 'role', 'status', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() > 0
@@ -58,24 +50,12 @@ service cloud.firestore {
 
     function validPackageDocument() {
       return request.resource.data.keys().hasOnly([
-          'name',
-          'description',
-          'priceInCentavos',
-          'menuHighlights',
-          'isActive',
-          'sortOrder',
-          'createdAt',
-          'updatedAt'
+          'name', 'description', 'priceInCentavos', 'menuHighlights',
+          'isActive', 'sortOrder', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
-          'name',
-          'description',
-          'priceInCentavos',
-          'menuHighlights',
-          'isActive',
-          'sortOrder',
-          'createdAt',
-          'updatedAt'
+          'name', 'description', 'priceInCentavos', 'menuHighlights',
+          'isActive', 'sortOrder', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
@@ -98,16 +78,10 @@ service cloud.firestore {
     function validReservationEvent() {
       return request.resource.data.event is map
         && request.resource.data.event.keys().hasOnly([
-          'startDate',
-          'endDate',
-          'location',
-          'guestCount'
+          'startDate', 'endDate', 'location', 'guestCount', 'serviceRequirements'
         ])
         && request.resource.data.event.keys().hasAll([
-          'startDate',
-          'endDate',
-          'location',
-          'guestCount'
+          'startDate', 'endDate', 'location', 'guestCount', 'serviceRequirements'
         ])
         && request.resource.data.event.startDate is string
         && request.resource.data.event.startDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
@@ -118,20 +92,18 @@ service cloud.firestore {
         && request.resource.data.event.location.size() <= 300
         && request.resource.data.event.guestCount is int
         && request.resource.data.event.guestCount > 0
-        && request.resource.data.event.guestCount <= 10000;
+        && request.resource.data.event.guestCount <= 10000
+        && request.resource.data.event.serviceRequirements is string
+        && request.resource.data.event.serviceRequirements.size() <= 1000;
     }
 
     function validReservationPackage() {
       return request.resource.data.package is map
         && request.resource.data.package.keys().hasOnly([
-          'packageId',
-          'packageName',
-          'priceInCentavos'
+          'packageId', 'packageName', 'priceInCentavos'
         ])
         && request.resource.data.package.keys().hasAll([
-          'packageId',
-          'packageName',
-          'priceInCentavos'
+          'packageId', 'packageName', 'priceInCentavos'
         ])
         && request.resource.data.package.packageId is string
         && request.resource.data.package.packageId.size() > 0
@@ -145,29 +117,15 @@ service cloud.firestore {
 
     function validReservationDocument() {
       return request.resource.data.keys().hasOnly([
-          'customerId',
-          'status',
-          'event',
-          'package',
-          'createdAt',
-          'updatedAt'
+          'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
-          'customerId',
-          'status',
-          'event',
-          'package',
-          'createdAt',
-          'updatedAt'
+          'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.customerId is string
         && request.resource.data.customerId.size() > 0
         && request.resource.data.status in [
-          'pending_review',
-          'confirmed',
-          'rejected',
-          'cancelled',
-          'completed'
+          'pending_review', 'confirmed', 'rejected', 'cancelled', 'completed'
         ]
         && validReservationEvent()
         && validReservationPackage()
@@ -202,8 +160,7 @@ service cloud.firestore {
         && request.auth.uid == userId
         && validUserDocument()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'displayName',
-          'updatedAt'
+          'displayName', 'updatedAt'
         ])
         && request.resource.data.updatedAt == request.time;
 
@@ -252,8 +209,7 @@ service cloud.firestore {
         && request.resource.data.package == resource.data.package
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status',
-          'updatedAt'
+          'status', 'updatedAt'
         ])
         && request.resource.data.updatedAt == request.time;
 
