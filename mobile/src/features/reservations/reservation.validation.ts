@@ -31,6 +31,14 @@ function isValidDateOnly(value: string): boolean {
   );
 }
 
+function todayDateOnly(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function validateReservationForm(
   form: ReservationFormValues,
 ): ReservationValidationResult {
@@ -40,6 +48,10 @@ export function validateReservationForm(
 
   if (!isValidDateOnly(form.startDate) || !isValidDateOnly(form.endDate)) {
     return { value: null, message: 'Choose valid event dates.' };
+  }
+
+  if (form.startDate < todayDateOnly()) {
+    return { value: null, message: 'The event start date cannot be in the past.' };
   }
 
   if (form.endDate < form.startDate) {
