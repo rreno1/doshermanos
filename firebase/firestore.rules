@@ -20,6 +20,10 @@ service cloud.firestore {
         && currentUserProfile().data.role == role;
     }
 
+    function isCustomer() {
+      return hasRole('customer');
+    }
+
     function isStaffOrAdmin() {
       return hasRole('staff') || hasRole('admin');
     }
@@ -91,6 +95,96 @@ service cloud.firestore {
         && request.resource.data.updatedAt is timestamp;
     }
 
+    function validReservationEvent() {
+      return request.resource.data.event is map
+        && request.resource.data.event.keys().hasOnly([
+          'startDate',
+          'endDate',
+          'location',
+          'guestCount'
+        ])
+        && request.resource.data.event.keys().hasAll([
+          'startDate',
+          'endDate',
+          'location',
+          'guestCount'
+        ])
+        && request.resource.data.event.startDate is string
+        && request.resource.data.event.startDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.event.endDate is string
+        && request.resource.data.event.endDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.event.location is string
+        && request.resource.data.event.location.size() > 0
+        && request.resource.data.event.location.size() <= 300
+        && request.resource.data.event.guestCount is int
+        && request.resource.data.event.guestCount > 0
+        && request.resource.data.event.guestCount <= 10000;
+    }
+
+    function validReservationPackage() {
+      return request.resource.data.package is map
+        && request.resource.data.package.keys().hasOnly([
+          'packageId',
+          'packageName',
+          'priceInCentavos'
+        ])
+        && request.resource.data.package.keys().hasAll([
+          'packageId',
+          'packageName',
+          'priceInCentavos'
+        ])
+        && request.resource.data.package.packageId is string
+        && request.resource.data.package.packageId.size() > 0
+        && request.resource.data.package.packageName is string
+        && request.resource.data.package.packageName.size() > 0
+        && request.resource.data.package.packageName.size() <= 120
+        && request.resource.data.package.priceInCentavos is int
+        && request.resource.data.package.priceInCentavos >= 0
+        && request.resource.data.package.priceInCentavos <= 100000000;
+    }
+
+    function validReservationDocument() {
+      return request.resource.data.keys().hasOnly([
+          'customerId',
+          'status',
+          'event',
+          'package',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'customerId',
+          'status',
+          'event',
+          'package',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.customerId is string
+        && request.resource.data.customerId.size() > 0
+        && request.resource.data.status in [
+          'pending_review',
+          'confirmed',
+          'rejected',
+          'cancelled',
+          'completed'
+        ]
+        && validReservationEvent()
+        && validReservationPackage()
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function reservationPackageMatchesActivePackage() {
+      let packageDocument = get(
+        /databases/$(database)/documents/packages/$(request.resource.data.package.packageId)
+      );
+
+      return packageDocument.data.isActive == true
+        && packageDocument.data.name == request.resource.data.package.packageName
+        && packageDocument.data.priceInCentavos == request.resource.data.package.priceInCentavos;
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn()
         && (request.auth.uid == userId || isAdmin());
@@ -135,6 +229,35 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if isAdmin();
+    }
+
+    match /reservations/{reservationId} {
+      allow get, list: if isStaffOrAdmin()
+        || (isCustomer() && resource.data.customerId == request.auth.uid);
+
+      allow create: if isCustomer()
+        && validReservationDocument()
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.status == 'pending_review'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && reservationPackageMatchesActivePackage();
+
+      allow update: if isStaffOrAdmin()
+        && validReservationDocument()
+        && resource.data.status == 'pending_review'
+        && request.resource.data.status == 'rejected'
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.event == resource.data.event
+        && request.resource.data.package == resource.data.package
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
     }
 
     match /{document=**} {
