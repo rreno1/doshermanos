@@ -72,12 +72,15 @@ export function PackageCatalogScreen() {
     };
   }, [loadPackages]);
 
-  const accountLabel =
-    authState.status === 'active' && authState.profile
-      ? authState.profile.displayName
-      : authState.status === 'loading'
-        ? 'Account'
-        : 'Sign in';
+  let accountLabel = 'Sign in';
+
+  if (authState.status === 'loading') {
+    accountLabel = 'Account';
+  }
+
+  if (authState.status === 'active' && authState.profile) {
+    accountLabel = authState.profile.displayName;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
