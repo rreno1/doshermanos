@@ -30,9 +30,18 @@ const reservationStatuses: ReservationStatus[] = [
   'completed',
 ];
 
+function dateOnlyToTimestamp(value: string): Timestamp {
+  const [yearText, monthText, dayText] = value.split('-');
+  const date = new Date(
+    Date.UTC(Number(yearText), Number(monthText) - 1, Number(dayText)),
+  );
+
+  return Timestamp.fromDate(date);
+}
+
 function parseReservationDocument(
   document: QueryDocumentSnapshot<DocumentData>,
-): ReservationRecord | null {
+): ReservationRecord {
   const value = document.data();
   const event = value.event;
   const packageSnapshot = value.package;
@@ -43,8 +52,8 @@ function parseReservationDocument(
     !packageSnapshot ||
     typeof packageSnapshot !== 'object' ||
     !reservationStatuses.includes(value.status as ReservationStatus) ||
-    typeof event.startDate !== 'string' ||
-    typeof event.endDate !== 'string' ||
+    !(event.startDate instanceof Timestamp) ||
+    !(event.endDate instanceof Timestamp) ||
     typeof event.location !== 'string' ||
     !Number.isInteger(event.guestCount) ||
     typeof event.serviceRequirements !== 'string' ||
@@ -53,15 +62,15 @@ function parseReservationDocument(
     !Number.isInteger(packageSnapshot.priceInCentavos) ||
     !(value.createdAt instanceof Timestamp)
   ) {
-    return null;
+    throw new Error('Reservation data is invalid.');
   }
 
   return {
     id: document.id,
     status: value.status as ReservationStatus,
     event: {
-      startDate: event.startDate,
-      endDate: event.endDate,
+      startDate: event.startDate.toDate(),
+      endDate: event.endDate.toDate(),
       location: event.location,
       guestCount: event.guestCount,
       serviceRequirements: event.serviceRequirements,
@@ -85,7 +94,13 @@ export async function createReservationRequest(
   await setDoc(reservationRef, {
     customerId,
     status: 'pending_review',
-    event: input,
+    event: {
+      startDate: dateOnlyToTimestamp(input.startDate),
+      endDate: dateOnlyToTimestamp(input.endDate),
+      location: input.location,
+      guestCount: input.guestCount,
+      serviceRequirements: input.serviceRequirements,
+    },
     package: {
       packageId: cateringPackage.id,
       packageName: cateringPackage.name,
@@ -113,11 +128,11 @@ export function subscribeToOwnReservations(
   return onSnapshot(
     reservationsQuery,
     (snapshot) => {
-      const reservations = snapshot.docs
-        .map(parseReservationDocument)
-        .filter((reservation): reservation is ReservationRecord => reservation !== null);
-
-      onReservations(reservations);
+      try {
+        onReservations(snapshot.docs.map(parseReservationDocument));
+      } catch {
+        onError();
+      }
     },
     onError,
   );
