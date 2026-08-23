@@ -235,7 +235,8 @@ service cloud.firestore {
         /databases/$(database)/documents/inventoryMovements/$(movementId)
       );
 
-      return movementId is string
+      return resource.data.isActive == true
+        && movementId is string
         && movementId != resource.data.lastMovementId
         && movementDocument.data.inventoryItemId == inventoryItemId
         && movementDocument.data.previousQuantity == resource.data.quantity
