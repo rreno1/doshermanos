@@ -1,5 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApps, initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  getAuth,
+  getReactNativePersistence,
+  initializeAuth,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -17,7 +22,13 @@ if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
 }
 
-const firebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
+const existingApp = getApps()[0];
+const firebaseApp = existingApp ?? initializeApp(firebaseConfig);
 
-export const firebaseAuth = getAuth(firebaseApp);
+export const firebaseAuth = existingApp
+  ? getAuth(firebaseApp)
+  : initializeAuth(firebaseApp, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+
 export const firestore = getFirestore(firebaseApp);
