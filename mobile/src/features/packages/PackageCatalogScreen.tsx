@@ -10,15 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
+import { PackageCard } from './PackageCard';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
-
-const pesoFormatter = new Intl.NumberFormat('en-PH', {
-  style: 'currency',
-  currency: 'PHP',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
 
 export function PackageCatalogScreen() {
   const router = useRouter();
@@ -44,18 +38,14 @@ export function PackageCatalogScreen() {
     try {
       const activePackages = await loadActivePackages();
 
-      if (requestNumber.current !== currentRequest) {
-        return;
+      if (requestNumber.current === currentRequest) {
+        setPackages(activePackages);
       }
-
-      setPackages(activePackages);
     } catch {
-      if (requestNumber.current !== currentRequest) {
-        return;
+      if (requestNumber.current === currentRequest) {
+        setPackages([]);
+        setErrorMessage('We could not load the packages right now. Please try again.');
       }
-
-      setPackages([]);
-      setErrorMessage('We could not load the packages right now. Please try again.');
     } finally {
       if (requestNumber.current === currentRequest) {
         setIsLoading(false);
@@ -85,21 +75,24 @@ export function PackageCatalogScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.brandRow}>
-              <Text style={styles.brand}>Dos Hermanos</Text>
+              <Text selectable style={styles.brand}>
+                Dos Hermanos
+              </Text>
               <View style={styles.headerActions}>
                 {canRequest ? (
-                  <Pressable onPress={() => router.push('/reservations')} hitSlop={8}>
-                    <Text style={styles.headerAction}>My requests</Text>
-                  </Pressable>
+                  <HeaderAction label="My requests" onPress={() => router.push('/reservations')} />
                 ) : null}
-                <Pressable onPress={() => router.push('/account')} hitSlop={8}>
-                  <Text style={styles.headerAction}>Account</Text>
-                </Pressable>
+                <HeaderAction label="Account" onPress={() => router.push('/account')} />
               </View>
             </View>
-            <Text style={styles.eyebrow}>Catering packages</Text>
-            <Text style={styles.title}>Choose a package that fits your event.</Text>
-            <Text style={styles.subtitle}>
+
+            <Text selectable style={styles.eyebrow}>
+              Catering packages
+            </Text>
+            <Text selectable style={styles.title}>
+              Choose a package that fits your event.
+            </Text>
+            <Text selectable style={styles.subtitle}>
               {canRequest
                 ? 'Pick a package and send your event details for review.'
                 : 'Browse available packages and sign in when you are ready to request one.'}
@@ -107,36 +100,22 @@ export function PackageCatalogScreen() {
           </View>
         }
         ListEmptyComponent={
-          isLoading ? (
-            <View style={styles.statusBox}>
-              <ActivityIndicator size="small" color="#176B5B" />
-              <Text style={styles.statusText}>Loading available packages…</Text>
-            </View>
-          ) : errorMessage ? (
-            <View style={styles.statusBox}>
-              <Text style={styles.errorText}>{errorMessage}</Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => void loadPackages()}
-                style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
-              >
-                <Text style={styles.retryButtonText}>Try again</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.statusBox}>
-              <Text style={styles.statusText}>
-                No catering packages are available right now. Please check again later.
-              </Text>
-            </View>
-          )
+          <CatalogStatus
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+            onRetry={() => void loadPackages()}
+          />
         }
         renderItem={({ item }) => (
           <PackageCard
             cateringPackage={item}
             onRequest={
               canRequest
-                ? () => router.push({ pathname: '/reservation', params: { packageId: item.id } })
+                ? () =>
+                    router.push({
+                      pathname: '/reservation',
+                      params: { packageId: item.id },
+                    })
                 : undefined
             }
           />
@@ -146,78 +125,165 @@ export function PackageCatalogScreen() {
   );
 }
 
-type PackageCardProps = {
-  cateringPackage: CateringPackage;
-  onRequest?: () => void;
-};
-
-function PackageCard({ cateringPackage, onRequest }: PackageCardProps) {
-  const displayedMenuItems = cateringPackage.menuHighlights.slice(0, 4);
-  const remainingItemCount = Math.max(cateringPackage.menuHighlights.length - displayedMenuItems.length, 0);
-
+function HeaderAction({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <View style={styles.packageCard}>
-      <Text style={styles.packageLabel}>Catering package</Text>
-      <Text style={styles.packageName}>{cateringPackage.name}</Text>
-      <Text style={styles.packagePrice}>
-        Starting at {pesoFormatter.format(cateringPackage.priceInCentavos / 100)}
-      </Text>
-      <Text style={styles.packageDescription}>{cateringPackage.description}</Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed }) => pressed && styles.headerActionPressed}
+    >
+      <Text style={styles.headerAction}>{label}</Text>
+    </Pressable>
+  );
+}
 
-      {displayedMenuItems.length > 0 ? (
-        <View style={styles.menuList}>
-          {displayedMenuItems.map((menuItem) => (
-            <View key={menuItem} style={styles.menuChip}>
-              <Text style={styles.menuChipText}>{menuItem}</Text>
-            </View>
-          ))}
-          {remainingItemCount > 0 ? (
-            <View style={styles.menuChip}>
-              <Text style={styles.menuChipText}>{remainingItemCount} more</Text>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+function CatalogStatus({
+  isLoading,
+  errorMessage,
+  onRetry,
+}: {
+  isLoading: boolean;
+  errorMessage: string | null;
+  onRetry: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <View style={styles.statusBox}>
+        <ActivityIndicator size="small" color="#176B5B" />
+        <Text selectable accessibilityLiveRegion="polite" style={styles.statusText}>
+          Loading available packages…
+        </Text>
+      </View>
+    );
+  }
 
-      {onRequest ? (
+  if (errorMessage) {
+    return (
+      <View style={styles.statusBox}>
+        <Text selectable accessibilityLiveRegion="assertive" style={styles.errorText}>
+          {errorMessage}
+        </Text>
         <Pressable
           accessibilityRole="button"
-          onPress={onRequest}
-          style={({ pressed }) => [styles.requestButton, pressed && styles.requestButtonPressed]}
+          onPress={onRetry}
+          style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
         >
-          <Text style={styles.requestButtonText}>Request this package</Text>
+          <Text style={styles.retryButtonText}>Try again</Text>
         </Pressable>
-      ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.statusBox}>
+      <Text selectable style={styles.statusText}>
+        No catering packages are available right now. Please check again later.
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F5F7F5' },
-  content: { paddingHorizontal: 20, paddingBottom: 40, flexGrow: 1 },
-  header: { paddingTop: 12, paddingBottom: 34 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 54 },
-  brand: { color: '#17211F', fontSize: 18, fontWeight: '700', letterSpacing: -0.5 },
-  headerActions: { flexDirection: 'row', gap: 16 },
-  headerAction: { color: '#176B5B', fontSize: 13, fontWeight: '700' },
-  eyebrow: { color: '#176B5B', fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10 },
-  title: { color: '#17211F', fontSize: 42, lineHeight: 44, fontWeight: '700', letterSpacing: -1.8, maxWidth: 500 },
-  subtitle: { color: '#64716D', fontSize: 16, lineHeight: 25, marginTop: 18, maxWidth: 520 },
-  packageCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E6E2', borderRadius: 24, padding: 22, marginBottom: 14 },
-  packageLabel: { color: '#176B5B', fontSize: 11, fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase', marginBottom: 8 },
-  packageName: { color: '#17211F', fontSize: 24, fontWeight: '700', letterSpacing: -0.8 },
-  packagePrice: { color: '#0E5144', fontSize: 16, fontWeight: '700', marginTop: 12 },
-  packageDescription: { color: '#64716D', fontSize: 15, lineHeight: 23, marginTop: 16 },
-  menuList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 20 },
-  menuChip: { backgroundColor: '#E5F3EF', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 8 },
-  menuChipText: { color: '#0E5144', fontSize: 13, fontWeight: '600' },
-  requestButton: { alignSelf: 'flex-start', marginTop: 20, backgroundColor: '#176B5B', borderRadius: 999, paddingHorizontal: 17, paddingVertical: 12 },
-  requestButtonPressed: { backgroundColor: '#0E5144', transform: [{ scale: 0.98 }] },
-  requestButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  statusBox: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E6E2', borderRadius: 22, padding: 24 },
-  statusText: { color: '#64716D', fontSize: 15, lineHeight: 22, textAlign: 'center' },
-  errorText: { color: '#7F2C2C', fontSize: 15, lineHeight: 22, textAlign: 'center' },
-  retryButton: { backgroundColor: '#176B5B', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12 },
-  retryButtonPressed: { backgroundColor: '#0E5144', transform: [{ scale: 0.98 }] },
-  retryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F5F7F5',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    flexGrow: 1,
+  },
+  header: {
+    paddingTop: 12,
+    paddingBottom: 34,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginBottom: 54,
+  },
+  brand: {
+    color: '#17211F',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  headerAction: {
+    color: '#176B5B',
+    fontSize: 13,
+    fontWeight: '700',
+    paddingVertical: 6,
+  },
+  headerActionPressed: {
+    opacity: 0.6,
+  },
+  eyebrow: {
+    color: '#176B5B',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  title: {
+    color: '#17211F',
+    fontSize: 42,
+    lineHeight: 44,
+    fontWeight: '700',
+    letterSpacing: -1.8,
+    maxWidth: 500,
+  },
+  subtitle: {
+    color: '#586762',
+    fontSize: 16,
+    lineHeight: 25,
+    marginTop: 18,
+    maxWidth: 520,
+  },
+  statusBox: {
+    minHeight: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E6E2',
+    borderRadius: 22,
+    padding: 24,
+  },
+  statusText: {
+    color: '#586762',
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#7F2C2C',
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#176B5B',
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  retryButtonPressed: {
+    backgroundColor: '#0E5144',
+    transform: [{ scale: 0.98 }],
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
