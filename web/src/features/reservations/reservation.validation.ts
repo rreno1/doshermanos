@@ -33,6 +33,14 @@ function isValidDateOnly(value: string): boolean {
   );
 }
 
+function todayDateOnly(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function validateReservationForm(
   form: ReservationFormValues,
 ): ReservationValidationResult {
@@ -40,9 +48,12 @@ export function validateReservationForm(
   const location = form.location.trim();
   const serviceRequirements = form.serviceRequirements.trim();
   const guestCount = Number(form.guestCount);
+  const today = todayDateOnly();
 
   if (!isValidDateOnly(form.startDate)) {
     errors.startDate = 'Choose a valid event start date.';
+  } else if (form.startDate < today) {
+    errors.startDate = 'The event start date cannot be in the past.';
   }
 
   if (!isValidDateOnly(form.endDate)) {
