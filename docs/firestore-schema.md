@@ -53,11 +53,62 @@ Security:
 - active staff and administrators may create or update package documents;
 - only active administrators may delete package documents.
 
+## `reservations/{reservationId}`
+
+Purpose: customer-visible reservation request record. The document contains only information that the owning customer and authorized staff may read. Staff-only notes must not be added to this document.
+
+Fields:
+
+- `customerId`: Firebase Authentication UID of the owning customer
+- `status`: `pending_review | confirmed | rejected | cancelled | completed`
+- `event.startDate`: date-only string in `YYYY-MM-DD` form
+- `event.endDate`: date-only string in `YYYY-MM-DD` form
+- `event.location`: event location, 1-300 characters
+- `event.guestCount`: positive integer, currently bounded at 10,000
+- `package.packageId`: selected package document ID
+- `package.packageName`: immutable request-time package name snapshot
+- `package.priceInCentavos`: immutable request-time base package price snapshot
+- `createdAt`: Firestore server timestamp
+- `updatedAt`: Firestore server timestamp
+
+Creation rules:
+
+- only an active authenticated customer may create a request;
+- the `customerId` must match the authenticated user;
+- the initial status must be `pending_review`;
+- the selected package must exist and be active;
+- the submitted package name and base price must match the authoritative package document;
+- the customer cannot submit a reservation as already confirmed.
+
+Read rules:
+
+- customers may read only reservation records whose `customerId` matches their own UID;
+- staff and administrators may read reservation records for operational review;
+- unauthenticated access is denied.
+
+Update rules in the current slice:
+
+- customers cannot directly modify submitted reservation records;
+- staff and administrators may reject a `pending_review` request;
+- normal client operations cannot transition a request to `confirmed` yet;
+- deletion is denied.
+
+The restriction on confirmation is deliberate. Dos Hermanos has confirmed that multiple events may occur simultaneously, so a global one-event-per-date lock would be wrong. The actual capacity rule for final confirmation is still undefined. See `docs/scheduling-policy.md`.
+
+### Package snapshot reason
+
+The request stores the selected package name and base price so later package edits do not silently rewrite the meaning of an older request. Firestore Security Rules compare these fields with the active package document at request creation so a customer cannot forge a different name or base price.
+
+This is only the base package snapshot. Final package customization and authoritative total-price logic remain deferred until the actual pricing and customization rules are approved.
+
+### Date semantics
+
+`startDate` and `endDate` are date-only business values, not timestamps. They use the sortable `YYYY-MM-DD` representation to avoid ambiguous locale formatting. Application validation must ensure the end date is not earlier than the start date before submission.
+
 ## Planned collections
 
-The following project modules exist in scope but their final schemas are intentionally deferred until their workflows are implemented:
+The following project modules remain in scope but their final schemas are intentionally deferred until their workflows are implemented:
 
-- reservations
 - inventory
 - inventoryMovements
 - payments
