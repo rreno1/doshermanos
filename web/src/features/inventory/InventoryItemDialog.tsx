@@ -1,14 +1,24 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { createInventoryItem, getInventoryErrorMessage } from './inventory.service';
-import { validateNewInventoryItem } from './inventory.validation';
+import {
+  createInventoryItem,
+  getInventoryErrorMessage,
+  updateInventoryItemDetails,
+} from './inventory.service';
+import type { InventoryItem } from './inventory.types';
+import { validateInventoryItemDetails } from './inventory.validation';
 import './inventory-dialog.css';
 
 type InventoryItemDialogProps = {
   isOpen: boolean;
+  item: InventoryItem | null;
   onClose: () => void;
 };
 
-export function InventoryItemDialog({ isOpen, onClose }: InventoryItemDialogProps) {
+export function InventoryItemDialog({
+  isOpen,
+  item,
+  onClose,
+}: InventoryItemDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -38,23 +48,40 @@ export function InventoryItemDialog({ isOpen, onClose }: InventoryItemDialogProp
       }}
       onClose={onClose}
     >
-      {isOpen ? <InventoryItemForm onClose={onClose} /> : null}
+      {isOpen ? (
+        <InventoryItemForm key={item?.id ?? 'new'} item={item} onClose={onClose} />
+      ) : null}
     </dialog>
   );
 }
 
-function InventoryItemForm({ onClose }: { onClose: () => void }) {
-  const [name, setName] = useState('');
-  const [unit, setUnit] = useState('');
-  const [lowStockThreshold, setLowStockThreshold] = useState('0');
+function InventoryItemForm({
+  item,
+  onClose,
+}: {
+  item: InventoryItem | null;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(item?.name ?? '');
+  const [unit, setUnit] = useState(item?.unit ?? '');
+  const [lowStockThreshold, setLowStockThreshold] = useState(
+    String(item?.lowStockThreshold ?? 0),
+  );
+  const [isActive, setIsActive] = useState(item?.isActive ?? true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const isEditing = item !== null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
 
-    const validation = validateNewInventoryItem(name, unit, lowStockThreshold);
+    const validation = validateInventoryItemDetails(
+      name,
+      unit,
+      lowStockThreshold,
+      isActive,
+    );
 
     if (!validation.value) {
       setMessage(validation.message);
@@ -64,7 +91,11 @@ function InventoryItemForm({ onClose }: { onClose: () => void }) {
     setIsSaving(true);
 
     try {
-      await createInventoryItem(validation.value);
+      if (item) {
+        await updateInventoryItemDetails(item.id, validation.value);
+      } else {
+        await createInventoryItem(validation.value);
+      }
       onClose();
     } catch (error) {
       setMessage(getInventoryErrorMessage(error));
@@ -77,8 +108,12 @@ function InventoryItemForm({ onClose }: { onClose: () => void }) {
     <form className="inventory-dialog-panel" onSubmit={handleSubmit}>
       <div className="inventory-dialog-heading">
         <div>
-          <p className="inventory-kicker">New inventory item</p>
-          <h3 id="inventory-item-dialog-title">Track another item</h3>
+          <p className="inventory-kicker">
+            {isEditing ? 'Inventory settings' : 'New inventory item'}
+          </p>
+          <h3 id="inventory-item-dialog-title">
+            {isEditing ? 'Edit item' : 'Track another item'}
+          </h3>
         </div>
         <button
           className="inventory-close-button"
@@ -127,6 +162,20 @@ function InventoryItemForm({ onClose }: { onClose: () => void }) {
         />
       </label>
 
+      {isEditing ? (
+        <label className="inventory-checkbox-field">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(event) => setIsActive(event.target.checked)}
+          />
+          <span>
+            <strong>Active item</strong>
+            <small>Inactive items stay in history but cannot receive stock changes.</small>
+          </span>
+        </label>
+      ) : null}
+
       {message ? (
         <div className="inventory-message inventory-message-error" role="alert">
           {message}
@@ -138,7 +187,7 @@ function InventoryItemForm({ onClose }: { onClose: () => void }) {
           Cancel
         </button>
         <button type="submit" className="inventory-primary-button" disabled={isSaving}>
-          {isSaving ? 'Saving…' : 'Create item'}
+          {isSaving ? 'Saving…' : isEditing ? 'Save item' : 'Create item'}
         </button>
       </div>
     </form>
