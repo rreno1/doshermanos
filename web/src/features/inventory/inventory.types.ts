@@ -24,10 +24,11 @@ export type InventoryMovement = {
   createdAt: Date;
 };
 
-export type NewInventoryItemInput = {
+export type InventoryItemDetailsInput = {
   name: string;
   unit: string;
   lowStockThreshold: number;
+  isActive: boolean;
 };
 
 export type InventoryMovementInput = {
