@@ -5,6 +5,7 @@ import {
 } from './inventory.service';
 import type { InventoryItem, InventoryMovementType } from './inventory.types';
 import { validateInventoryMovement } from './inventory.validation';
+import './inventory-dialog.css';
 
 type InventoryMovementDialogProps = {
   item: InventoryItem | null;
