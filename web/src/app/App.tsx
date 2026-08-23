@@ -1,8 +1,15 @@
 import { AuthMenu } from '../features/auth/AuthMenu';
+import { useAuth } from '../features/auth/AuthProvider';
+import { InventoryPanel } from '../features/inventory/InventoryPanel';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
 import { MyReservations } from '../features/reservations/MyReservations';
 
 export function App() {
+  const { authState } = useAuth();
+  const isStaffWorkspace =
+    authState.status === 'active' &&
+    (authState.profile?.role === 'staff' || authState.profile?.role === 'admin');
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -14,19 +21,40 @@ export function App() {
       </header>
 
       <main id="top">
-        <section className="hero" aria-labelledby="hero-title">
-          <p className="eyebrow">Catering made easier</p>
-          <h1 id="hero-title">Choose a package that fits your event.</h1>
-          <p className="hero-copy">
-            Browse available packages, send your event details, and track the request in one place.
-          </p>
-          <a className="primary-link" href="#packages">
-            View packages
-          </a>
-        </section>
+        {isStaffWorkspace && authState.profile ? (
+          <>
+            <section className="hero" aria-labelledby="hero-title">
+              <p className="eyebrow">Staff workspace</p>
+              <h1 id="hero-title">Keep operations ready for every event.</h1>
+              <p className="hero-copy">
+                Review stock levels, record inventory changes, and catch low-stock items before they affect an event.
+              </p>
+              <a className="primary-link" href="#inventory">
+                Open inventory
+              </a>
+            </section>
+            <InventoryPanel
+              staffId={authState.profile.id}
+              staffName={authState.profile.displayName}
+            />
+          </>
+        ) : (
+          <>
+            <section className="hero" aria-labelledby="hero-title">
+              <p className="eyebrow">Catering made easier</p>
+              <h1 id="hero-title">Choose a package that fits your event.</h1>
+              <p className="hero-copy">
+                Browse available packages, send your event details, and track the request in one place.
+              </p>
+              <a className="primary-link" href="#packages">
+                View packages
+              </a>
+            </section>
 
-        <PackageCatalog />
-        <MyReservations />
+            <PackageCatalog />
+            <MyReservations />
+          </>
+        )}
       </main>
 
       <footer className="site-footer">

@@ -95,10 +95,84 @@ A reservation keeps the package name and base price that were presented when the
 
 Dos Hermanos can handle multiple simultaneous events. A global one-event-per-date lock is therefore incorrect. Final confirmation remains blocked from normal client writes until the actual operational capacity rule is approved and can be enforced safely.
 
+## `inventory/{inventoryItemId}`
+
+Purpose: current staff-managed stock level for one ingredient or supply.
+
+Fields:
+
+- `name`: string, 1-120 characters
+- `unit`: string, 1-40 characters
+- `quantity`: whole-number integer, 0-100,000,000
+- `lowStockThreshold`: whole-number integer, 0-100,000,000
+- `isActive`: boolean
+- `lastMovementId`: latest linked movement document ID or `null` before the first stock change
+- `createdAt`: Firestore server timestamp
+- `updatedAt`: Firestore server timestamp
+
+Inventory quantities intentionally use whole numbers. Staff should choose the smallest practical counting unit, such as grams instead of kilograms or milliliters instead of liters, when fractional amounts need to be tracked. This avoids floating-point stock calculations while keeping the model simple.
+
+New items always start at quantity `0`. Opening stock must be added through a movement so every quantity increase or decrease has a history record.
+
+Low stock is derived at read time:
+
+```text
+isActive && quantity <= lowStockThreshold
+```
+
+No duplicate `isLowStock` field is stored.
+
+Read pattern:
+
+```text
+inventory
+order by name ascending
+limit 100
+```
+
+Only active staff and administrators can read inventory records.
+
+## `inventoryMovements/{movementId}`
+
+Purpose: append-only history for every inventory quantity change.
+
+Fields:
+
+- `inventoryItemId`: linked inventory document ID
+- `itemName`: movement-time item-name snapshot
+- `unit`: movement-time tracking-unit snapshot
+- `type`: `stock_in | stock_out | correction`
+- `quantityChange`: signed non-zero integer
+- `previousQuantity`: quantity before the change
+- `newQuantity`: quantity after the change
+- `note`: optional string up to 300 characters; required for corrections
+- `recordedBy`: authenticated staff/admin UID
+- `recordedByName`: staff/admin display-name snapshot verified against the current user profile
+- `createdAt`: Firestore server timestamp
+
+Stock movement and inventory quantity update must be committed together. Firestore Security Rules use `get()` and `getAfter()` to verify that:
+
+- the movement references the inventory document being changed;
+- `previousQuantity` matches the stored quantity before the write;
+- `newQuantity` matches the inventory quantity after the write;
+- `quantityChange` exactly bridges the two values;
+- `lastMovementId` points to the newly created movement;
+- the recorder UID and display name match the authenticated active staff/admin account;
+- stock cannot become negative;
+- a movement cannot be edited or deleted afterward.
+
+Recent activity read pattern:
+
+```text
+inventoryMovements
+order by createdAt descending
+limit 30
+```
+
+This first inventory slice supports deliberate staff stock-in, stock-out, and physical-count corrections. Automatic reservation-based deductions remain out of scope until the reservation confirmation/capacity rule is finalized.
+
 ## Planned collections
 
-- inventory
-- inventoryMovements
 - payments
 - equipment
 - equipmentTransactions

@@ -5,7 +5,7 @@
 - `auth`: email/password identity, session, profile, and account-state handling
 - `packages`: public package catalog and later staff package management
 - `reservations`: customer request form, event details, service requirements, own-request tracking, later review/customization/confirmation workflows
-- `inventory`: ingredients, supplies, stock availability, and inventory movements
+- `inventory`: staff/admin ingredients and supplies, stock levels, low-stock thresholds, and append-only inventory movements
 - `payments`: manual deposits, balances, cash/manual payment recording, and payment status
 - `equipment`: release, return, missing, and damaged equipment accountability
 - `reports`: reservation, sales, payment, inventory, and equipment reporting
@@ -31,5 +31,11 @@
 - native Expo date selection for the mobile reservation form
 - protection against client-side self-confirmation
 - support for multiple reservation requests on the same event date
+- staff/admin web inventory workspace
+- bounded inventory list and recent stock-activity subscriptions
+- low-stock state derived from quantity and threshold
+- atomic stock-in, stock-out, and physical-count correction transactions
+- append-only inventory movement history linked to every quantity change
+- Firestore rules preventing direct quantity edits, forged movement values, negative stock, and customer inventory access
 
-Final reservation confirmation remains pending because Dos Hermanos allows multiple simultaneous events and the exact operational capacity rule has not yet been defined. See `scheduling-policy.md`.
+Final reservation confirmation remains pending because Dos Hermanos allows multiple simultaneous events and the exact operational capacity rule has not yet been defined. Automatic inventory deductions tied to confirmed reservations therefore remain pending as well. See `scheduling-policy.md`.

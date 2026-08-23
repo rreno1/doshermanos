@@ -1,0 +1,216 @@
+.inventory-dialog {
+  width: min(calc(100% - 28px), 560px);
+  max-height: min(90vh, 760px);
+  padding: 0;
+  border: 0;
+  border-radius: 26px;
+  background: transparent;
+  overflow: auto;
+}
+
+.inventory-dialog::backdrop {
+  background: rgba(16, 28, 24, 0.44);
+  backdrop-filter: blur(5px);
+}
+
+.inventory-dialog-panel {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 30px 90px rgba(20, 38, 32, 0.24);
+  animation: inventory-dialog-in 180ms ease-out both;
+}
+
+.inventory-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.inventory-dialog-heading h3 {
+  margin: 0;
+  font-size: 1.7rem;
+  letter-spacing: -0.04em;
+}
+
+.inventory-dialog-copy {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.inventory-close-button {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  color: #44504c;
+  background: #eef3f0;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.inventory-field {
+  display: grid;
+  gap: 7px;
+  color: #263732;
+  font-weight: 700;
+}
+
+.inventory-field input,
+.inventory-field textarea {
+  width: 100%;
+  border: 1px solid #d8e0dc;
+  border-radius: 14px;
+  color: #17211f;
+  background: #ffffff;
+}
+
+.inventory-field input {
+  min-height: 48px;
+  padding: 0 13px;
+}
+
+.inventory-field textarea {
+  resize: vertical;
+  padding: 12px 13px;
+}
+
+.inventory-field small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.inventory-checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #d8e0dc;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.inventory-checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.inventory-checkbox-field span,
+.inventory-checkbox-field strong,
+.inventory-checkbox-field small {
+  display: block;
+}
+
+.inventory-checkbox-field small {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.inventory-movement-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.inventory-movement-options legend {
+  margin-bottom: 8px;
+  color: #263732;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.inventory-movement-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.inventory-movement-option span {
+  display: grid;
+  min-height: 46px;
+  place-items: center;
+  padding: 8px;
+  border: 1px solid #d8e0dc;
+  border-radius: 13px;
+  color: #40514c;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.inventory-movement-option input:checked + span {
+  border-color: rgba(23, 107, 91, 0.42);
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+}
+
+.inventory-message {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.inventory-message-error {
+  color: #7f2c2c;
+  background: #fff0ee;
+}
+
+.inventory-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.inventory-close-button:focus-visible,
+.inventory-field input:focus-visible,
+.inventory-field textarea:focus-visible,
+.inventory-checkbox-field input:focus-visible,
+.inventory-movement-option input:focus-visible + span {
+  outline: 3px solid rgba(23, 107, 91, 0.25);
+  outline-offset: 3px;
+}
+
+@keyframes inventory-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 620px) {
+  .inventory-movement-options {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-dialog-panel {
+    padding: 20px;
+    border-radius: 22px;
+  }
+}

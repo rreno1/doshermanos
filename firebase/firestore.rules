@@ -142,6 +142,126 @@ service cloud.firestore {
         && packageDocument.data.priceInCentavos == request.resource.data.package.priceInCentavos;
     }
 
+    function validInventoryDocument() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'unit', 'quantity', 'lowStockThreshold', 'isActive',
+          'lastMovementId', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'unit', 'quantity', 'lowStockThreshold', 'isActive',
+          'lastMovementId', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.unit is string
+        && request.resource.data.unit.size() > 0
+        && request.resource.data.unit.size() <= 40
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity >= 0
+        && request.resource.data.quantity <= 100000000
+        && request.resource.data.lowStockThreshold is int
+        && request.resource.data.lowStockThreshold >= 0
+        && request.resource.data.lowStockThreshold <= 100000000
+        && request.resource.data.isActive is bool
+        && (
+          request.resource.data.lastMovementId == null
+          || (
+            request.resource.data.lastMovementId is string
+            && request.resource.data.lastMovementId.size() > 0
+            && request.resource.data.lastMovementId.size() <= 120
+          )
+        )
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validInventoryMovementDocument() {
+      return request.resource.data.keys().hasOnly([
+          'inventoryItemId', 'itemName', 'unit', 'type', 'quantityChange',
+          'previousQuantity', 'newQuantity', 'note', 'recordedBy',
+          'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'inventoryItemId', 'itemName', 'unit', 'type', 'quantityChange',
+          'previousQuantity', 'newQuantity', 'note', 'recordedBy',
+          'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.inventoryItemId is string
+        && request.resource.data.inventoryItemId.size() > 0
+        && request.resource.data.itemName is string
+        && request.resource.data.itemName.size() > 0
+        && request.resource.data.itemName.size() <= 120
+        && request.resource.data.unit is string
+        && request.resource.data.unit.size() > 0
+        && request.resource.data.unit.size() <= 40
+        && request.resource.data.type in ['stock_in', 'stock_out', 'correction']
+        && request.resource.data.quantityChange is int
+        && request.resource.data.quantityChange != 0
+        && request.resource.data.quantityChange >= -100000000
+        && request.resource.data.quantityChange <= 100000000
+        && request.resource.data.previousQuantity is int
+        && request.resource.data.previousQuantity >= 0
+        && request.resource.data.previousQuantity <= 100000000
+        && request.resource.data.newQuantity is int
+        && request.resource.data.newQuantity >= 0
+        && request.resource.data.newQuantity <= 100000000
+        && request.resource.data.newQuantity
+          == request.resource.data.previousQuantity + request.resource.data.quantityChange
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 300
+        && (
+          request.resource.data.type != 'correction'
+          || request.resource.data.note.size() >= 3
+        )
+        && (
+          (request.resource.data.type == 'stock_in'
+            && request.resource.data.quantityChange > 0)
+          || (request.resource.data.type == 'stock_out'
+            && request.resource.data.quantityChange < 0)
+          || request.resource.data.type == 'correction'
+        )
+        && request.resource.data.recordedBy is string
+        && request.resource.data.recordedBy.size() > 0
+        && request.resource.data.recordedByName is string
+        && request.resource.data.recordedByName.size() > 0
+        && request.resource.data.recordedByName.size() <= 100
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function inventoryQuantityChangeHasMatchingMovement(inventoryItemId) {
+      let movementId = request.resource.data.lastMovementId;
+      let movementDocument = getAfter(
+        /databases/$(database)/documents/inventoryMovements/$(movementId)
+      );
+
+      return resource.data.isActive == true
+        && movementId is string
+        && movementId != resource.data.lastMovementId
+        && movementDocument.data.inventoryItemId == inventoryItemId
+        && movementDocument.data.previousQuantity == resource.data.quantity
+        && movementDocument.data.newQuantity == request.resource.data.quantity
+        && movementDocument.data.quantityChange
+          == request.resource.data.quantity - resource.data.quantity
+        && movementDocument.data.recordedBy == request.auth.uid
+        && movementDocument.data.createdAt == request.time;
+    }
+
+    function inventoryMovementMatchesItemChange(movementId) {
+      let previousItem = get(
+        /databases/$(database)/documents/inventory/$(request.resource.data.inventoryItemId)
+      );
+      let updatedItem = getAfter(
+        /databases/$(database)/documents/inventory/$(request.resource.data.inventoryItemId)
+      );
+
+      return previousItem.data.quantity == request.resource.data.previousQuantity
+        && updatedItem.data.quantity == request.resource.data.newQuantity
+        && updatedItem.data.lastMovementId == movementId
+        && updatedItem.data.name == request.resource.data.itemName
+        && updatedItem.data.unit == request.resource.data.unit;
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn()
         && (request.auth.uid == userId || isAdmin());
@@ -213,6 +333,53 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
 
       allow delete: if false;
+    }
+
+    match /inventory/{inventoryItemId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validInventoryDocument()
+        && request.resource.data.quantity == 0
+        && request.resource.data.lastMovementId == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isStaffOrAdmin()
+        && validInventoryDocument()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && (
+          (
+            request.resource.data.quantity == resource.data.quantity
+            && request.resource.data.lastMovementId == resource.data.lastMovementId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'name', 'unit', 'lowStockThreshold', 'isActive', 'updatedAt'
+            ])
+          )
+          || (
+            request.resource.data.quantity != resource.data.quantity
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'quantity', 'lastMovementId', 'updatedAt'
+            ])
+            && inventoryQuantityChangeHasMatchingMovement(inventoryItemId)
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validInventoryMovementDocument()
+        && request.resource.data.recordedBy == request.auth.uid
+        && request.resource.data.recordedByName == currentUserProfile().data.displayName
+        && request.resource.data.createdAt == request.time
+        && inventoryMovementMatchesItemChange(movementId);
+
+      allow update, delete: if false;
     }
 
     match /{document=**} {
