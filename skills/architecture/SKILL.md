@@ -31,7 +31,7 @@ Organize by business feature first. Shared code exists only when it is genuinely
 
 ## Hard rules
 
-1. A feature owns its own UI, types, validation, and Firestore operations when practical.
+1. A feature owns its own UI, types, validation, Firestore operations, and feature-specific interaction or animation logic when practical.
 2. Do not create a global service that contains unrelated Firestore operations.
 3. Do not create controller -> service -> repository -> adapter chains for simple Firebase operations.
 4. Keep `App` and routing files focused on composition and navigation, not business logic.
@@ -41,6 +41,26 @@ Organize by business feature first. Shared code exists only when it is genuinely
 8. Cross-feature access should be explicit and minimal.
 9. Circular dependencies are not allowed.
 10. Prefer one obvious source of truth for each business calculation or state rule.
+11. Do not scatter one feature across global `components`, `services`, `hooks`, `repositories`, and `utils` directories when those files are used only by that feature.
+12. Shared visual primitives may live in shared components, but business-specific screens and components belong to their owning feature.
+13. Do not introduce a separate animation subsystem for ordinary interface motion. Keep motion with the feature or shared primitive that owns it.
+14. Split a file when it contains clearly separate responsibilities, not merely because it crosses an arbitrary line-count threshold.
+15. Security boundaries and Firestore access rules must remain clear even when keeping the architecture simple.
+
+## Preferred feature shape
+
+A feature may contain only the files it actually needs, for example:
+
+```text
+reservations/
+├── components/
+├── pages/
+├── reservation.service.ts
+├── reservation.types.ts
+└── reservation.validation.ts
+```
+
+Do not create all of these automatically. If a feature is simple, fewer files are better.
 
 ## File creation rule
 
@@ -49,3 +69,5 @@ Do not create files merely because a template normally contains them. Create a f
 ## Smell test
 
 Refactor if one file becomes a dumping ground for unrelated features, but do not split a readable file into many tiny files just to reduce line count.
+
+A developer should be able to open one feature directory and understand most of that feature without navigating through unrelated global layers.
