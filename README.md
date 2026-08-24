@@ -29,11 +29,16 @@ The current slices provide:
 - protection against clients creating already-confirmed reservations;
 - staff/admin inventory and append-only inventory movement tracking;
 - staff cash payment recording with customer-safe payment receipts;
-- disabled hosted payment-link readiness without a live payment provider.
+- disabled hosted payment-link readiness without a live payment provider;
+- staff/admin equipment registry and event assignment;
+- atomic equipment release and return accountability;
+- damaged/missing equipment tracking with immutable transaction history.
 
 No sample business data is committed.
 
 Dos Hermanos may accept multiple events on the same date and at overlapping times. The system does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the operational capacity rule is defined. See `docs/scheduling-policy.md`.
+
+Equipment assignment is currently a preparation/accountability workflow rather than a future-date capacity lock. Actual physical release is blocked when the registered equipment is not available.
 
 ## Web setup
 
