@@ -74,7 +74,7 @@ export function EquipmentItemDialog({ isOpen, item, onClose, onSaved }: Props) {
     }
   }
 
-  const canDeactivate = !item || item.inUseQuantity === 0;
+  const canChangeActiveStatus = !item || item.inUseQuantity === 0;
 
   return (
     <dialog
@@ -146,15 +146,15 @@ export function EquipmentItemDialog({ isOpen, item, onClose, onSaved }: Props) {
           <input
             type="checkbox"
             checked={isActive}
-            disabled={!isActive && !canDeactivate ? false : !canDeactivate}
+            disabled={!canChangeActiveStatus}
             onChange={(event) => setIsActive(event.target.checked)}
           />
           <span>
             <strong>Active equipment</strong>
             <small>
-              {canDeactivate
+              {canChangeActiveStatus
                 ? 'Inactive equipment stays in history but cannot be assigned or released.'
-                : 'Equipment currently in use cannot be deactivated.'}
+                : 'Equipment currently in use cannot change active status.'}
             </small>
           </span>
         </label>
