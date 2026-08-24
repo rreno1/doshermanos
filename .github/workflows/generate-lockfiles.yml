@@ -3,12 +3,10 @@ name: Generate lockfiles
 on:
   push:
     branches: [chore/reproducible-dependencies]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -37,13 +35,14 @@ jobs:
         working-directory: firebase/tests
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 
-      - name: Upload generated lockfiles
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-lockfiles
-          path: |
-            web/package-lock.json
-            mobile/package-lock.json
-            firebase/tests/package-lock.json
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit generated lockfiles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/package-lock.json mobile/package-lock.json firebase/tests/package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfiles are already current."
+            exit 0
+          fi
+          git commit -m "chore: lock npm dependencies"
+          git push origin HEAD:chore/reproducible-dependencies
