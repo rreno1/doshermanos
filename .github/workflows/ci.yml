@@ -65,7 +65,7 @@ jobs:
 
       - name: Install web dependencies
         working-directory: web
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck and build web
         working-directory: web
@@ -87,7 +87,7 @@ jobs:
 
       - name: Install mobile dependencies
         working-directory: mobile
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck mobile
         working-directory: mobile
@@ -115,7 +115,7 @@ jobs:
 
       - name: Install Firestore test dependencies
         working-directory: firebase/tests
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Run Firestore security tests
         working-directory: firebase/tests
