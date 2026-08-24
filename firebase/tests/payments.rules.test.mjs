@@ -313,3 +313,14 @@ test('payment records and customer receipts are append-only', async () => {
     }),
   );
 });
+
+test('an existing payment operation id cannot be rewritten as a second payment', async () => {
+  await seedPaymentPair('retry-a');
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+  const batch = writeBatch(database);
+
+  batch.set(doc(database, 'payments', 'retry-a'), paymentRecord());
+  batch.set(doc(database, 'paymentReceipts', 'retry-a'), receiptRecord());
+
+  await assertFails(batch.commit());
+});
