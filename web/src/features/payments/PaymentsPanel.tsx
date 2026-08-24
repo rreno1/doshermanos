@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { StaffPaymentLinkCard } from './PaymentLinkCards';
 import { PaymentRecordDialog } from './PaymentRecordDialog';
 import {
   subscribeToPayableReservations,
@@ -65,7 +66,7 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
         </div>
       </div>
 
-      <PaymentLinkReadyCard />
+      <StaffPaymentLinkCard />
 
       <div className="payments-layout">
         <div className="payments-main-column">
@@ -169,27 +170,6 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
       </ol>
     );
   }
-}
-
-function PaymentLinkReadyCard() {
-  return (
-    <article className="payment-link-ready" aria-labelledby="payment-link-ready-title">
-      <div>
-        <div className="payment-link-ready-labels">
-          <span className="payment-link-badge">Ready, not connected</span>
-          <span>Hosted payment page</span>
-        </div>
-        <h3 id="payment-link-ready-title">Payment link for card, QR, and e-wallet checkout</h3>
-        <p>
-          The interface is reserved for a hosted payment link later. No provider, URL, webhook,
-          card form, or live payment processing is enabled in this build.
-        </p>
-      </div>
-      <button type="button" className="payment-link-disabled" disabled>
-        Payment link coming soon
-      </button>
-    </article>
-  );
 }
 
 function PaymentStatusBox({
