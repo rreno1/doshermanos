@@ -8,10 +8,9 @@ type Props = {
   isOpen: boolean;
   item: EquipmentItem | null;
   onClose: () => void;
-  onSaved: () => void;
 };
 
-export function EquipmentItemDialog({ isOpen, item, onClose, onSaved }: Props) {
+export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('pieces');
@@ -65,7 +64,6 @@ export function EquipmentItemDialog({ isOpen, item, onClose, onSaved }: Props) {
       } else {
         await createEquipmentItem(input);
       }
-      onSaved();
       onClose();
     } catch {
       setErrorMessage('We could not save this equipment item. Please try again.');
