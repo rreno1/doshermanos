@@ -5,12 +5,19 @@ export type ReservationStatus =
   | 'cancelled'
   | 'completed';
 
+export type ReservationCustomizationRequest = {
+  menuRequest: string;
+  foodQuantityRequest: string;
+  supplyRequest: string;
+};
+
 export type ReservationRequestInput = {
   startDate: string;
   endDate: string;
   location: string;
   guestCount: number;
   serviceRequirements: string;
+  customization: ReservationCustomizationRequest;
 };
 
 export type ReservationEvent = {
@@ -30,5 +37,6 @@ export type ReservationRecord = {
     packageName: string;
     priceInCentavos: number;
   };
+  customization: ReservationCustomizationRequest;
   createdAt: Date;
 };

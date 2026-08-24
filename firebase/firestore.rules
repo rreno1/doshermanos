@@ -114,9 +114,29 @@ service cloud.firestore {
         && request.resource.data.package.priceInCentavos <= 100000000;
     }
 
+    function validReservationCustomization() {
+      return !request.resource.data.keys().hasAll(['customization'])
+        || (
+          request.resource.data.customization is map
+          && request.resource.data.customization.keys().hasOnly([
+            'menuRequest', 'foodQuantityRequest', 'supplyRequest'
+          ])
+          && request.resource.data.customization.keys().hasAll([
+            'menuRequest', 'foodQuantityRequest', 'supplyRequest'
+          ])
+          && request.resource.data.customization.menuRequest is string
+          && request.resource.data.customization.menuRequest.size() <= 1000
+          && request.resource.data.customization.foodQuantityRequest is string
+          && request.resource.data.customization.foodQuantityRequest.size() <= 1000
+          && request.resource.data.customization.supplyRequest is string
+          && request.resource.data.customization.supplyRequest.size() <= 1000
+        );
+    }
+
     function validReservationDocument() {
       return request.resource.data.keys().hasOnly([
-          'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
+          'customerId', 'status', 'event', 'package', 'customization',
+          'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
           'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
@@ -128,6 +148,7 @@ service cloud.firestore {
         ]
         && validReservationEvent()
         && validReservationPackage()
+        && validReservationCustomization()
         && request.resource.data.createdAt is timestamp
         && request.resource.data.updatedAt is timestamp;
     }

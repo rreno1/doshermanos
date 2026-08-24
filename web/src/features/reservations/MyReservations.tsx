@@ -125,8 +125,25 @@ export function MyReservations() {
                   {reservation.event.guestCount.toLocaleString('en-PH')} guests
                 </p>
                 <p>{reservation.event.location}</p>
+                {reservation.customization.menuRequest ? (
+                  <p className="reservation-requirements">
+                    <strong>Menu request:</strong> {reservation.customization.menuRequest}
+                  </p>
+                ) : null}
+                {reservation.customization.foodQuantityRequest ? (
+                  <p className="reservation-requirements">
+                    <strong>Food quantity request:</strong>{' '}
+                    {reservation.customization.foodQuantityRequest}
+                  </p>
+                ) : null}
+                {reservation.customization.supplyRequest ? (
+                  <p className="reservation-requirements">
+                    <strong>Supply request:</strong> {reservation.customization.supplyRequest}
+                  </p>
+                ) : null}
                 {reservation.event.serviceRequirements ? (
                   <p className="reservation-requirements">
+                    <strong>Service requirements:</strong>{' '}
                     {reservation.event.serviceRequirements}
                   </p>
                 ) : null}

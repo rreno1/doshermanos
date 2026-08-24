@@ -6,6 +6,9 @@ export type ReservationFormValues = {
   location: string;
   guestCount: string;
   serviceRequirements: string;
+  menuRequest: string;
+  foodQuantityRequest: string;
+  supplyRequest: string;
 };
 
 type ReservationField = keyof ReservationFormValues;
@@ -47,6 +50,9 @@ export function validateReservationForm(
   const errors: ReservationValidationResult['errors'] = {};
   const location = form.location.trim();
   const serviceRequirements = form.serviceRequirements.trim();
+  const menuRequest = form.menuRequest.trim();
+  const foodQuantityRequest = form.foodQuantityRequest.trim();
+  const supplyRequest = form.supplyRequest.trim();
   const guestCount = Number(form.guestCount);
   const today = todayDateOnly();
 
@@ -76,6 +82,18 @@ export function validateReservationForm(
     errors.serviceRequirements = 'Keep service requirements within 1,000 characters.';
   }
 
+  if (menuRequest.length > 1000) {
+    errors.menuRequest = 'Keep the menu request within 1,000 characters.';
+  }
+
+  if (foodQuantityRequest.length > 1000) {
+    errors.foodQuantityRequest = 'Keep food quantity requirements within 1,000 characters.';
+  }
+
+  if (supplyRequest.length > 1000) {
+    errors.supplyRequest = 'Keep supply requirements within 1,000 characters.';
+  }
+
   if (Object.keys(errors).length > 0) {
     return { value: null, errors };
   }
@@ -87,6 +105,11 @@ export function validateReservationForm(
       location,
       guestCount,
       serviceRequirements,
+      customization: {
+        menuRequest,
+        foodQuantityRequest,
+        supplyRequest,
+      },
     },
     errors: {},
   };

@@ -6,6 +6,9 @@ export type ReservationFormValues = {
   location: string;
   guestCount: string;
   serviceRequirements: string;
+  menuRequest: string;
+  foodQuantityRequest: string;
+  supplyRequest: string;
 };
 
 export type ReservationValidationResult = {
@@ -44,6 +47,9 @@ export function validateReservationForm(
 ): ReservationValidationResult {
   const location = form.location.trim();
   const serviceRequirements = form.serviceRequirements.trim();
+  const menuRequest = form.menuRequest.trim();
+  const foodQuantityRequest = form.foodQuantityRequest.trim();
+  const supplyRequest = form.supplyRequest.trim();
   const guestCount = Number(form.guestCount);
 
   if (!isValidDateOnly(form.startDate) || !isValidDateOnly(form.endDate)) {
@@ -70,6 +76,18 @@ export function validateReservationForm(
     return { value: null, message: 'Keep service requirements within 1,000 characters.' };
   }
 
+  if (menuRequest.length > 1000) {
+    return { value: null, message: 'Keep the menu request within 1,000 characters.' };
+  }
+
+  if (foodQuantityRequest.length > 1000) {
+    return { value: null, message: 'Keep food quantity requirements within 1,000 characters.' };
+  }
+
+  if (supplyRequest.length > 1000) {
+    return { value: null, message: 'Keep supply requirements within 1,000 characters.' };
+  }
+
   return {
     value: {
       startDate: form.startDate,
@@ -77,6 +95,11 @@ export function validateReservationForm(
       location,
       guestCount,
       serviceRequirements,
+      customization: {
+        menuRequest,
+        foodQuantityRequest,
+        supplyRequest,
+      },
     },
     message: null,
   };

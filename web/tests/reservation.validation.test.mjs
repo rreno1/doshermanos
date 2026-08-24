@@ -9,11 +9,14 @@ function validForm(overrides = {}) {
     location: '  Hilongos, Leyte  ',
     guestCount: '120',
     serviceRequirements: '  Extra serving table  ',
+    menuRequest: '  Chicken and fish  ',
+    foodQuantityRequest: '  Add servings for 10 guests  ',
+    supplyRequest: '  Extra serving trays  ',
     ...overrides,
   };
 }
 
-test('reservation validation accepts a valid request and normalizes text fields', () => {
+test('reservation validation accepts a valid request and normalizes request details', () => {
   const result = validateReservationForm(validForm());
 
   assert.deepEqual(result.errors, {});
@@ -23,6 +26,11 @@ test('reservation validation accepts a valid request and normalizes text fields'
     location: 'Hilongos, Leyte',
     guestCount: 120,
     serviceRequirements: 'Extra serving table',
+    customization: {
+      menuRequest: 'Chicken and fish',
+      foodQuantityRequest: 'Add servings for 10 guests',
+      supplyRequest: 'Extra serving trays',
+    },
   });
 });
 
@@ -51,6 +59,13 @@ test('reservation validation rejects invalid guest counts and oversized text', (
   const oversizedRequirements = validateReservationForm(
     validForm({ serviceRequirements: 'x'.repeat(1001) }),
   );
+  const oversizedMenu = validateReservationForm(validForm({ menuRequest: 'x'.repeat(1001) }));
+  const oversizedFood = validateReservationForm(
+    validForm({ foodQuantityRequest: 'x'.repeat(1001) }),
+  );
+  const oversizedSupplies = validateReservationForm(
+    validForm({ supplyRequest: 'x'.repeat(1001) }),
+  );
 
   assert.equal(invalidGuests.value, null);
   assert.equal(invalidGuests.errors.guestCount, 'Enter a guest count from 1 to 10,000.');
@@ -63,5 +78,14 @@ test('reservation validation rejects invalid guest counts and oversized text', (
   assert.equal(
     oversizedRequirements.errors.serviceRequirements,
     'Keep service requirements within 1,000 characters.',
+  );
+  assert.equal(oversizedMenu.errors.menuRequest, 'Keep the menu request within 1,000 characters.');
+  assert.equal(
+    oversizedFood.errors.foodQuantityRequest,
+    'Keep food quantity requirements within 1,000 characters.',
+  );
+  assert.equal(
+    oversizedSupplies.errors.supplyRequest,
+    'Keep supply requirements within 1,000 characters.',
   );
 });
