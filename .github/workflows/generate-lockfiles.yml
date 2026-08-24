@@ -1,8 +1,8 @@
 name: Generate lockfiles
 
 on:
-  push:
-    branches: [chore/reproducible-dependencies]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,8 +15,10 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout feature branch
         uses: actions/checkout@v4
+        with:
+          ref: chore/reproducible-dependencies
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
