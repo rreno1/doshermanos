@@ -15,6 +15,9 @@ function validForm(overrides = {}) {
     location: '  Brgy. Central, Hilongos  ',
     guestCount: '85',
     serviceRequirements: '  Outdoor setup  ',
+    menuRequest: '  Chicken and fish  ',
+    foodQuantityRequest: '  Add servings for 10 guests  ',
+    supplyRequest: '  Extra serving trays  ',
     ...overrides,
   };
 }
@@ -29,6 +32,11 @@ test('mobile reservation validation accepts and normalizes a valid request', () 
     location: 'Brgy. Central, Hilongos',
     guestCount: 85,
     serviceRequirements: 'Outdoor setup',
+    customization: {
+      menuRequest: 'Chicken and fish',
+      foodQuantityRequest: 'Add servings for 10 guests',
+      supplyRequest: 'Extra serving trays',
+    },
   });
 });
 
@@ -54,6 +62,13 @@ test('mobile reservation validation rejects invalid guest counts and oversized f
   const oversizedRequirements = validateReservationForm(
     validForm({ serviceRequirements: 'x'.repeat(1001) }),
   );
+  const oversizedMenu = validateReservationForm(validForm({ menuRequest: 'x'.repeat(1001) }));
+  const oversizedFood = validateReservationForm(
+    validForm({ foodQuantityRequest: 'x'.repeat(1001) }),
+  );
+  const oversizedSupplies = validateReservationForm(
+    validForm({ supplyRequest: 'x'.repeat(1001) }),
+  );
 
   assert.equal(invalidGuests.value, null);
   assert.equal(invalidGuests.message, 'Enter a guest count from 1 to 10,000.');
@@ -63,4 +78,7 @@ test('mobile reservation validation rejects invalid guest counts and oversized f
   assert.equal(oversizedLocation.message, 'Enter an event location within 300 characters.');
   assert.equal(oversizedRequirements.value, null);
   assert.equal(oversizedRequirements.message, 'Keep service requirements within 1,000 characters.');
+  assert.equal(oversizedMenu.message, 'Keep the menu request within 1,000 characters.');
+  assert.equal(oversizedFood.message, 'Keep food quantity requirements within 1,000 characters.');
+  assert.equal(oversizedSupplies.message, 'Keep supply requirements within 1,000 characters.');
 });
