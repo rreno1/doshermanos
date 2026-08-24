@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { EquipmentActivityList } from './EquipmentActivityList';
 import { EquipmentAssignmentDialog } from './EquipmentAssignmentDialog';
 import { EquipmentAssignmentList } from './EquipmentAssignmentList';
 import { EquipmentItemDialog } from './EquipmentItemDialog';
@@ -9,17 +10,25 @@ import {
   cancelEquipmentAssignment,
   subscribeToEquipment,
   subscribeToEquipmentAssignments,
+  subscribeToEquipmentTransactions,
 } from './equipment.service';
-import type { EquipmentAssignment, EquipmentItem } from './equipment.types';
+import type {
+  EquipmentAssignment,
+  EquipmentItem,
+  EquipmentTransactionRecord,
+} from './equipment.types';
 import './equipment.css';
 
 export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffName: string }) {
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [assignments, setAssignments] = useState<EquipmentAssignment[]>([]);
+  const [transactions, setTransactions] = useState<EquipmentTransactionRecord[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
   const [itemsError, setItemsError] = useState(false);
   const [assignmentsError, setAssignmentsError] = useState(false);
+  const [transactionsError, setTransactionsError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
@@ -59,6 +68,21 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         setAssignments([]);
         setAssignmentsError(true);
         setIsLoadingAssignments(false);
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    return subscribeToEquipmentTransactions(
+      (nextTransactions) => {
+        setTransactions(nextTransactions);
+        setTransactionsError(false);
+        setIsLoadingTransactions(false);
+      },
+      () => {
+        setTransactions([]);
+        setTransactionsError(true);
+        setIsLoadingTransactions(false);
       },
     );
   }, []);
@@ -143,23 +167,31 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
       <div className="equipment-layout">
         <div className="equipment-column">
           <div className="equipment-subheading">
-            <div>
-              <h3>Registry</h3>
-              <span>Current physical counts</span>
-            </div>
+            <h3>Registry</h3>
+            <span>Current physical counts</span>
           </div>
           {renderItems()}
         </div>
 
         <div className="equipment-column">
           <div className="equipment-subheading">
-            <div>
-              <h3>Event assignments</h3>
-              <span>Latest 60 assignment updates</span>
-            </div>
+            <h3>Event assignments</h3>
+            <span>Latest 60 assignment updates</span>
           </div>
           {renderAssignments()}
         </div>
+      </div>
+
+      <div className="equipment-activity">
+        <div className="equipment-activity-header">
+          <h3>Recent equipment activity</h3>
+          <span>Latest 30 physical releases and returns</span>
+        </div>
+        <EquipmentActivityList
+          transactions={transactions}
+          isLoading={isLoadingTransactions}
+          hasError={transactionsError}
+        />
       </div>
 
       <EquipmentItemDialog
