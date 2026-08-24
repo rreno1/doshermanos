@@ -1,0 +1,46 @@
+name: Generate test lockfiles
+
+on:
+  push:
+    branches: [test/frontend-runtime-baseline]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Generate web and mobile lockfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: test/frontend-runtime-baseline
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update web lockfile
+        working-directory: web
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Update mobile lockfile
+        working-directory: mobile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit lockfiles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/package-lock.json mobile/package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfiles are already current."
+            exit 0
+          fi
+          git commit -m "chore: lock test dependencies"
+          git push origin HEAD:test/frontend-runtime-baseline
