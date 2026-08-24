@@ -311,6 +311,8 @@ Assignment creation is allowed only for an active equipment item and a reservati
 
 An assignment does not reserve future physical availability. This is intentional because Dos Hermanos can run simultaneous events and the final overlapping-event capacity rule is not defined. Physical availability is enforced at release time instead.
 
+Before physical release, the application transaction and Firestore Security Rules re-read the linked reservation and require its current status to remain `pending_review` or `confirmed`. A reservation that has become `rejected`, `cancelled`, or `completed` cannot release previously assigned equipment. Once equipment has already been physically released, the return workflow remains available regardless of later reservation status so the physical accountability lifecycle can still be closed.
+
 Recent assignment read pattern:
 
 ```text
