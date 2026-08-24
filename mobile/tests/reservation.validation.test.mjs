@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateReservationForm } from '../src/features/reservations/reservation.validation.ts';
+import * as reservationValidationModule from '../src/features/reservations/reservation.validation.ts';
+
+const validateReservationForm =
+  reservationValidationModule.validateReservationForm ??
+  reservationValidationModule.default?.validateReservationForm;
+
+assert.equal(typeof validateReservationForm, 'function');
 
 function validForm(overrides = {}) {
   return {
