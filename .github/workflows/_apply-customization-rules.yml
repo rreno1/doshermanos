@@ -1,8 +1,8 @@
 name: Apply customization rules patch
 
 on:
-  push:
-    branches: [feature/package-customization-foundation]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -22,12 +22,9 @@ jobs:
 
           rules_path = Path('firebase/firestore.rules')
           rules = rules_path.read_text()
-
-          marker = 'function validReservationCustomization()'
-          if marker not in rules:
-              package_function_end = """    function validReservationDocument() {
-"""
-              customization_function = """    function validReservationCustomization() {
+          if 'function validReservationCustomization()' not in rules:
+              marker = "    function validReservationDocument() {\n"
+              addition = """    function validReservationCustomization() {
       return !request.resource.data.keys().hasAll(['customization'])
         || (
           request.resource.data.customization is map
@@ -48,44 +45,31 @@ jobs:
 
     function validReservationDocument() {
 """
-              if package_function_end not in rules:
-                  raise SystemExit('validReservationDocument marker not found')
-              rules = rules.replace(package_function_end, customization_function, 1)
-
-              old_only = """          'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
-"""
-              new_only = """          'customerId', 'status', 'event', 'package', 'customization',
-          'createdAt', 'updatedAt'
-"""
-              if old_only not in rules:
-                  raise SystemExit('reservation top-level key list not found')
-              rules = rules.replace(old_only, new_only, 1)
-
-              old_validation = """        && validReservationEvent()
-        && validReservationPackage()
-        && request.resource.data.createdAt is timestamp
-"""
-              new_validation = """        && validReservationEvent()
-        && validReservationPackage()
-        && validReservationCustomization()
-        && request.resource.data.createdAt is timestamp
-"""
-              if old_validation not in rules:
-                  raise SystemExit('reservation validation block not found')
-              rules = rules.replace(old_validation, new_validation, 1)
+              rules = rules.replace(marker, addition, 1)
+              rules = rules.replace(
+                  "          'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'\n",
+                  "          'customerId', 'status', 'event', 'package', 'customization',\n          'createdAt', 'updatedAt'\n",
+                  1,
+              )
+              rules = rules.replace(
+                  "        && validReservationEvent()\n        && validReservationPackage()\n        && request.resource.data.createdAt is timestamp\n",
+                  "        && validReservationEvent()\n        && validReservationPackage()\n        && validReservationCustomization()\n        && request.resource.data.createdAt is timestamp\n",
+                  1,
+              )
               rules_path.write_text(rules)
 
           test_path = Path('firebase/tests/reservations.rules.test.mjs')
           tests = test_path.read_text()
           if 'customer can submit bounded package customization requests' not in tests:
-              old_snapshot = """    package: {
+              tests = tests.replace(
+                  """    package: {
       packageId: options.packageId ?? 'active-package',
       packageName: options.packageName ?? 'Active Package',
       priceInCentavos: options.priceInCentavos ?? 250000,
     },
     createdAt: serverTimestamp(),
-"""
-              new_snapshot = """    package: {
+""",
+                  """    package: {
       packageId: options.packageId ?? 'active-package',
       packageName: options.packageName ?? 'Active Package',
       priceInCentavos: options.priceInCentavos ?? 250000,
@@ -96,56 +80,44 @@ jobs:
       supplyRequest: '',
     },
     createdAt: serverTimestamp(),
-"""
-              if old_snapshot not in tests:
-                  raise SystemExit('reservation test snapshot helper not found')
-              tests = tests.replace(old_snapshot, new_snapshot, 1)
+""",
+                  1,
+              )
               tests += """
 
 test('customer can submit bounded package customization requests', async () => {
   const database = testEnvironment.authenticatedContext('customer-a').firestore();
   await assertSucceeds(
-    setDoc(
-      doc(database, 'reservations', 'customized-request'),
-      reservationRequest('customer-a', {
-        customization: {
-          menuRequest: 'Chicken and fish',
-          foodQuantityRequest: 'Additional servings for 10 guests',
-          supplyRequest: 'Extra serving trays',
-        },
-      }),
-    ),
+    setDoc(doc(database, 'reservations', 'customized-request'), reservationRequest('customer-a', {
+      customization: {
+        menuRequest: 'Chicken and fish',
+        foodQuantityRequest: 'Additional servings for 10 guests',
+        supplyRequest: 'Extra serving trays',
+      },
+    })),
   );
 });
 
 test('customization requests are bounded and cannot carry a client-approved total', async () => {
   const database = testEnvironment.authenticatedContext('customer-a').firestore();
-
   await assertFails(
-    setDoc(
-      doc(database, 'reservations', 'oversized-customization'),
-      reservationRequest('customer-a', {
-        customization: {
-          menuRequest: 'x'.repeat(1001),
-          foodQuantityRequest: '',
-          supplyRequest: '',
-        },
-      }),
-    ),
+    setDoc(doc(database, 'reservations', 'oversized-customization'), reservationRequest('customer-a', {
+      customization: {
+        menuRequest: 'x'.repeat(1001),
+        foodQuantityRequest: '',
+        supplyRequest: '',
+      },
+    })),
   );
-
   await assertFails(
-    setDoc(
-      doc(database, 'reservations', 'forged-custom-price'),
-      reservationRequest('customer-a', {
-        customization: {
-          menuRequest: '',
-          foodQuantityRequest: '',
-          supplyRequest: '',
-          totalPriceInCentavos: 1,
-        },
-      }),
-    ),
+    setDoc(doc(database, 'reservations', 'forged-custom-price'), reservationRequest('customer-a', {
+      customization: {
+        menuRequest: '',
+        foodQuantityRequest: '',
+        supplyRequest: '',
+        totalPriceInCentavos: 1,
+      },
+    })),
   );
 });
 """
@@ -153,7 +125,6 @@ test('customization requests are bounded and cannot carry a client-approved tota
 
           Path('.github/workflows/_apply-customization-rules.yml').unlink()
           PY
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
