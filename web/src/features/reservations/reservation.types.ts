@@ -5,12 +5,19 @@ export type ReservationStatus =
   | 'cancelled'
   | 'completed';
 
+export type ReservationCustomizationRequest = {
+  menuRequest: string;
+  foodQuantityRequest: string;
+  supplyRequest: string;
+};
+
 export type ReservationRequestInput = {
   startDate: string;
   endDate: string;
   location: string;
   guestCount: number;
   serviceRequirements: string;
+  customization: ReservationCustomizationRequest;
 };
 
 export type ReservationEvent = {
@@ -33,6 +40,7 @@ export type ReservationRecord = {
   status: ReservationStatus;
   event: ReservationEvent;
   package: ReservationPackageSnapshot;
+  customization: ReservationCustomizationRequest;
   createdAt: Date;
   updatedAt: Date;
 };
