@@ -326,6 +326,49 @@ test('release atomically moves available equipment into use and creates history'
   await assertSucceeds(batch.commit());
 });
 
+test('release fails after the linked reservation is rejected', async () => {
+  await seedAssignment('assignment-a', assignment());
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+
+  await assertSucceeds(
+    updateDoc(doc(database, 'reservations', 'reservation-a'), {
+      status: 'rejected',
+      updatedAt: serverTimestamp(),
+    }),
+  );
+
+  const batch = writeBatch(database);
+  batch.update(doc(database, 'equipment', 'chairs'), {
+    availableQuantity: 5,
+    inUseQuantity: 5,
+    lastTransactionId: 'release-rejected',
+    updatedAt: serverTimestamp(),
+  });
+  batch.update(doc(database, 'equipmentAssignments', 'assignment-a'), {
+    status: 'released',
+    releaseTransactionId: 'release-rejected',
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(doc(database, 'equipmentTransactions', 'release-rejected'), {
+    equipmentId: 'chairs',
+    equipmentName: 'Monoblock Chair',
+    unit: 'pieces',
+    assignmentId: 'assignment-a',
+    reservationId: 'reservation-a',
+    type: 'release',
+    quantity: 5,
+    returnedGoodQuantity: 0,
+    damagedQuantity: 0,
+    missingQuantity: 0,
+    note: '',
+    recordedBy: 'staff-a',
+    recordedByName: 'Staff A',
+    createdAt: serverTimestamp(),
+  });
+
+  await assertFails(batch.commit());
+});
+
 test('release fails when physical availability is insufficient', async () => {
   await testEnvironment.withSecurityRulesDisabled(async (context) => {
     const database = context.firestore();
