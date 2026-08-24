@@ -240,12 +240,27 @@ export async function releaseEquipmentAssignment(
       throw new Error('Only an assigned item can be released.');
     }
 
+    const reservationRef = doc(
+      firestore,
+      'reservations',
+      requireString(assignment.reservationId, 'Reservation reference is invalid.'),
+    );
     const equipmentRef = doc(
       firestore,
       'equipment',
       requireString(assignment.equipmentId, 'Equipment reference is invalid.'),
     );
+    const reservationSnapshot = await transaction.get(reservationRef);
     const equipmentSnapshot = await transaction.get(equipmentRef);
+
+    if (!reservationSnapshot.exists()) {
+      throw new Error('Linked reservation could not be found.');
+    }
+
+    if (!['pending_review', 'confirmed'].includes(String(reservationSnapshot.data().status))) {
+      throw new Error('This reservation can no longer release equipment.');
+    }
+
     if (!equipmentSnapshot.exists()) {
       throw new Error('Equipment item could not be found.');
     }
