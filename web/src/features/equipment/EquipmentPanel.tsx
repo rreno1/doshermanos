@@ -20,6 +20,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [itemsError, setItemsError] = useState(false);
   const [assignmentsError, setAssignmentsError] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<EquipmentItem | null>(null);
@@ -33,7 +34,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   );
 
   useEffect(() => {
-    const unsubscribe = subscribeToEquipment(
+    return subscribeToEquipment(
       (nextItems) => {
         setItems(nextItems);
         setItemsError(false);
@@ -45,12 +46,10 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         setIsLoadingItems(false);
       },
     );
-
-    return unsubscribe;
   }, []);
 
   useEffect(() => {
-    const unsubscribe = subscribeToEquipmentAssignments(
+    return subscribeToEquipmentAssignments(
       (nextAssignments) => {
         setAssignments(nextAssignments);
         setAssignmentsError(false);
@@ -62,8 +61,6 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         setIsLoadingAssignments(false);
       },
     );
-
-    return unsubscribe;
   }, []);
 
   const activeItems = items.filter((item) => item.isActive);
@@ -95,8 +92,11 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
     }
 
     setCancellingId(assignment.id);
+    setActionError(null);
     try {
       await cancelEquipmentAssignment(assignment.id);
+    } catch {
+      setActionError('The assignment could not be cancelled. It may have already changed.');
     } finally {
       setCancellingId(null);
     }
@@ -134,6 +134,12 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         <Summary label="Damaged or missing" value={totals.issues} warn={totals.issues > 0} />
       </div>
 
+      {actionError ? (
+        <p className="equipment-action-error" role="alert">
+          {actionError}
+        </p>
+      ) : null}
+
       <div className="equipment-layout">
         <div className="equipment-column">
           <div className="equipment-subheading">
@@ -160,7 +166,6 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         isOpen={itemDialogOpen}
         item={editingItem}
         onClose={() => setItemDialogOpen(false)}
-        onSaved={() => undefined}
       />
       <EquipmentAssignmentDialog
         isOpen={assignmentDialogOpen}
