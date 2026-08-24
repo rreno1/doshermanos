@@ -26,7 +26,10 @@ The current slices provide:
 - event dates, location, guest count, and optional service requirements;
 - customer-owned reservation tracking with bounded queries;
 - mobile native date selection through Expo UI;
-- protection against clients creating already-confirmed reservations.
+- protection against clients creating already-confirmed reservations;
+- staff/admin inventory and append-only inventory movement tracking;
+- staff cash payment recording with customer-safe payment receipts;
+- disabled hosted payment-link readiness without a live payment provider.
 
 No sample business data is committed.
 
@@ -41,7 +44,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Fill the Firebase client configuration in `web/.env.local`.
+`web/.env.example` already contains the Firebase client configuration for the `dos-hermanos-hilongos` project. Firebase web client configuration is public application metadata; Firestore Security Rules and Firebase Authentication remain the actual authorization boundaries.
 
 ## Mobile setup
 
@@ -52,7 +55,7 @@ cp .env.example .env.local
 npm run start
 ```
 
-Fill the Firebase client configuration in `mobile/.env.local`. Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
+`mobile/.env.example` contains the same Firebase client project metadata for the Expo app. Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
 
 ## Authentication setup
 
@@ -60,7 +63,9 @@ The account UI is already implemented. When ready, enable **Email/Password** und
 
 ## Firebase setup
 
-Link the repository to the intended Firebase project locally with the Firebase CLI. `.firebaserc` intentionally contains no hard-coded project ID.
+The repository is linked to the Firebase project `dos-hermanos-hilongos` through `.firebaserc`.
+
+The Firebase Console-generated snippet also included Storage, Messaging, and Analytics metadata. Those products are not initialized merely because values were supplied. Storage and Messaging remain outside the current implementation, and Analytics is intentionally not initialized until there is a defined analytics/privacy requirement.
 
 Deploy Firestore rules and indexes only after reviewing the target project:
 
