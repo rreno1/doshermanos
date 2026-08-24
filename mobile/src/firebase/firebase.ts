@@ -7,6 +7,8 @@ import { getAuth, initializeAuth } from 'firebase/auth';
 import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+const productionProjectId = 'dos-hermanos-hilongos';
+
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -20,6 +22,12 @@ const missingConfigValue = Object.values(firebaseConfig).some(
 
 if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
+}
+
+if (__DEV__ && firebaseConfig.projectId === productionProjectId) {
+  throw new Error(
+    'Development mode cannot connect to the production Firebase project. Configure the separate development project instead.',
+  );
 }
 
 const existingApp = getApps()[0];
