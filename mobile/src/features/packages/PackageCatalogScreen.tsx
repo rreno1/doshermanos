@@ -80,7 +80,10 @@ export function PackageCatalogScreen() {
               </Text>
               <View style={styles.headerActions}>
                 {canRequest ? (
-                  <HeaderAction label="My requests" onPress={() => router.push('/reservations')} />
+                  <>
+                    <HeaderAction label="Requests" onPress={() => router.push('/reservations')} />
+                    <HeaderAction label="Payments" onPress={() => router.push('/payments')} />
+                  </>
                 ) : null}
                 <HeaderAction label="Account" onPress={() => router.push('/account')} />
               </View>
@@ -201,7 +204,7 @@ const styles = StyleSheet.create({
   },
   brandRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 16,
     marginBottom: 54,
@@ -213,7 +216,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   headerActions: {
+    maxWidth: 220,
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
     gap: 12,
   },
   headerAction: {
