@@ -29,16 +29,30 @@ The current slices provide:
 - protection against clients creating already-confirmed reservations;
 - staff/admin inventory and append-only inventory movement tracking;
 - staff cash payment recording with customer-safe payment receipts;
+- idempotent retry handling for one manual cash-payment operation;
 - disabled hosted payment-link readiness without a live payment provider;
 - staff/admin equipment registry and event assignment;
 - atomic equipment release and return accountability;
-- damaged/missing equipment tracking with immutable transaction history.
+- damaged/missing equipment tracking with immutable transaction history;
+- administrator operational audit view derived from append-only domain histories.
 
 No sample business data is committed.
 
 Dos Hermanos may accept multiple events on the same date and at overlapping times. The system does not use a global one-event-per-date lock. Final confirmation remains intentionally blocked from normal client operations until the operational capacity rule is defined. See `docs/scheduling-policy.md`.
 
-Equipment assignment is currently a preparation/accountability workflow rather than a future-date capacity lock. Actual physical release is blocked when the registered equipment is not available.
+Equipment assignment is currently a preparation/accountability workflow rather than a future-date capacity lock. Actual physical release is blocked when the registered equipment is not available or when the linked reservation is no longer eligible.
+
+## Firebase environment separation
+
+Local development must use a separate Firebase development project. The production project is:
+
+```text
+dos-hermanos-hilongos
+```
+
+The repository intentionally has no default Firebase CLI project. Production is available only through the explicit `production` alias, and both web and mobile development runtimes reject the production project ID.
+
+A separate development Firebase project still needs to be provisioned. Until then, the normal development `.env.example` files remain blank. See `docs/firebase-environments.md`.
 
 ## Web setup
 
@@ -46,10 +60,17 @@ Equipment assignment is currently a preparation/accountability workflow rather t
 cd web
 npm install
 cp .env.example .env.local
+```
+
+Fill `.env.local` with the separate development Firebase web-app configuration, then run:
+
+```bash
 npm run dev
 ```
 
-`web/.env.example` already contains the Firebase client configuration for the `dos-hermanos-hilongos` project. Firebase web client configuration is public application metadata; Firestore Security Rules and Firebase Authentication remain the actual authorization boundaries.
+Do not use the production Firebase configuration for `npm run dev`.
+
+For an intentional production build, use `web/.env.production.example` as the production configuration template.
 
 ## Mobile setup
 
@@ -57,35 +78,43 @@ npm run dev
 cd mobile
 npm install
 cp .env.example .env.local
+```
+
+Fill `.env.local` with the separate development Firebase client configuration, then run:
+
+```bash
 npm run start
 ```
 
-`mobile/.env.example` contains the same Firebase client project metadata for the Expo app. Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
+Do not use the production Firebase configuration in an Expo development session. `mobile/.env.production.example` is reserved for intentional production configuration.
+
+Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
 
 ## Authentication setup
 
 The account UI is already implemented. When ready, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
 
-## Firebase setup
+## Firebase deployment
 
-The repository is linked to the Firebase project `dos-hermanos-hilongos` through `.firebaserc`.
+The production project is linked through the explicit Firebase CLI alias `production`. Do not use a bare `firebase deploy` command.
 
-The Firebase Console-generated snippet also included Storage, Messaging, and Analytics metadata. Those products are not initialized merely because values were supplied. Storage and Messaging remain outside the current implementation, and Analytics is intentionally not initialized until there is a defined analytics/privacy requirement.
-
-Deploy Firestore rules and indexes only after reviewing the target project:
+Deploy production Firestore rules and indexes only after reviewing the target project:
 
 ```bash
-firebase deploy --only firestore
+firebase deploy --only firestore --project production
 ```
 
-Build the web application before deploying Hosting:
+Build the production web application before deploying Hosting:
 
 ```bash
 cd web
+cp .env.production.example .env.production
 npm run build
 cd ..
-firebase deploy --only hosting
+firebase deploy --only hosting --project production
 ```
+
+The Firebase Console-generated snippet also included Storage, Messaging, and Analytics metadata. Those products are not initialized merely because values were supplied. Storage and Messaging remain outside the current implementation, and Analytics is intentionally not initialized until there is a defined analytics/privacy requirement.
 
 ## Firestore rule tests
 
