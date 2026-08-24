@@ -355,8 +355,8 @@ A physical return is one atomic write containing:
 
 Firestore Rules cross-check all linked documents with `get()` and `getAfter()`. Direct equipment count edits, forged recorder identity, standalone history records, partial release/return writes, negative physical counts, and incomplete return accounting are denied.
 
-## Planned collections
+## Unified operational audit view
 
-- auditLogs
+The administrator audit trail does not use a separate generic `auditLogs` collection. It derives one bounded chronological view from the existing append-only `inventoryMovements`, `payments`, and `equipmentTransactions` collections so the audit presentation does not duplicate operational business data.
 
-The remaining collection stays denied by the default Firestore rule until its explicit access model is implemented.
+Future reservation decisions, package administration, user role/status changes, hosted-payment events, inventory allocation, and equipment-adjustment workflows must introduce their own immutable actor-attributed histories before those workflows are considered production-complete. See `docs/audit-trail.md` for the coverage boundary.
