@@ -40,12 +40,31 @@ export function ReservationCard({ reservation }: { reservation: ReservationRecor
         {reservation.event.location}
       </Text>
 
+      {reservation.customization.menuRequest ? (
+        <RequestText label="Menu request" value={reservation.customization.menuRequest} />
+      ) : null}
+      {reservation.customization.foodQuantityRequest ? (
+        <RequestText
+          label="Food quantity request"
+          value={reservation.customization.foodQuantityRequest}
+        />
+      ) : null}
+      {reservation.customization.supplyRequest ? (
+        <RequestText label="Supply request" value={reservation.customization.supplyRequest} />
+      ) : null}
       {reservation.event.serviceRequirements ? (
-        <Text selectable style={styles.requirements}>
-          {reservation.event.serviceRequirements}
-        </Text>
+        <RequestText label="Service requirements" value={reservation.event.serviceRequirements} />
       ) : null}
     </View>
+  );
+}
+
+function RequestText({ label, value }: { label: string; value: string }) {
+  return (
+    <Text selectable style={styles.requirements}>
+      <Text style={styles.requirementsLabel}>{label}: </Text>
+      {value}
+    </Text>
   );
 }
 
@@ -116,6 +135,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     paddingTop: 4,
+  },
+  requirementsLabel: {
+    fontWeight: '700',
   },
   statusPill: {
     borderRadius: 999,
