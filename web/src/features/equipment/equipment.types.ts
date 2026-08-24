@@ -40,6 +40,20 @@ export type EquipmentAssignment = {
   updatedAt: Date;
 };
 
+export type EquipmentTransactionRecord = {
+  id: string;
+  equipmentName: string;
+  unit: string;
+  type: 'release' | 'return';
+  quantity: number;
+  returnedGoodQuantity: number;
+  damagedQuantity: number;
+  missingQuantity: number;
+  note: string;
+  recordedByName: string;
+  createdAt: Date;
+};
+
 export type AssignableReservation = {
   id: string;
   customerId: string;
