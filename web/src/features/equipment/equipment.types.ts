@@ -55,6 +55,11 @@ export type EquipmentItemInput = {
   isActive: boolean;
 };
 
+export type EquipmentItemEditInput = {
+  name: string;
+  isActive: boolean;
+};
+
 export type EquipmentAssignmentInput = {
   reservationId: string;
   equipmentId: string;
