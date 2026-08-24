@@ -330,12 +330,21 @@ test('release fails after the linked reservation is rejected', async () => {
   await seedAssignment('assignment-a', assignment());
   const database = testEnvironment.authenticatedContext('staff-a').firestore();
 
-  await assertSucceeds(
-    updateDoc(doc(database, 'reservations', 'reservation-a'), {
-      status: 'rejected',
-      updatedAt: serverTimestamp(),
-    }),
-  );
+  const rejectionBatch = writeBatch(database);
+  rejectionBatch.update(doc(database, 'reservations', 'reservation-a'), {
+    status: 'rejected',
+    updatedAt: serverTimestamp(),
+  });
+  rejectionBatch.set(doc(database, 'reservationDecisions', 'reservation-a-rejected'), {
+    reservationId: 'reservation-a',
+    customerId: 'customer-a',
+    previousStatus: 'pending_review',
+    newStatus: 'rejected',
+    decidedBy: 'staff-a',
+    decidedByName: 'Staff A',
+    createdAt: serverTimestamp(),
+  });
+  await assertSucceeds(rejectionBatch.commit());
 
   const batch = writeBatch(database);
   batch.update(doc(database, 'equipment', 'chairs'), {
