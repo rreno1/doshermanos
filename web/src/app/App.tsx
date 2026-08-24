@@ -1,3 +1,4 @@
+import { AuditPanel } from '../features/audit/AuditPanel';
 import { AuthMenu } from '../features/auth/AuthMenu';
 import { useAuth } from '../features/auth/AuthProvider';
 import { EquipmentPanel } from '../features/equipment/EquipmentPanel';
@@ -12,6 +13,8 @@ export function App() {
   const isStaffWorkspace =
     authState.status === 'active' &&
     (authState.profile?.role === 'staff' || authState.profile?.role === 'admin');
+  const isAdminWorkspace =
+    authState.status === 'active' && authState.profile?.role === 'admin';
 
   return (
     <div className="app-shell">
@@ -48,6 +51,7 @@ export function App() {
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
             />
+            {isAdminWorkspace ? <AuditPanel /> : null}
           </>
         ) : (
           <>
