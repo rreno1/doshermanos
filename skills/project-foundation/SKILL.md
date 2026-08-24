@@ -15,8 +15,10 @@ Making decisions about stack, dependencies, integrations, shared infrastructure,
 - Authentication: Firebase Authentication.
 - Database: Cloud Firestore.
 - Hosting: Firebase Hosting for the web application.
-- Current payment scope: manual payment recording only.
-- PayMongo is intentionally excluded for now.
+- Current live payment scope: manual cash payment recording only.
+- A hosted payment-link card may be present in customer UI as a deliberately disabled readiness surface.
+- No live online payment provider, payment URL, checkout redirect, card form, webhook, provider SDK, or provider secret is configured yet.
+- PayMongo is no longer part of the approved payment direction.
 - Cloud Functions are intentionally excluded for now.
 - Web and mobile use the same Firebase project and the same authoritative business data.
 
@@ -34,18 +36,20 @@ Making decisions about stack, dependencies, integrations, shared infrastructure,
 1. Do not add frameworks, SDKs, state libraries, backend layers, hosted services, analytics products, or integrations unless a current requirement clearly needs them.
 2. Every new dependency must have one named problem it solves. If the problem can be solved clearly with the current stack, do not add the dependency.
 3. Prefer Firebase and platform-native capabilities before adding third-party infrastructure.
-4. Do not add PayMongo, Cloud Functions, AI features, offline synchronization, supplier automation, payroll, HR, full accounting, GPS, RFID, or unrelated modules unless explicitly approved later.
-5. Keep the web application responsible for staff/admin-heavy workflows unless a mobile requirement explicitly needs the same capability.
-6. Keep the mobile application focused on customer workflows: authentication, package browsing, reservations, reservation status, and permitted payment information.
-7. Do not create a shared package or internal framework merely because web and mobile have similar concepts. Share only when real duplication justifies it and the result remains easier to understand.
-8. Do not create infrastructure for hypothetical multi-tenant, multi-region, microservice, event-bus, or enterprise scenarios.
-9. Do not expose Firebase privileged credentials or administrative capabilities to either client.
-10. Do not weaken Firestore Security Rules to make frontend implementation easier.
-11. Do not use production data as development fixtures or sample content.
-12. Do not introduce hidden development bypasses, hard-coded admin accounts, debug authentication, or temporary rule relaxations into committed production paths.
-13. Do not silently expand the business scope while implementing a related feature.
-14. Keep configuration explicit. Environment-specific values must be documented and must not contain secrets that belong in trusted server environments.
-15. Architecture decisions that materially change security, persistence, deployment, or data ownership must be documented before code is generated.
+4. Do not add PayMongo, a live payment-link provider, Cloud Functions, AI features, offline synchronization, supplier automation, payroll, HR, full accounting, GPS, RFID, or unrelated modules unless explicitly approved later.
+5. A disabled payment-link readiness card must not contain a real checkout URL, provider token, card-number field, CVC field, expiry field, hidden integration call, or fake success path.
+6. When live hosted payments are approved later, provider selection is a security and architecture change. Review trusted-backend requirements, webhook verification, idempotency, payment-status authority, secrets, and customer-return behavior before enabling checkout.
+7. Keep the web application responsible for staff/admin-heavy workflows unless a mobile requirement explicitly needs the same capability.
+8. Keep the mobile application focused on customer workflows: authentication, package browsing, reservations, reservation status, and permitted payment information.
+9. Do not create a shared package or internal framework merely because web and mobile have similar concepts. Share only when real duplication justifies it and the result remains easier to understand.
+10. Do not create infrastructure for hypothetical multi-tenant, multi-region, microservice, event-bus, or enterprise scenarios.
+11. Do not expose Firebase privileged credentials or administrative capabilities to either client.
+12. Do not weaken Firestore Security Rules to make frontend implementation easier.
+13. Do not use production data as development fixtures or sample content.
+14. Do not introduce hidden development bypasses, hard-coded admin accounts, debug authentication, or temporary rule relaxations into committed production paths.
+15. Do not silently expand the business scope while implementing a related feature.
+16. Keep configuration explicit. Environment-specific values must be documented and must not contain secrets that belong in trusted server environments.
+17. Architecture decisions that materially change security, persistence, deployment, or data ownership must be documented before code is generated.
 
 ## Dependency approval test
 

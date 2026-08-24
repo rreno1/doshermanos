@@ -262,6 +262,110 @@ service cloud.firestore {
         && updatedItem.data.unit == request.resource.data.unit;
     }
 
+    function validPaymentDocument() {
+      return request.resource.data.keys().hasOnly([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate',
+          'amountInCentavos', 'method', 'reference', 'note', 'recordedBy',
+          'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate',
+          'amountInCentavos', 'method', 'reference', 'note', 'recordedBy',
+          'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.size() > 0
+        && request.resource.data.reservationId.size() <= 120
+        && request.resource.data.customerId is string
+        && request.resource.data.customerId.size() > 0
+        && request.resource.data.packageName is string
+        && request.resource.data.packageName.size() > 0
+        && request.resource.data.packageName.size() <= 120
+        && request.resource.data.eventStartDate is timestamp
+        && request.resource.data.amountInCentavos is int
+        && request.resource.data.amountInCentavos > 0
+        && request.resource.data.amountInCentavos <= 100000000
+        && request.resource.data.method == 'cash'
+        && request.resource.data.reference is string
+        && request.resource.data.reference.size() <= 120
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 300
+        && request.resource.data.recordedBy is string
+        && request.resource.data.recordedBy.size() > 0
+        && request.resource.data.recordedByName is string
+        && request.resource.data.recordedByName.size() > 0
+        && request.resource.data.recordedByName.size() <= 100
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function validPaymentReceiptDocument() {
+      return request.resource.data.keys().hasOnly([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate',
+          'amountInCentavos', 'method', 'reference', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate',
+          'amountInCentavos', 'method', 'reference', 'createdAt'
+        ])
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.size() > 0
+        && request.resource.data.reservationId.size() <= 120
+        && request.resource.data.customerId is string
+        && request.resource.data.customerId.size() > 0
+        && request.resource.data.packageName is string
+        && request.resource.data.packageName.size() > 0
+        && request.resource.data.packageName.size() <= 120
+        && request.resource.data.eventStartDate is timestamp
+        && request.resource.data.amountInCentavos is int
+        && request.resource.data.amountInCentavos > 0
+        && request.resource.data.amountInCentavos <= 100000000
+        && request.resource.data.method == 'cash'
+        && request.resource.data.reference is string
+        && request.resource.data.reference.size() <= 120
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function paymentMatchesReservation() {
+      let reservationPath = /databases/$(database)/documents/reservations/$(request.resource.data.reservationId);
+      let reservation = get(reservationPath);
+
+      return exists(reservationPath)
+        && reservation.data.status in ['pending_review', 'confirmed', 'completed']
+        && reservation.data.customerId == request.resource.data.customerId
+        && reservation.data.package.packageName == request.resource.data.packageName
+        && reservation.data.event.startDate == request.resource.data.eventStartDate;
+    }
+
+    function paymentHasMatchingReceipt(paymentId) {
+      let receiptPath = /databases/$(database)/documents/paymentReceipts/$(paymentId);
+      let receipt = getAfter(receiptPath);
+
+      return existsAfter(receiptPath)
+        && receipt.data.reservationId == request.resource.data.reservationId
+        && receipt.data.customerId == request.resource.data.customerId
+        && receipt.data.packageName == request.resource.data.packageName
+        && receipt.data.eventStartDate == request.resource.data.eventStartDate
+        && receipt.data.amountInCentavos == request.resource.data.amountInCentavos
+        && receipt.data.method == request.resource.data.method
+        && receipt.data.reference == request.resource.data.reference
+        && receipt.data.createdAt == request.time;
+    }
+
+    function paymentReceiptHasMatchingPayment(paymentId) {
+      let paymentPath = /databases/$(database)/documents/payments/$(paymentId);
+      let payment = getAfter(paymentPath);
+
+      return existsAfter(paymentPath)
+        && payment.data.reservationId == request.resource.data.reservationId
+        && payment.data.customerId == request.resource.data.customerId
+        && payment.data.packageName == request.resource.data.packageName
+        && payment.data.eventStartDate == request.resource.data.eventStartDate
+        && payment.data.amountInCentavos == request.resource.data.amountInCentavos
+        && payment.data.method == request.resource.data.method
+        && payment.data.reference == request.resource.data.reference
+        && payment.data.createdAt == request.time;
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn()
         && (request.auth.uid == userId || isAdmin());
@@ -378,6 +482,32 @@ service cloud.firestore {
         && request.resource.data.recordedByName == currentUserProfile().data.displayName
         && request.resource.data.createdAt == request.time
         && inventoryMovementMatchesItemChange(movementId);
+
+      allow update, delete: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validPaymentDocument()
+        && request.resource.data.recordedBy == request.auth.uid
+        && request.resource.data.recordedByName == currentUserProfile().data.displayName
+        && request.resource.data.createdAt == request.time
+        && paymentMatchesReservation()
+        && paymentHasMatchingReceipt(paymentId);
+
+      allow update, delete: if false;
+    }
+
+    match /paymentReceipts/{paymentId} {
+      allow get, list: if isStaffOrAdmin()
+        || (isCustomer() && resource.data.customerId == request.auth.uid);
+
+      allow create: if isStaffOrAdmin()
+        && validPaymentReceiptDocument()
+        && request.resource.data.createdAt == request.time
+        && paymentReceiptHasMatchingPayment(paymentId);
 
       allow update, delete: if false;
     }

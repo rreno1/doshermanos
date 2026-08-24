@@ -171,9 +171,80 @@ limit 30
 
 This first inventory slice supports deliberate staff stock-in, stock-out, and physical-count corrections. Automatic reservation-based deductions remain out of scope until the reservation confirmation/capacity rule is finalized.
 
+## `payments/{paymentId}`
+
+Purpose: private append-only financial record created when active staff or an administrator records money received manually.
+
+Fields:
+
+- `reservationId`: linked reservation document ID
+- `customerId`: customer UID copied from the reservation
+- `packageName`: reservation package-name snapshot
+- `eventStartDate`: reservation event start-date snapshot
+- `amountInCentavos`: positive integer, 1-100,000,000
+- `method`: currently only `cash`
+- `reference`: optional customer-safe receipt/reference text, up to 120 characters
+- `note`: optional internal staff note, up to 300 characters
+- `recordedBy`: authenticated staff/admin UID
+- `recordedByName`: staff/admin display-name snapshot verified against the current profile
+- `createdAt`: Firestore server timestamp
+
+Security and integrity:
+
+- customers and unauthenticated users cannot read this collection;
+- only active staff/admin can create a payment;
+- the recorder UID and display name must match the authenticated profile;
+- the linked reservation must exist and its customer, package name, and event start date must match the payment snapshots;
+- rejected and cancelled reservations cannot receive a new payment through this workflow;
+- a matching `paymentReceipts/{paymentId}` document must be created in the same atomic write;
+- payment records cannot be updated or deleted by clients.
+
+The system does not currently calculate final balance, deposit status, refund state, or overpayment handling from this collection because the underlying business rules and final pricing authority are not yet approved.
+
+Recent staff read pattern:
+
+```text
+payments
+order by createdAt descending
+limit 50
+```
+
+## `paymentReceipts/{paymentId}`
+
+Purpose: customer-safe projection of a recorded manual payment. This collection exists because Firestore returns whole documents and cannot hide the internal `note`, `recordedBy`, or `recordedByName` fields from a customer who can read a document.
+
+Fields:
+
+- `reservationId`: linked reservation document ID
+- `customerId`: owner UID
+- `packageName`: reservation package-name snapshot
+- `eventStartDate`: reservation event start-date snapshot
+- `amountInCentavos`: positive integer
+- `method`: currently only `cash`
+- `reference`: optional receipt/reference text
+- `createdAt`: Firestore server timestamp
+
+Rules require the receipt and private payment to use the same document ID and matching reservation, customer, package, event date, amount, method, reference, and server timestamp. Neither document can be created alone.
+
+Customer read pattern:
+
+```text
+paymentReceipts
+where customerId == currentUser.uid
+order by createdAt descending
+limit 30
+```
+
+The query has a compound index and Firestore independently enforces receipt ownership.
+
+### Hosted payment-link readiness boundary
+
+The web and mobile interfaces include a disabled hosted payment-link card to reserve the future customer experience. It is UI readiness only. There is no provider SDK, checkout URL, card field, CVC field, expiry field, webhook, payment-status callback, provider secret, or live payment-processing path in the current codebase.
+
+A future hosted-payment implementation must be reviewed as a separate architecture and security change before this data model is extended for provider payment IDs, verified statuses, idempotency, callbacks, or webhooks.
+
 ## Planned collections
 
-- payments
 - equipment
 - equipmentTransactions
 - auditLogs

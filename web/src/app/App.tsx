@@ -2,6 +2,8 @@ import { AuthMenu } from '../features/auth/AuthMenu';
 import { useAuth } from '../features/auth/AuthProvider';
 import { InventoryPanel } from '../features/inventory/InventoryPanel';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
+import { MyPayments } from '../features/payments/MyPayments';
+import { PaymentsPanel } from '../features/payments/PaymentsPanel';
 import { MyReservations } from '../features/reservations/MyReservations';
 
 export function App() {
@@ -27,13 +29,17 @@ export function App() {
               <p className="eyebrow">Staff workspace</p>
               <h1 id="hero-title">Keep operations ready for every event.</h1>
               <p className="hero-copy">
-                Review stock levels, record inventory changes, and catch low-stock items before they affect an event.
+                Review inventory, record payments, and keep the operational history clear for every reservation.
               </p>
               <a className="primary-link" href="#inventory">
-                Open inventory
+                Review operations
               </a>
             </section>
             <InventoryPanel
+              staffId={authState.profile.id}
+              staffName={authState.profile.displayName}
+            />
+            <PaymentsPanel
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
             />
@@ -53,6 +59,7 @@ export function App() {
 
             <PackageCatalog />
             <MyReservations />
+            <MyPayments />
           </>
         )}
       </main>
