@@ -42,18 +42,18 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
           <p className="reservation-review-kicker">Reservation review</p>
           <h2 id="reservation-review-title">Pending requests</h2>
           <p>
-            Review submitted event details before taking an operational decision. Rejection is
-            available now; confirmation remains intentionally gated until the simultaneous-event
-            capacity rule is approved.
+            Review submitted event and customization details before taking an operational decision.
+            Rejection is available now; confirmation remains intentionally gated until the
+            simultaneous-event capacity and authoritative customization rules are approved.
           </p>
         </div>
         <span className="reservation-review-count">{reservations.length} pending</span>
       </div>
 
       <div className="reservation-capacity-note" role="status">
-        Dos Hermanos may handle overlapping events, so another booking on the same date does not by
-        itself make a request unavailable. Confirmation will be enabled only when the actual
-        operational capacity rule can be enforced consistently.
+        Overlapping events are allowed in principle, and customization requests do not establish a
+        final menu, quantity, supply allocation, or price. Confirmation will be enabled only when
+        the approved capacity and package-calculation rules can be enforced consistently.
       </div>
 
       {actionError ? <div className="reservation-review-error" role="alert">{actionError}</div> : null}
@@ -105,6 +105,22 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
                     <dd>{formatSubmittedTime(reservation.createdAt)}</dd>
                   </div>
                 </dl>
+                {reservation.customization.menuRequest ? (
+                  <p className="reservation-review-requirements">
+                    <strong>Menu request:</strong> {reservation.customization.menuRequest}
+                  </p>
+                ) : null}
+                {reservation.customization.foodQuantityRequest ? (
+                  <p className="reservation-review-requirements">
+                    <strong>Food quantity request:</strong>{' '}
+                    {reservation.customization.foodQuantityRequest}
+                  </p>
+                ) : null}
+                {reservation.customization.supplyRequest ? (
+                  <p className="reservation-review-requirements">
+                    <strong>Supply request:</strong> {reservation.customization.supplyRequest}
+                  </p>
+                ) : null}
                 {reservation.event.serviceRequirements ? (
                   <p className="reservation-review-requirements">
                     <strong>Service requirements:</strong> {reservation.event.serviceRequirements}
@@ -113,7 +129,7 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
               </div>
 
               <div className="reservation-review-actions">
-                <button type="button" disabled title="Confirmation requires an approved capacity rule">
+                <button type="button" disabled title="Confirmation requires approved capacity and customization rules">
                   Confirm unavailable
                 </button>
                 <button
