@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { CustomerPaymentLinkCard } from './PaymentLinkCards';
 import { subscribeToOwnPaymentReceipts } from './payment.service';
 import type { PaymentReceipt } from './payment.types';
 import './payments.css';
@@ -108,24 +109,6 @@ export function MyPayments() {
       </div>
     );
   }
-}
-
-function CustomerPaymentLinkCard() {
-  return (
-    <article className="customer-payment-link" aria-labelledby="customer-payment-link-title">
-      <div>
-        <span className="payment-link-badge">Coming soon</span>
-        <h3 id="customer-payment-link-title">Pay through a hosted payment link</h3>
-        <p>
-          Card, QR, and e-wallet checkout is being prepared. This button is intentionally disabled,
-          and Dos Hermanos does not collect card details inside this app.
-        </p>
-      </div>
-      <button type="button" disabled>
-        Online payment not enabled
-      </button>
-    </article>
-  );
 }
 
 function CustomerPaymentStatus({ message, error = false }: { message: string; error?: boolean }) {
