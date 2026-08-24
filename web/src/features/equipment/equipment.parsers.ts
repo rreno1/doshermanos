@@ -3,6 +3,7 @@ import type {
   AssignableReservation,
   EquipmentAssignment,
   EquipmentItem,
+  EquipmentTransactionRecord,
 } from './equipment.types';
 
 export function parseEquipmentItem(snapshot: DocumentSnapshot): EquipmentItem {
@@ -55,6 +56,29 @@ export function parseEquipmentAssignment(snapshot: DocumentSnapshot): EquipmentA
     returnNote: requireString(data.returnNote, 'Return note is invalid.', true),
     createdAt: requireTimestamp(data.createdAt, 'Assignment date is invalid.').toDate(),
     updatedAt: requireTimestamp(data.updatedAt, 'Assignment date is invalid.').toDate(),
+  };
+}
+
+export function parseEquipmentTransaction(
+  snapshot: DocumentSnapshot,
+): EquipmentTransactionRecord {
+  const data = snapshot.data();
+  if (!data) {
+    throw new Error('Equipment transaction data is unavailable.');
+  }
+
+  return {
+    id: snapshot.id,
+    equipmentName: requireString(data.equipmentName, 'Equipment name is invalid.'),
+    unit: requireString(data.unit, 'Equipment unit is invalid.'),
+    type: requireTransactionType(data.type),
+    quantity: requireInteger(data.quantity, 'Equipment transaction quantity is invalid.'),
+    returnedGoodQuantity: requireInteger(data.returnedGoodQuantity, 'Return quantity is invalid.'),
+    damagedQuantity: requireInteger(data.damagedQuantity, 'Damage quantity is invalid.'),
+    missingQuantity: requireInteger(data.missingQuantity, 'Missing quantity is invalid.'),
+    note: requireString(data.note, 'Equipment transaction note is invalid.', true),
+    recordedByName: requireString(data.recordedByName, 'Equipment recorder is invalid.'),
+    createdAt: requireTimestamp(data.createdAt, 'Equipment transaction date is invalid.').toDate(),
   };
 }
 
@@ -112,4 +136,11 @@ function requireAssignmentStatus(value: unknown): EquipmentAssignment['status'] 
     return value;
   }
   throw new Error('Equipment assignment status is invalid.');
+}
+
+function requireTransactionType(value: unknown): EquipmentTransactionRecord['type'] {
+  if (value === 'release' || value === 'return') {
+    return value;
+  }
+  throw new Error('Equipment transaction type is invalid.');
 }
