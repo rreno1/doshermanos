@@ -12,6 +12,9 @@ const emptyForm: ReservationFormValues = {
   location: '',
   guestCount: '',
   serviceRequirements: '',
+  menuRequest: '',
+  foodQuantityRequest: '',
+  supplyRequest: '',
 };
 
 type ReservationFormProps = {
@@ -128,6 +131,51 @@ export function ReservationForm({
 
       <label>
         <span>
+          Requested menu choices or changes <em>Optional</em>
+        </span>
+        <textarea
+          value={form.menuRequest}
+          onChange={(event) => updateField('menuRequest', event.target.value)}
+          maxLength={1000}
+          rows={3}
+          placeholder="Menu choices, substitutions, or additions you want Dos Hermanos to review"
+          aria-invalid={Boolean(errors.menuRequest)}
+        />
+        {errors.menuRequest ? <small>{errors.menuRequest}</small> : null}
+      </label>
+
+      <label>
+        <span>
+          Food quantity requirements <em>Optional</em>
+        </span>
+        <textarea
+          value={form.foodQuantityRequest}
+          onChange={(event) => updateField('foodQuantityRequest', event.target.value)}
+          maxLength={1000}
+          rows={3}
+          placeholder="Serving or food quantity adjustments that need review"
+          aria-invalid={Boolean(errors.foodQuantityRequest)}
+        />
+        {errors.foodQuantityRequest ? <small>{errors.foodQuantityRequest}</small> : null}
+      </label>
+
+      <label>
+        <span>
+          Needed supplies <em>Optional</em>
+        </span>
+        <textarea
+          value={form.supplyRequest}
+          onChange={(event) => updateField('supplyRequest', event.target.value)}
+          maxLength={1000}
+          rows={3}
+          placeholder="Serving supplies, tables, linens, or other event supplies to review"
+          aria-invalid={Boolean(errors.supplyRequest)}
+        />
+        {errors.supplyRequest ? <small>{errors.supplyRequest}</small> : null}
+      </label>
+
+      <label>
+        <span>
           Service requirements <em>Optional</em>
         </span>
         <textarea
@@ -142,7 +190,7 @@ export function ReservationForm({
       </label>
 
       <p className="reservation-form-note">
-        Sending this form creates a request only. It does not reserve or confirm the event automatically.
+        Customization details are requests for review. The package amount shown in the catalog is the base package price, not an approved customized total. Final menu, quantities, supplies, pricing, and event confirmation remain subject to Dos Hermanos review.
       </p>
 
       {submitMessage ? (
