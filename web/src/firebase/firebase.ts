@@ -2,6 +2,8 @@ import { getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+const productionProjectId = 'dos-hermanos-hilongos';
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -15,6 +17,12 @@ const missingConfigValue = Object.values(firebaseConfig).some(
 
 if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
+}
+
+if (import.meta.env.DEV && firebaseConfig.projectId === productionProjectId) {
+  throw new Error(
+    'Development mode cannot connect to the production Firebase project. Configure the separate development project instead.',
+  );
 }
 
 const firebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
