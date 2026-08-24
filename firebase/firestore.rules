@@ -366,6 +366,392 @@ service cloud.firestore {
         && payment.data.createdAt == request.time;
     }
 
+    function validEquipmentDocument() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'unit', 'totalQuantity', 'availableQuantity', 'inUseQuantity',
+          'damagedQuantity', 'missingQuantity', 'isActive', 'lastTransactionId',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'unit', 'totalQuantity', 'availableQuantity', 'inUseQuantity',
+          'damagedQuantity', 'missingQuantity', 'isActive', 'lastTransactionId',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.unit is string
+        && request.resource.data.unit.size() > 0
+        && request.resource.data.unit.size() <= 40
+        && request.resource.data.totalQuantity is int
+        && request.resource.data.totalQuantity > 0
+        && request.resource.data.totalQuantity <= 1000000
+        && request.resource.data.availableQuantity is int
+        && request.resource.data.availableQuantity >= 0
+        && request.resource.data.inUseQuantity is int
+        && request.resource.data.inUseQuantity >= 0
+        && request.resource.data.damagedQuantity is int
+        && request.resource.data.damagedQuantity >= 0
+        && request.resource.data.missingQuantity is int
+        && request.resource.data.missingQuantity >= 0
+        && request.resource.data.totalQuantity
+          == request.resource.data.availableQuantity
+            + request.resource.data.inUseQuantity
+            + request.resource.data.damagedQuantity
+            + request.resource.data.missingQuantity
+        && request.resource.data.isActive is bool
+        && (
+          request.resource.data.lastTransactionId == null
+          || (
+            request.resource.data.lastTransactionId is string
+            && request.resource.data.lastTransactionId.size() > 0
+            && request.resource.data.lastTransactionId.size() <= 120
+          )
+        )
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validEquipmentAssignmentDocument() {
+      return request.resource.data.keys().hasOnly([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate', 'eventEndDate',
+          'equipmentId', 'equipmentName', 'unit', 'assignedQuantity', 'status',
+          'releaseTransactionId', 'returnTransactionId', 'returnedGoodQuantity',
+          'damagedQuantity', 'missingQuantity', 'note', 'returnNote', 'createdBy',
+          'createdByName', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'reservationId', 'customerId', 'packageName', 'eventStartDate', 'eventEndDate',
+          'equipmentId', 'equipmentName', 'unit', 'assignedQuantity', 'status',
+          'releaseTransactionId', 'returnTransactionId', 'returnedGoodQuantity',
+          'damagedQuantity', 'missingQuantity', 'note', 'returnNote', 'createdBy',
+          'createdByName', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.size() > 0
+        && request.resource.data.reservationId.size() <= 120
+        && request.resource.data.customerId is string
+        && request.resource.data.customerId.size() > 0
+        && request.resource.data.packageName is string
+        && request.resource.data.packageName.size() > 0
+        && request.resource.data.packageName.size() <= 120
+        && request.resource.data.eventStartDate is timestamp
+        && request.resource.data.eventEndDate is timestamp
+        && request.resource.data.eventEndDate >= request.resource.data.eventStartDate
+        && request.resource.data.equipmentId is string
+        && request.resource.data.equipmentId.size() > 0
+        && request.resource.data.equipmentId.size() <= 120
+        && request.resource.data.equipmentName is string
+        && request.resource.data.equipmentName.size() > 0
+        && request.resource.data.equipmentName.size() <= 120
+        && request.resource.data.unit is string
+        && request.resource.data.unit.size() > 0
+        && request.resource.data.unit.size() <= 40
+        && request.resource.data.assignedQuantity is int
+        && request.resource.data.assignedQuantity > 0
+        && request.resource.data.assignedQuantity <= 1000000
+        && request.resource.data.status in ['assigned', 'released', 'closed', 'cancelled']
+        && request.resource.data.returnedGoodQuantity is int
+        && request.resource.data.returnedGoodQuantity >= 0
+        && request.resource.data.damagedQuantity is int
+        && request.resource.data.damagedQuantity >= 0
+        && request.resource.data.missingQuantity is int
+        && request.resource.data.missingQuantity >= 0
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 500
+        && request.resource.data.returnNote is string
+        && request.resource.data.returnNote.size() <= 500
+        && request.resource.data.createdBy is string
+        && request.resource.data.createdBy.size() > 0
+        && request.resource.data.createdByName is string
+        && request.resource.data.createdByName.size() > 0
+        && request.resource.data.createdByName.size() <= 100
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && (
+          (
+            request.resource.data.status in ['assigned', 'cancelled']
+            && request.resource.data.releaseTransactionId == null
+            && request.resource.data.returnTransactionId == null
+            && request.resource.data.returnedGoodQuantity == 0
+            && request.resource.data.damagedQuantity == 0
+            && request.resource.data.missingQuantity == 0
+            && request.resource.data.returnNote == ''
+          )
+          || (
+            request.resource.data.status == 'released'
+            && request.resource.data.releaseTransactionId is string
+            && request.resource.data.releaseTransactionId.size() > 0
+            && request.resource.data.returnTransactionId == null
+            && request.resource.data.returnedGoodQuantity == 0
+            && request.resource.data.damagedQuantity == 0
+            && request.resource.data.missingQuantity == 0
+            && request.resource.data.returnNote == ''
+          )
+          || (
+            request.resource.data.status == 'closed'
+            && request.resource.data.releaseTransactionId is string
+            && request.resource.data.releaseTransactionId.size() > 0
+            && request.resource.data.returnTransactionId is string
+            && request.resource.data.returnTransactionId.size() > 0
+            && request.resource.data.returnedGoodQuantity
+              + request.resource.data.damagedQuantity
+              + request.resource.data.missingQuantity
+              == request.resource.data.assignedQuantity
+            && (
+              (request.resource.data.damagedQuantity == 0
+                && request.resource.data.missingQuantity == 0)
+              || request.resource.data.returnNote.size() >= 3
+            )
+          )
+        );
+    }
+
+    function validEquipmentTransactionDocument() {
+      return request.resource.data.keys().hasOnly([
+          'equipmentId', 'equipmentName', 'unit', 'assignmentId', 'reservationId',
+          'type', 'quantity', 'returnedGoodQuantity', 'damagedQuantity',
+          'missingQuantity', 'note', 'recordedBy', 'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'equipmentId', 'equipmentName', 'unit', 'assignmentId', 'reservationId',
+          'type', 'quantity', 'returnedGoodQuantity', 'damagedQuantity',
+          'missingQuantity', 'note', 'recordedBy', 'recordedByName', 'createdAt'
+        ])
+        && request.resource.data.equipmentId is string
+        && request.resource.data.equipmentId.size() > 0
+        && request.resource.data.equipmentId.size() <= 120
+        && request.resource.data.equipmentName is string
+        && request.resource.data.equipmentName.size() > 0
+        && request.resource.data.equipmentName.size() <= 120
+        && request.resource.data.unit is string
+        && request.resource.data.unit.size() > 0
+        && request.resource.data.unit.size() <= 40
+        && request.resource.data.assignmentId is string
+        && request.resource.data.assignmentId.size() > 0
+        && request.resource.data.assignmentId.size() <= 120
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.size() > 0
+        && request.resource.data.reservationId.size() <= 120
+        && request.resource.data.type in ['release', 'return']
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity > 0
+        && request.resource.data.quantity <= 1000000
+        && request.resource.data.returnedGoodQuantity is int
+        && request.resource.data.returnedGoodQuantity >= 0
+        && request.resource.data.damagedQuantity is int
+        && request.resource.data.damagedQuantity >= 0
+        && request.resource.data.missingQuantity is int
+        && request.resource.data.missingQuantity >= 0
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 500
+        && request.resource.data.recordedBy is string
+        && request.resource.data.recordedBy.size() > 0
+        && request.resource.data.recordedByName is string
+        && request.resource.data.recordedByName.size() > 0
+        && request.resource.data.recordedByName.size() <= 100
+        && request.resource.data.createdAt is timestamp
+        && (
+          (
+            request.resource.data.type == 'release'
+            && request.resource.data.returnedGoodQuantity == 0
+            && request.resource.data.damagedQuantity == 0
+            && request.resource.data.missingQuantity == 0
+            && request.resource.data.note == ''
+          )
+          || (
+            request.resource.data.type == 'return'
+            && request.resource.data.returnedGoodQuantity
+              + request.resource.data.damagedQuantity
+              + request.resource.data.missingQuantity
+              == request.resource.data.quantity
+            && (
+              (request.resource.data.damagedQuantity == 0
+                && request.resource.data.missingQuantity == 0)
+              || request.resource.data.note.size() >= 3
+            )
+          )
+        );
+    }
+
+    function equipmentAssignmentMatchesReferences() {
+      let reservationPath = /databases/$(database)/documents/reservations/$(request.resource.data.reservationId);
+      let equipmentPath = /databases/$(database)/documents/equipment/$(request.resource.data.equipmentId);
+      let reservation = get(reservationPath);
+      let equipment = get(equipmentPath);
+
+      return exists(reservationPath)
+        && exists(equipmentPath)
+        && reservation.data.status in ['pending_review', 'confirmed']
+        && reservation.data.customerId == request.resource.data.customerId
+        && reservation.data.package.packageName == request.resource.data.packageName
+        && reservation.data.event.startDate == request.resource.data.eventStartDate
+        && reservation.data.event.endDate == request.resource.data.eventEndDate
+        && equipment.data.isActive == true
+        && equipment.data.name == request.resource.data.equipmentName
+        && equipment.data.unit == request.resource.data.unit
+        && request.resource.data.assignedQuantity <= equipment.data.totalQuantity
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdByName == currentUserProfile().data.displayName;
+    }
+
+    function equipmentUpdateHasMatchingTransaction(equipmentId) {
+      let transactionId = request.resource.data.lastTransactionId;
+      let transactionPath = /databases/$(database)/documents/equipmentTransactions/$(transactionId);
+      let equipmentTransaction = getAfter(transactionPath);
+
+      return transactionId is string
+        && transactionId != resource.data.lastTransactionId
+        && existsAfter(transactionPath)
+        && equipmentTransaction.data.equipmentId == equipmentId
+        && equipmentTransaction.data.recordedBy == request.auth.uid
+        && equipmentTransaction.data.createdAt == request.time
+        && (
+          (
+            equipmentTransaction.data.type == 'release'
+            && resource.data.availableQuantity >= equipmentTransaction.data.quantity
+            && request.resource.data.availableQuantity
+              == resource.data.availableQuantity - equipmentTransaction.data.quantity
+            && request.resource.data.inUseQuantity
+              == resource.data.inUseQuantity + equipmentTransaction.data.quantity
+            && request.resource.data.damagedQuantity == resource.data.damagedQuantity
+            && request.resource.data.missingQuantity == resource.data.missingQuantity
+          )
+          || (
+            equipmentTransaction.data.type == 'return'
+            && resource.data.inUseQuantity >= equipmentTransaction.data.quantity
+            && request.resource.data.availableQuantity
+              == resource.data.availableQuantity
+                + equipmentTransaction.data.returnedGoodQuantity
+            && request.resource.data.inUseQuantity
+              == resource.data.inUseQuantity - equipmentTransaction.data.quantity
+            && request.resource.data.damagedQuantity
+              == resource.data.damagedQuantity + equipmentTransaction.data.damagedQuantity
+            && request.resource.data.missingQuantity
+              == resource.data.missingQuantity + equipmentTransaction.data.missingQuantity
+          )
+        );
+    }
+
+    function assignmentReleaseHasMatchingTransaction(assignmentId) {
+      let transactionId = request.resource.data.releaseTransactionId;
+      let transactionPath = /databases/$(database)/documents/equipmentTransactions/$(transactionId);
+      let equipmentPath = /databases/$(database)/documents/equipment/$(request.resource.data.equipmentId);
+      let equipmentTransaction = getAfter(transactionPath);
+      let previousEquipment = get(equipmentPath);
+      let updatedEquipment = getAfter(equipmentPath);
+
+      return existsAfter(transactionPath)
+        && exists(equipmentPath)
+        && existsAfter(equipmentPath)
+        && equipmentTransaction.data.type == 'release'
+        && equipmentTransaction.data.assignmentId == assignmentId
+        && equipmentTransaction.data.reservationId == request.resource.data.reservationId
+        && equipmentTransaction.data.equipmentId == request.resource.data.equipmentId
+        && equipmentTransaction.data.equipmentName == request.resource.data.equipmentName
+        && equipmentTransaction.data.unit == request.resource.data.unit
+        && equipmentTransaction.data.quantity == request.resource.data.assignedQuantity
+        && equipmentTransaction.data.recordedBy == request.auth.uid
+        && equipmentTransaction.data.createdAt == request.time
+        && previousEquipment.data.isActive == true
+        && previousEquipment.data.availableQuantity >= request.resource.data.assignedQuantity
+        && updatedEquipment.data.availableQuantity
+          == previousEquipment.data.availableQuantity - request.resource.data.assignedQuantity
+        && updatedEquipment.data.inUseQuantity
+          == previousEquipment.data.inUseQuantity + request.resource.data.assignedQuantity
+        && updatedEquipment.data.lastTransactionId == transactionId;
+    }
+
+    function assignmentReturnHasMatchingTransaction(assignmentId) {
+      let transactionId = request.resource.data.returnTransactionId;
+      let transactionPath = /databases/$(database)/documents/equipmentTransactions/$(transactionId);
+      let equipmentPath = /databases/$(database)/documents/equipment/$(request.resource.data.equipmentId);
+      let equipmentTransaction = getAfter(transactionPath);
+      let previousEquipment = get(equipmentPath);
+      let updatedEquipment = getAfter(equipmentPath);
+
+      return existsAfter(transactionPath)
+        && exists(equipmentPath)
+        && existsAfter(equipmentPath)
+        && equipmentTransaction.data.type == 'return'
+        && equipmentTransaction.data.assignmentId == assignmentId
+        && equipmentTransaction.data.reservationId == request.resource.data.reservationId
+        && equipmentTransaction.data.equipmentId == request.resource.data.equipmentId
+        && equipmentTransaction.data.equipmentName == request.resource.data.equipmentName
+        && equipmentTransaction.data.unit == request.resource.data.unit
+        && equipmentTransaction.data.quantity == request.resource.data.assignedQuantity
+        && equipmentTransaction.data.returnedGoodQuantity == request.resource.data.returnedGoodQuantity
+        && equipmentTransaction.data.damagedQuantity == request.resource.data.damagedQuantity
+        && equipmentTransaction.data.missingQuantity == request.resource.data.missingQuantity
+        && equipmentTransaction.data.note == request.resource.data.returnNote
+        && equipmentTransaction.data.recordedBy == request.auth.uid
+        && equipmentTransaction.data.createdAt == request.time
+        && previousEquipment.data.inUseQuantity >= request.resource.data.assignedQuantity
+        && updatedEquipment.data.availableQuantity
+          == previousEquipment.data.availableQuantity + request.resource.data.returnedGoodQuantity
+        && updatedEquipment.data.inUseQuantity
+          == previousEquipment.data.inUseQuantity - request.resource.data.assignedQuantity
+        && updatedEquipment.data.damagedQuantity
+          == previousEquipment.data.damagedQuantity + request.resource.data.damagedQuantity
+        && updatedEquipment.data.missingQuantity
+          == previousEquipment.data.missingQuantity + request.resource.data.missingQuantity
+        && updatedEquipment.data.lastTransactionId == transactionId;
+    }
+
+    function equipmentTransactionMatchesLinkedWrites(transactionId) {
+      let equipmentPath = /databases/$(database)/documents/equipment/$(request.resource.data.equipmentId);
+      let assignmentPath = /databases/$(database)/documents/equipmentAssignments/$(request.resource.data.assignmentId);
+      let previousEquipment = get(equipmentPath);
+      let updatedEquipment = getAfter(equipmentPath);
+      let previousAssignment = get(assignmentPath);
+      let updatedAssignment = getAfter(assignmentPath);
+
+      return exists(equipmentPath)
+        && existsAfter(equipmentPath)
+        && exists(assignmentPath)
+        && existsAfter(assignmentPath)
+        && updatedEquipment.data.lastTransactionId == transactionId
+        && previousAssignment.data.reservationId == request.resource.data.reservationId
+        && previousAssignment.data.equipmentId == request.resource.data.equipmentId
+        && previousAssignment.data.equipmentName == request.resource.data.equipmentName
+        && previousAssignment.data.unit == request.resource.data.unit
+        && previousAssignment.data.assignedQuantity == request.resource.data.quantity
+        && (
+          (
+            request.resource.data.type == 'release'
+            && previousAssignment.data.status == 'assigned'
+            && updatedAssignment.data.status == 'released'
+            && updatedAssignment.data.releaseTransactionId == transactionId
+            && previousEquipment.data.isActive == true
+            && previousEquipment.data.availableQuantity >= request.resource.data.quantity
+            && updatedEquipment.data.availableQuantity
+              == previousEquipment.data.availableQuantity - request.resource.data.quantity
+            && updatedEquipment.data.inUseQuantity
+              == previousEquipment.data.inUseQuantity + request.resource.data.quantity
+          )
+          || (
+            request.resource.data.type == 'return'
+            && previousAssignment.data.status == 'released'
+            && updatedAssignment.data.status == 'closed'
+            && updatedAssignment.data.returnTransactionId == transactionId
+            && updatedAssignment.data.returnedGoodQuantity
+              == request.resource.data.returnedGoodQuantity
+            && updatedAssignment.data.damagedQuantity == request.resource.data.damagedQuantity
+            && updatedAssignment.data.missingQuantity == request.resource.data.missingQuantity
+            && updatedAssignment.data.returnNote == request.resource.data.note
+            && previousEquipment.data.inUseQuantity >= request.resource.data.quantity
+            && updatedEquipment.data.availableQuantity
+              == previousEquipment.data.availableQuantity + request.resource.data.returnedGoodQuantity
+            && updatedEquipment.data.inUseQuantity
+              == previousEquipment.data.inUseQuantity - request.resource.data.quantity
+            && updatedEquipment.data.damagedQuantity
+              == previousEquipment.data.damagedQuantity + request.resource.data.damagedQuantity
+            && updatedEquipment.data.missingQuantity
+              == previousEquipment.data.missingQuantity + request.resource.data.missingQuantity
+          )
+        );
+    }
+
     match /users/{userId} {
       allow get: if isSignedIn()
         && (request.auth.uid == userId || isAdmin());
@@ -508,6 +894,120 @@ service cloud.firestore {
         && validPaymentReceiptDocument()
         && request.resource.data.createdAt == request.time
         && paymentReceiptHasMatchingPayment(paymentId);
+
+      allow update, delete: if false;
+    }
+
+    match /equipment/{equipmentId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validEquipmentDocument()
+        && request.resource.data.availableQuantity == request.resource.data.totalQuantity
+        && request.resource.data.inUseQuantity == 0
+        && request.resource.data.damagedQuantity == 0
+        && request.resource.data.missingQuantity == 0
+        && request.resource.data.lastTransactionId == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isStaffOrAdmin()
+        && validEquipmentDocument()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.totalQuantity == resource.data.totalQuantity
+        && request.resource.data.unit == resource.data.unit
+        && (
+          (
+            request.resource.data.availableQuantity == resource.data.availableQuantity
+            && request.resource.data.inUseQuantity == resource.data.inUseQuantity
+            && request.resource.data.damagedQuantity == resource.data.damagedQuantity
+            && request.resource.data.missingQuantity == resource.data.missingQuantity
+            && request.resource.data.lastTransactionId == resource.data.lastTransactionId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'name', 'isActive', 'updatedAt'
+            ])
+            && (request.resource.data.isActive == true || resource.data.inUseQuantity == 0)
+          )
+          || (
+            request.resource.data.name == resource.data.name
+            && request.resource.data.isActive == resource.data.isActive
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'availableQuantity', 'inUseQuantity', 'damagedQuantity',
+              'missingQuantity', 'lastTransactionId', 'updatedAt'
+            ])
+            && equipmentUpdateHasMatchingTransaction(equipmentId)
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /equipmentAssignments/{assignmentId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validEquipmentAssignmentDocument()
+        && request.resource.data.status == 'assigned'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && equipmentAssignmentMatchesReferences();
+
+      allow update: if isStaffOrAdmin()
+        && validEquipmentAssignmentDocument()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.reservationId == resource.data.reservationId
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.packageName == resource.data.packageName
+        && request.resource.data.eventStartDate == resource.data.eventStartDate
+        && request.resource.data.eventEndDate == resource.data.eventEndDate
+        && request.resource.data.equipmentId == resource.data.equipmentId
+        && request.resource.data.equipmentName == resource.data.equipmentName
+        && request.resource.data.unit == resource.data.unit
+        && request.resource.data.assignedQuantity == resource.data.assignedQuantity
+        && request.resource.data.note == resource.data.note
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdByName == resource.data.createdByName
+        && (
+          (
+            resource.data.status == 'assigned'
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'updatedAt'
+            ])
+          )
+          || (
+            resource.data.status == 'assigned'
+            && request.resource.data.status == 'released'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'releaseTransactionId', 'updatedAt'
+            ])
+            && assignmentReleaseHasMatchingTransaction(assignmentId)
+          )
+          || (
+            resource.data.status == 'released'
+            && request.resource.data.status == 'closed'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'returnTransactionId', 'returnedGoodQuantity',
+              'damagedQuantity', 'missingQuantity', 'returnNote', 'updatedAt'
+            ])
+            && assignmentReturnHasMatchingTransaction(assignmentId)
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /equipmentTransactions/{transactionId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validEquipmentTransactionDocument()
+        && request.resource.data.recordedBy == request.auth.uid
+        && request.resource.data.recordedByName == currentUserProfile().data.displayName
+        && request.resource.data.createdAt == request.time
+        && equipmentTransactionMatchesLinkedWrites(transactionId);
 
       allow update, delete: if false;
     }

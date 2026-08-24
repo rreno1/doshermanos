@@ -243,10 +243,118 @@ The web and mobile interfaces include a disabled hosted payment-link card to res
 
 A future hosted-payment implementation must be reviewed as a separate architecture and security change before this data model is extended for provider payment IDs, verified statuses, idempotency, callbacks, or webhooks.
 
+## `equipment/{equipmentId}`
+
+Purpose: current physical accountability state for one reusable equipment type.
+
+Fields:
+
+- `name`: string, 1-120 characters
+- `unit`: immutable counting unit, 1-40 characters
+- `totalQuantity`: immutable registered total, positive integer up to 1,000,000
+- `availableQuantity`: units physically available for release
+- `inUseQuantity`: units currently released to events
+- `damagedQuantity`: units returned damaged and not counted as available
+- `missingQuantity`: units not returned and not counted as available
+- `isActive`: whether new assignments/releases are allowed
+- `lastTransactionId`: latest linked release/return transaction ID, or `null` before the first physical movement
+- `createdAt`: Firestore server timestamp
+- `updatedAt`: Firestore server timestamp
+
+The invariant is:
+
+```text
+totalQuantity = availableQuantity + inUseQuantity + damagedQuantity + missingQuantity
+```
+
+New equipment begins fully available. This first slice keeps the registered total and counting unit immutable after creation. Later acquisition, disposal, repair, recovery, or quantity-correction workflows require an explicit equipment-adjustment design rather than silently rewriting physical accountability counts.
+
+Read pattern:
+
+```text
+equipment
+order by name ascending
+limit 100
+```
+
+Only active staff and administrators can read equipment records. Customers and unauthenticated users cannot access equipment state.
+
+## `equipmentAssignments/{assignmentId}`
+
+Purpose: current accountability lifecycle for equipment planned and physically released to a reservation.
+
+Fields:
+
+- `reservationId`: linked reservation ID
+- `customerId`: reservation customer snapshot
+- `packageName`: reservation package-name snapshot
+- `eventStartDate`: reservation event start date
+- `eventEndDate`: reservation event end date
+- `equipmentId`: linked equipment ID
+- `equipmentName`: assignment-time equipment-name snapshot
+- `unit`: assignment-time unit snapshot
+- `assignedQuantity`: whole-number planned/released quantity
+- `status`: `assigned | released | closed | cancelled`
+- `releaseTransactionId`: linked release transaction or `null`
+- `returnTransactionId`: linked return transaction or `null`
+- `returnedGoodQuantity`: usable units returned when closed
+- `damagedQuantity`: damaged units reported when closed
+- `missingQuantity`: missing units reported when closed
+- `note`: optional assignment note, up to 500 characters
+- `returnNote`: optional return note, but required when damaged or missing quantity is non-zero
+- `createdBy`: staff/admin UID that created the assignment
+- `createdByName`: verified display-name snapshot
+- `createdAt`: Firestore server timestamp
+- `updatedAt`: Firestore server timestamp
+
+Assignment creation is allowed only for an active equipment item and a reservation whose current status is `pending_review` or `confirmed`. Reservation customer, package, and event dates must match the authoritative reservation document. The assigned quantity cannot exceed the registered equipment total.
+
+An assignment does not reserve future physical availability. This is intentional because Dos Hermanos can run simultaneous events and the final overlapping-event capacity rule is not defined. Physical availability is enforced at release time instead.
+
+Recent assignment read pattern:
+
+```text
+equipmentAssignments
+order by updatedAt descending
+limit 60
+```
+
+## `equipmentTransactions/{transactionId}`
+
+Purpose: immutable history of physical equipment release and return.
+
+Fields:
+
+- `equipmentId`, `equipmentName`, `unit`: linked equipment identity and assignment-time snapshots
+- `assignmentId`: linked equipment assignment
+- `reservationId`: linked reservation
+- `type`: `release | return`
+- `quantity`: whole-number released/returned accountability quantity
+- `returnedGoodQuantity`: zero on release; usable return count on return
+- `damagedQuantity`: zero on release; damaged return count on return
+- `missingQuantity`: zero on release; missing return count on return
+- `note`: empty on release; return explanation when supplied
+- `recordedBy`: authenticated staff/admin UID
+- `recordedByName`: verified display-name snapshot
+- `createdAt`: Firestore server timestamp
+
+A physical release is one atomic write containing:
+
+1. equipment counts moving from `availableQuantity` to `inUseQuantity`;
+2. assignment transition from `assigned` to `released`;
+3. the immutable `release` transaction.
+
+A physical return is one atomic write containing:
+
+1. usable units moving from `inUseQuantity` back to `availableQuantity`;
+2. damaged/missing units moving from `inUseQuantity` into their accountability counts;
+3. assignment transition from `released` to `closed` with every released unit accounted for;
+4. the immutable `return` transaction.
+
+Firestore Rules cross-check all linked documents with `get()` and `getAfter()`. Direct equipment count edits, forged recorder identity, standalone history records, partial release/return writes, negative physical counts, and incomplete return accounting are denied.
+
 ## Planned collections
 
-- equipment
-- equipmentTransactions
 - auditLogs
 
-These remain denied by the default Firestore rule until explicit access models are implemented.
+The remaining collection stays denied by the default Firestore rule until its explicit access model is implemented.
