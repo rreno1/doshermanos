@@ -31,8 +31,8 @@ export function AuditPanel() {
           <p className="audit-kicker">Administrative accountability</p>
           <h2 id="audit-title">Operational audit trail</h2>
           <p>
-            Review recent inventory, payment, and physical equipment activity from their
-            append-only operational records.
+            Review recent reservation decisions, inventory, payment, and physical equipment
+            activity from their append-only operational records.
           </p>
         </div>
         <span className="audit-scope-note">Admin only</span>

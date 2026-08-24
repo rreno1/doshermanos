@@ -360,3 +360,24 @@ Firestore Rules cross-check all linked documents with `get()` and `getAfter()`. 
 The administrator audit trail does not use a separate generic `auditLogs` collection. It derives one bounded chronological view from the existing append-only `inventoryMovements`, `payments`, and `equipmentTransactions` collections so the audit presentation does not duplicate operational business data.
 
 Future reservation decisions, package administration, user role/status changes, hosted-payment events, inventory allocation, and equipment-adjustment workflows must introduce their own immutable actor-attributed histories before those workflows are considered production-complete. See `docs/audit-trail.md` for the coverage boundary.
+
+
+## `reservationDecisions/{decisionId}`
+
+Append-only staff/admin record for protected reservation review decisions currently implemented.
+
+Fields:
+
+```text
+reservationId
+customerId
+previousStatus
+newStatus
+decidedBy
+decidedByName
+createdAt
+```
+
+Current supported decision is `pending_review -> rejected`. The decision document ID is deterministic as `<reservationId>-rejected`, and the reservation update plus decision creation must succeed atomically. Customers cannot read this internal actor-attributed history.
+
+Reservation confirmation remains intentionally unavailable until Dos Hermanos approves an enforceable simultaneous-event capacity rule. Same-date or overlapping requests are not rejected automatically.

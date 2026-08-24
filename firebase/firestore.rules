@@ -142,6 +142,56 @@ service cloud.firestore {
         && packageDocument.data.priceInCentavos == request.resource.data.package.priceInCentavos;
     }
 
+    function validReservationDecisionDocument() {
+      return request.resource.data.keys().hasOnly([
+          'reservationId', 'customerId', 'previousStatus', 'newStatus',
+          'decidedBy', 'decidedByName', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'reservationId', 'customerId', 'previousStatus', 'newStatus',
+          'decidedBy', 'decidedByName', 'createdAt'
+        ])
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.size() > 0
+        && request.resource.data.customerId is string
+        && request.resource.data.customerId.size() > 0
+        && request.resource.data.previousStatus == 'pending_review'
+        && request.resource.data.newStatus == 'rejected'
+        && request.resource.data.decidedBy is string
+        && request.resource.data.decidedBy.size() > 0
+        && request.resource.data.decidedByName is string
+        && request.resource.data.decidedByName.size() > 0
+        && request.resource.data.decidedByName.size() <= 100
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function reservationRejectionHasMatchingDecision(reservationId) {
+      let decisionId = reservationId + '-rejected';
+      let decisionPath = /databases/$(database)/documents/reservationDecisions/$(decisionId);
+      return existsAfter(decisionPath)
+        && getAfter(decisionPath).data.reservationId == reservationId
+        && getAfter(decisionPath).data.customerId == resource.data.customerId
+        && getAfter(decisionPath).data.previousStatus == 'pending_review'
+        && getAfter(decisionPath).data.newStatus == 'rejected'
+        && getAfter(decisionPath).data.decidedBy == request.auth.uid
+        && getAfter(decisionPath).data.decidedByName == currentUserProfile().data.displayName
+        && getAfter(decisionPath).data.createdAt == request.time;
+    }
+
+    function reservationDecisionMatchesRejection(decisionId) {
+      let reservationPath = /databases/$(database)/documents/reservations/$(request.resource.data.reservationId);
+      return decisionId == request.resource.data.reservationId + '-rejected'
+        && exists(reservationPath)
+        && get(reservationPath).data.status == 'pending_review'
+        && get(reservationPath).data.customerId == request.resource.data.customerId
+        && getAfter(reservationPath).data.status == 'rejected'
+        && getAfter(reservationPath).data.customerId == request.resource.data.customerId
+        && getAfter(reservationPath).data.event == get(reservationPath).data.event
+        && getAfter(reservationPath).data.package == get(reservationPath).data.package
+        && getAfter(reservationPath).data.createdAt == get(reservationPath).data.createdAt
+        && getAfter(reservationPath).data.updatedAt == request.time;
+    }
+
     function validInventoryDocument() {
       return request.resource.data.keys().hasOnly([
           'name', 'unit', 'quantity', 'lowStockThreshold', 'isActive',
@@ -824,9 +874,23 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status', 'updatedAt'
         ])
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+        && reservationRejectionHasMatchingDecision(reservationId);
 
       allow delete: if false;
+    }
+
+    match /reservationDecisions/{decisionId} {
+      allow get, list: if isStaffOrAdmin();
+
+      allow create: if isStaffOrAdmin()
+        && validReservationDecisionDocument()
+        && request.resource.data.decidedBy == request.auth.uid
+        && request.resource.data.decidedByName == currentUserProfile().data.displayName
+        && request.resource.data.createdAt == request.time
+        && reservationDecisionMatchesRejection(decisionId);
+
+      allow update, delete: if false;
     }
 
     match /inventory/{inventoryItemId} {

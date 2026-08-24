@@ -40,3 +40,10 @@ Until that capacity rule is approved:
 Allowing multiple simultaneous events removes the previously assumed one-event-per-date model. Guessing a replacement capacity limit would create a false business rule and could either block valid business or permit operational overbooking.
 
 The system therefore records reservation requests now while deliberately deferring authoritative confirmation until the real capacity constraint is known.
+
+
+## Current staff review workflow
+
+Authorized staff and administrators can now view a bounded queue of `pending_review` reservation requests and reject an invalid or declined request. Every rejection is recorded atomically in the immutable `reservationDecisions` history with the authenticated actor and timestamp.
+
+Confirmation remains unavailable. The review interface explicitly explains that overlapping events are permitted and that a date overlap alone is not a capacity failure. This preserves the approved scheduling boundary while allowing the review workflow to progress without inventing a capacity formula.

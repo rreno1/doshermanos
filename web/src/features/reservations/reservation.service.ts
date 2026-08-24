@@ -6,6 +6,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   where,
@@ -16,12 +17,15 @@ import {
 import { firestore } from '../../firebase/firebase';
 import type { CateringPackage } from '../packages/package.types';
 import type {
+  ReservationDecision,
   ReservationRecord,
   ReservationRequestInput,
   ReservationStatus,
 } from './reservation.types';
 
-const RESERVATION_LIMIT = 20;
+const CUSTOMER_RESERVATION_LIMIT = 20;
+const STAFF_REVIEW_LIMIT = 50;
+const RESERVATION_DECISION_LIMIT = 40;
 const reservationStatuses: ReservationStatus[] = [
   'pending_review',
   'confirmed',
@@ -42,11 +46,12 @@ function dateOnlyToTimestamp(value: string): Timestamp {
 function parseReservationDocument(
   document: QueryDocumentSnapshot<DocumentData>,
 ): ReservationRecord {
-  const value = document.data();
+  const value = document.data({ serverTimestamps: 'estimate' });
   const event = value.event;
   const packageSnapshot = value.package;
 
   if (
+    typeof value.customerId !== 'string' ||
     !event ||
     typeof event !== 'object' ||
     !packageSnapshot ||
@@ -60,13 +65,15 @@ function parseReservationDocument(
     typeof packageSnapshot.packageId !== 'string' ||
     typeof packageSnapshot.packageName !== 'string' ||
     !Number.isInteger(packageSnapshot.priceInCentavos) ||
-    !(value.createdAt instanceof Timestamp)
+    !(value.createdAt instanceof Timestamp) ||
+    !(value.updatedAt instanceof Timestamp)
   ) {
     throw new Error('Reservation data is invalid.');
   }
 
   return {
     id: document.id,
+    customerId: value.customerId,
     status: value.status as ReservationStatus,
     event: {
       startDate: event.startDate.toDate(),
@@ -80,6 +87,36 @@ function parseReservationDocument(
       packageName: packageSnapshot.packageName,
       priceInCentavos: packageSnapshot.priceInCentavos,
     },
+    createdAt: value.createdAt.toDate(),
+    updatedAt: value.updatedAt.toDate(),
+  };
+}
+
+function parseReservationDecisionDocument(
+  document: QueryDocumentSnapshot<DocumentData>,
+): ReservationDecision {
+  const value = document.data({ serverTimestamps: 'estimate' });
+
+  if (
+    typeof value.reservationId !== 'string' ||
+    typeof value.customerId !== 'string' ||
+    value.previousStatus !== 'pending_review' ||
+    value.newStatus !== 'rejected' ||
+    typeof value.decidedBy !== 'string' ||
+    typeof value.decidedByName !== 'string' ||
+    !(value.createdAt instanceof Timestamp)
+  ) {
+    throw new Error('Reservation decision data is invalid.');
+  }
+
+  return {
+    id: document.id,
+    reservationId: value.reservationId,
+    customerId: value.customerId,
+    previousStatus: 'pending_review',
+    newStatus: 'rejected',
+    decidedBy: value.decidedBy,
+    decidedByName: value.decidedByName,
     createdAt: value.createdAt.toDate(),
   };
 }
@@ -122,7 +159,7 @@ export function subscribeToOwnReservations(
     collection(firestore, 'reservations'),
     where('customerId', '==', customerId),
     orderBy('createdAt', 'desc'),
-    limit(RESERVATION_LIMIT),
+    limit(CUSTOMER_RESERVATION_LIMIT),
   );
 
   return onSnapshot(
@@ -130,6 +167,103 @@ export function subscribeToOwnReservations(
     (snapshot) => {
       try {
         onReservations(snapshot.docs.map(parseReservationDocument));
+      } catch {
+        onError();
+      }
+    },
+    onError,
+  );
+}
+
+export function subscribeToPendingReservations(
+  onReservations: (reservations: ReservationRecord[]) => void,
+  onError: () => void,
+): Unsubscribe {
+  const reservationsQuery = query(
+    collection(firestore, 'reservations'),
+    where('status', '==', 'pending_review'),
+    orderBy('createdAt', 'desc'),
+    limit(STAFF_REVIEW_LIMIT),
+  );
+
+  return onSnapshot(
+    reservationsQuery,
+    (snapshot) => {
+      try {
+        onReservations(snapshot.docs.map(parseReservationDocument));
+      } catch {
+        onError();
+      }
+    },
+    onError,
+  );
+}
+
+export async function rejectReservation(
+  reservationId: string,
+  decidedBy: string,
+  decidedByName: string,
+): Promise<void> {
+  const reservationRef = doc(firestore, 'reservations', reservationId);
+  const decisionRef = doc(firestore, 'reservationDecisions', `${reservationId}-rejected`);
+
+  await runTransaction(firestore, async (transaction) => {
+    const reservationSnapshot = await transaction.get(reservationRef);
+    const decisionSnapshot = await transaction.get(decisionRef);
+
+    if (!reservationSnapshot.exists()) {
+      throw new Error('The reservation request no longer exists.');
+    }
+
+    const reservation = reservationSnapshot.data();
+
+    if (reservation.status === 'rejected' && decisionSnapshot.exists()) {
+      return;
+    }
+
+    if (reservation.status !== 'pending_review') {
+      throw new Error('Only pending reservation requests can be rejected.');
+    }
+
+    if (decisionSnapshot.exists()) {
+      throw new Error('This reservation already has a rejection decision record.');
+    }
+
+    if (typeof reservation.customerId !== 'string' || reservation.customerId.length === 0) {
+      throw new Error('The reservation customer record is invalid.');
+    }
+
+    transaction.update(reservationRef, {
+      status: 'rejected',
+      updatedAt: serverTimestamp(),
+    });
+    transaction.set(decisionRef, {
+      reservationId,
+      customerId: reservation.customerId,
+      previousStatus: 'pending_review',
+      newStatus: 'rejected',
+      decidedBy,
+      decidedByName,
+      createdAt: serverTimestamp(),
+    });
+  });
+}
+
+export function subscribeToReservationDecisions(
+  onDecisions: (decisions: ReservationDecision[]) => void,
+  onError: () => void,
+): Unsubscribe {
+  const decisionsQuery = query(
+    collection(firestore, 'reservationDecisions'),
+    orderBy('createdAt', 'desc'),
+    limit(RESERVATION_DECISION_LIMIT),
+  );
+
+  return onSnapshot(
+    decisionsQuery,
+    (snapshot) => {
+      try {
+        onDecisions(snapshot.docs.map(parseReservationDecisionDocument));
       } catch {
         onError();
       }
