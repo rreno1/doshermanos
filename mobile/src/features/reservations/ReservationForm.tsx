@@ -20,6 +20,9 @@ export function ReservationForm({
   const [endDate, setEndDate] = useState(new Date());
   const [location, setLocation] = useState('');
   const [guestCount, setGuestCount] = useState('');
+  const [menuRequest, setMenuRequest] = useState('');
+  const [foodQuantityRequest, setFoodQuantityRequest] = useState('');
+  const [supplyRequest, setSupplyRequest] = useState('');
   const [serviceRequirements, setServiceRequirements] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,6 +44,9 @@ export function ReservationForm({
       location,
       guestCount,
       serviceRequirements,
+      menuRequest,
+      foodQuantityRequest,
+      supplyRequest,
     });
 
     if (!validation.value) {
@@ -103,6 +109,54 @@ export function ReservationForm({
         />
       </FormField>
 
+      <FormField label="Requested menu choices or changes" optional>
+        <TextInput
+          accessibilityLabel="Requested menu choices or changes, optional"
+          value={menuRequest}
+          onChangeText={(value) => {
+            setMenuRequest(value);
+            setErrorMessage(null);
+          }}
+          placeholder="Menu choices, substitutions, or additions to review"
+          maxLength={1000}
+          multiline
+          textAlignVertical="top"
+          style={[styles.input, styles.textArea]}
+        />
+      </FormField>
+
+      <FormField label="Food quantity requirements" optional>
+        <TextInput
+          accessibilityLabel="Food quantity requirements, optional"
+          value={foodQuantityRequest}
+          onChangeText={(value) => {
+            setFoodQuantityRequest(value);
+            setErrorMessage(null);
+          }}
+          placeholder="Serving or food quantity adjustments to review"
+          maxLength={1000}
+          multiline
+          textAlignVertical="top"
+          style={[styles.input, styles.textArea]}
+        />
+      </FormField>
+
+      <FormField label="Needed supplies" optional>
+        <TextInput
+          accessibilityLabel="Needed supplies, optional"
+          value={supplyRequest}
+          onChangeText={(value) => {
+            setSupplyRequest(value);
+            setErrorMessage(null);
+          }}
+          placeholder="Serving supplies, tables, linens, or other needs"
+          maxLength={1000}
+          multiline
+          textAlignVertical="top"
+          style={[styles.input, styles.textArea]}
+        />
+      </FormField>
+
       <FormField label="Service requirements" optional>
         <TextInput
           accessibilityLabel="Service requirements, optional"
@@ -120,7 +174,7 @@ export function ReservationForm({
       </FormField>
 
       <Text selectable style={styles.note}>
-        Sending this form creates a request only. Dos Hermanos still needs to review and confirm the event.
+        Customization details are requests for review. The displayed package amount is the base package price, not an approved customized total. Dos Hermanos still needs to review pricing and confirm the event.
       </Text>
 
       {errorMessage ? (
