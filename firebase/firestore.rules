@@ -636,12 +636,16 @@ service cloud.firestore {
     function assignmentReleaseHasMatchingTransaction(assignmentId) {
       let transactionId = request.resource.data.releaseTransactionId;
       let transactionPath = /databases/$(database)/documents/equipmentTransactions/$(transactionId);
+      let reservationPath = /databases/$(database)/documents/reservations/$(request.resource.data.reservationId);
       let equipmentPath = /databases/$(database)/documents/equipment/$(request.resource.data.equipmentId);
       let equipmentTransaction = getAfter(transactionPath);
+      let reservation = get(reservationPath);
       let previousEquipment = get(equipmentPath);
       let updatedEquipment = getAfter(equipmentPath);
 
       return existsAfter(transactionPath)
+        && exists(reservationPath)
+        && reservation.data.status in ['pending_review', 'confirmed']
         && exists(equipmentPath)
         && existsAfter(equipmentPath)
         && equipmentTransaction.data.type == 'release'
