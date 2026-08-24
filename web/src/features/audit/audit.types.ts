@@ -3,6 +3,7 @@ export type AuditActivityKind =
   | 'inventory_stock_out'
   | 'inventory_correction'
   | 'payment_recorded'
+  | 'reservation_rejected'
   | 'equipment_released'
   | 'equipment_returned';
 

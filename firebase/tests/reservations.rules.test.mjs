@@ -21,6 +21,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
@@ -78,6 +79,18 @@ function reservationRequest(customerId, options = {}) {
     },
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  };
+}
+
+function rejectionDecision(reservationId, customerId, options = {}) {
+  return {
+    reservationId,
+    customerId,
+    previousStatus: 'pending_review',
+    newStatus: 'rejected',
+    decidedBy: options.decidedBy ?? 'staff-a',
+    decidedByName: options.decidedByName ?? 'Staff A',
+    createdAt: serverTimestamp(),
   };
 }
 
@@ -273,7 +286,7 @@ test('customer can read only their own reservation records with the production q
   assert.equal(snapshot.docs[0]?.id, 'request-a');
 });
 
-test('staff can reject a pending request but cannot confirm it yet', async () => {
+test('staff cannot confirm or directly reject a pending request without a decision record', async () => {
   await testEnvironment.withSecurityRulesDisabled(async (context) => {
     const database = context.firestore();
     const timestamp = Timestamp.fromMillis(1_700_000_000_000);
@@ -293,12 +306,90 @@ test('staff can reject a pending request but cannot confirm it yet', async () =>
       updatedAt: serverTimestamp(),
     }),
   );
-  await assertSucceeds(
+  await assertFails(
     updateDoc(reservationRef, {
       status: 'rejected',
       updatedAt: serverTimestamp(),
     }),
   );
+});
+
+test('staff can atomically reject a pending request with an immutable decision record', async () => {
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    const database = context.firestore();
+    const timestamp = Timestamp.fromMillis(1_700_000_000_000);
+    await setDoc(doc(database, 'reservations', 'reviewed-request'), {
+      ...reservationRequest('customer-a'),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+  });
+
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+  const batch = writeBatch(database);
+  const reservationRef = doc(database, 'reservations', 'reviewed-request');
+  const decisionRef = doc(database, 'reservationDecisions', 'reviewed-request-rejected');
+
+  batch.update(reservationRef, {
+    status: 'rejected',
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(decisionRef, rejectionDecision('reviewed-request', 'customer-a'));
+  await assertSucceeds(batch.commit());
+
+  const reservationSnapshot = await assertSucceeds(getDoc(reservationRef));
+  const decisionSnapshot = await assertSucceeds(getDoc(decisionRef));
+  assert.equal(reservationSnapshot.data()?.status, 'rejected');
+  assert.equal(decisionSnapshot.data()?.newStatus, 'rejected');
+
+  await assertFails(
+    updateDoc(decisionRef, {
+      decidedByName: 'Changed Name',
+    }),
+  );
+});
+
+test('reservation rejection decision must match the authoritative customer and actor', async () => {
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    const database = context.firestore();
+    const timestamp = Timestamp.fromMillis(1_700_000_000_000);
+    await setDoc(doc(database, 'reservations', 'forged-decision-request'), {
+      ...reservationRequest('customer-a'),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+  });
+
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+  const batch = writeBatch(database);
+  batch.update(doc(database, 'reservations', 'forged-decision-request'), {
+    status: 'rejected',
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(
+    doc(database, 'reservationDecisions', 'forged-decision-request-rejected'),
+    rejectionDecision('forged-decision-request', 'customer-b'),
+  );
+  await assertFails(batch.commit());
+});
+
+test('customers cannot read staff reservation decision records', async () => {
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    const database = context.firestore();
+    const timestamp = Timestamp.fromMillis(1_700_000_000_000);
+    await setDoc(doc(database, 'reservationDecisions', 'private-decision'), {
+      reservationId: 'request-a',
+      customerId: 'customer-a',
+      previousStatus: 'pending_review',
+      newStatus: 'rejected',
+      decidedBy: 'staff-a',
+      decidedByName: 'Staff A',
+      createdAt: timestamp,
+    });
+  });
+
+  const database = testEnvironment.authenticatedContext('customer-a').firestore();
+  await assertFails(getDoc(doc(database, 'reservationDecisions', 'private-decision')));
 });
 
 test('customer cannot alter a submitted reservation directly', async () => {

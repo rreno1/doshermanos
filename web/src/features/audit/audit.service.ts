@@ -4,6 +4,8 @@ import { subscribeToRecentInventoryMovements } from '../inventory/inventory.serv
 import type { InventoryMovement } from '../inventory/inventory.types';
 import { subscribeToRecentPayments } from '../payments/payment.service';
 import type { PaymentRecord } from '../payments/payment.types';
+import { subscribeToReservationDecisions } from '../reservations/reservation.service';
+import type { ReservationDecision } from '../reservations/reservation.types';
 import type { AuditActivity, AuditActivityKind } from './audit.types';
 
 const maximumAuditActivities = 60;
@@ -14,6 +16,7 @@ export function subscribeToAuditActivity(
 ) {
   let inventoryMovements: InventoryMovement[] = [];
   let payments: PaymentRecord[] = [];
+  let reservationDecisions: ReservationDecision[] = [];
   let equipmentTransactions: EquipmentTransactionRecord[] = [];
   let hasFailed = false;
 
@@ -21,6 +24,7 @@ export function subscribeToAuditActivity(
     const activities = [
       ...inventoryMovements.map(inventoryMovementToAuditActivity),
       ...payments.map(paymentToAuditActivity),
+      ...reservationDecisions.map(reservationDecisionToAuditActivity),
       ...equipmentTransactions.map(equipmentTransactionToAuditActivity),
     ]
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
@@ -48,6 +52,11 @@ export function subscribeToAuditActivity(
     publish();
   }, handleError);
 
+  const unsubscribeReservations = subscribeToReservationDecisions((records) => {
+    reservationDecisions = records;
+    publish();
+  }, handleError);
+
   const unsubscribeEquipment = subscribeToEquipmentTransactions((records) => {
     equipmentTransactions = records;
     publish();
@@ -56,6 +65,7 @@ export function subscribeToAuditActivity(
   return () => {
     unsubscribeInventory();
     unsubscribePayments();
+    unsubscribeReservations();
     unsubscribeEquipment();
   };
 }
@@ -89,6 +99,17 @@ function paymentToAuditActivity(payment: PaymentRecord): AuditActivity {
     detail: `${payment.packageName}: ${formatPeso(payment.amountInCentavos)}`,
     actorName: payment.recordedByName,
     createdAt: payment.createdAt,
+  };
+}
+
+function reservationDecisionToAuditActivity(decision: ReservationDecision): AuditActivity {
+  return {
+    id: `reservation-${decision.id}`,
+    kind: 'reservation_rejected',
+    title: 'Reservation request rejected',
+    detail: `Reservation ${decision.reservationId}`,
+    actorName: decision.decidedByName,
+    createdAt: decision.createdAt,
   };
 }
 

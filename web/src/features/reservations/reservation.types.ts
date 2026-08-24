@@ -29,8 +29,21 @@ export type ReservationPackageSnapshot = {
 
 export type ReservationRecord = {
   id: string;
+  customerId: string;
   status: ReservationStatus;
   event: ReservationEvent;
   package: ReservationPackageSnapshot;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ReservationDecision = {
+  id: string;
+  reservationId: string;
+  customerId: string;
+  previousStatus: 'pending_review';
+  newStatus: 'rejected';
+  decidedBy: string;
+  decidedByName: string;
   createdAt: Date;
 };

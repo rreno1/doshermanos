@@ -53,3 +53,8 @@ Final reservation confirmation remains pending because Dos Hermanos allows multi
 Equipment assignment is currently an accountability/preparation workflow, not a future-date capacity lock. An assignment may be planned against an eligible reservation, but actual physical release succeeds only when enough equipment is available at that moment. This avoids inventing an overlapping-event equipment scheduling rule before the reservation capacity model is finalized.
 
 Final payment balance and deposit-status calculations also remain pending because the approved final reservation pricing source, deposit amount or percentage, partial-payment policy, overpayment policy, deadlines, refunds, and correction rules have not yet been locked. Manual cash receipts are implemented without inventing those rules.
+
+
+### Reservation review foundation
+
+The staff/admin web workspace now includes a bounded pending-reservation review queue. Authorized staff may reject a pending request through an atomic reservation-status update plus immutable `reservationDecisions` record. Confirmation remains disabled until the approved capacity rule can be enforced without imposing a false one-event-per-date limit.

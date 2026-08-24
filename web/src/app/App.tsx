@@ -7,6 +7,7 @@ import { PackageCatalog } from '../features/packages/PackageCatalog';
 import { MyPayments } from '../features/payments/MyPayments';
 import { PaymentsPanel } from '../features/payments/PaymentsPanel';
 import { MyReservations } from '../features/reservations/MyReservations';
+import { ReservationReviewPanel } from '../features/reservations/ReservationReviewPanel';
 
 export function App() {
   const { authState } = useAuth();
@@ -33,12 +34,16 @@ export function App() {
               <p className="eyebrow">Staff workspace</p>
               <h1 id="hero-title">Keep operations ready for every event.</h1>
               <p className="hero-copy">
-                Review inventory, record payments, and keep event equipment accountable from assignment through return.
+                Review reservation requests, inventory, payments, and event equipment from one operational workspace.
               </p>
-              <a className="primary-link" href="#inventory">
+              <a className="primary-link" href="#reservation-review">
                 Review operations
               </a>
             </section>
+            <ReservationReviewPanel
+              staffId={authState.profile.id}
+              staffName={authState.profile.displayName}
+            />
             <InventoryPanel
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
