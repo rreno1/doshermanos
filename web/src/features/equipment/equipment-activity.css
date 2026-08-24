@@ -1,3 +1,13 @@
+.equipment-action-error {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #7f2c2c;
+  background: #fff0ee;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
 .equipment-activity {
   margin-top: 18px;
   padding: 22px;
