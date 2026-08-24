@@ -69,7 +69,7 @@ function CashPaymentForm({
   recordedByName: string;
   onClose: () => void;
 }) {
-  const [paymentId] = useState(() => createPaymentId());
+  const [paymentOperationId] = useState(() => createPaymentId());
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
@@ -91,7 +91,7 @@ function CashPaymentForm({
 
     try {
       await recordCashPayment(
-        paymentId,
+        paymentOperationId,
         reservation.id,
         validation.value,
         recordedBy,

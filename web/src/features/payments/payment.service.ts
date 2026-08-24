@@ -2,15 +2,15 @@ import {
   Timestamp,
   collection,
   doc,
-  getDoc,
   limit,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   where,
-  writeBatch,
   type DocumentData,
+  type DocumentSnapshot,
   type QueryDocumentSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -31,6 +31,7 @@ const maximumCustomerReceipts = 30;
 const knownPaymentMessages = new Set([
   'This reservation no longer exists.',
   'This reservation is not eligible for payment recording.',
+  'This payment attempt conflicts with an existing payment. Refresh before trying again.',
 ]);
 
 export function subscribeToPayableReservations(
@@ -119,48 +120,73 @@ export async function recordCashPayment(
   recordedByName: string,
 ): Promise<void> {
   const reservationRef = doc(firestore, 'reservations', reservationId);
-  const reservationSnapshot = await getDoc(reservationRef);
-
-  if (!reservationSnapshot.exists()) {
-    throw new Error('This reservation no longer exists.');
-  }
-
-  const reservation = parsePaymentReservation(reservationSnapshot);
-
-  if (!reservation) {
-    throw new Error('This reservation is not eligible for payment recording.');
-  }
-
   const paymentRef = doc(firestore, 'payments', paymentId);
   const receiptRef = doc(firestore, 'paymentReceipts', paymentId);
-  const batch = writeBatch(firestore);
 
-  batch.set(paymentRef, {
-    reservationId: reservation.id,
-    customerId: reservation.customerId,
-    packageName: reservation.packageName,
-    eventStartDate: Timestamp.fromDate(reservation.eventStartDate),
-    amountInCentavos: input.amountInCentavos,
-    method: 'cash',
-    reference: input.reference,
-    note: input.note,
-    recordedBy,
-    recordedByName,
-    createdAt: serverTimestamp(),
+  await runTransaction(firestore, async (transaction) => {
+    const reservationSnapshot = await transaction.get(reservationRef);
+    const paymentSnapshot = await transaction.get(paymentRef);
+    const receiptSnapshot = await transaction.get(receiptRef);
+
+    const paymentExists = paymentSnapshot.exists();
+    const receiptExists = receiptSnapshot.exists();
+
+    if (paymentExists || receiptExists) {
+      if (
+        paymentExists &&
+        receiptExists &&
+        existingPaymentMatchesAttempt(
+          paymentSnapshot,
+          receiptSnapshot,
+          reservationId,
+          input,
+          recordedBy,
+          recordedByName,
+        )
+      ) {
+        return;
+      }
+
+      throw new Error(
+        'This payment attempt conflicts with an existing payment. Refresh before trying again.',
+      );
+    }
+
+    if (!reservationSnapshot.exists()) {
+      throw new Error('This reservation no longer exists.');
+    }
+
+    const reservation = parsePaymentReservation(reservationSnapshot);
+
+    if (!reservation) {
+      throw new Error('This reservation is not eligible for payment recording.');
+    }
+
+    transaction.set(paymentRef, {
+      reservationId: reservation.id,
+      customerId: reservation.customerId,
+      packageName: reservation.packageName,
+      eventStartDate: Timestamp.fromDate(reservation.eventStartDate),
+      amountInCentavos: input.amountInCentavos,
+      method: 'cash',
+      reference: input.reference,
+      note: input.note,
+      recordedBy,
+      recordedByName,
+      createdAt: serverTimestamp(),
+    });
+
+    transaction.set(receiptRef, {
+      reservationId: reservation.id,
+      customerId: reservation.customerId,
+      packageName: reservation.packageName,
+      eventStartDate: Timestamp.fromDate(reservation.eventStartDate),
+      amountInCentavos: input.amountInCentavos,
+      method: 'cash',
+      reference: input.reference,
+      createdAt: serverTimestamp(),
+    });
   });
-
-  batch.set(receiptRef, {
-    reservationId: reservation.id,
-    customerId: reservation.customerId,
-    packageName: reservation.packageName,
-    eventStartDate: Timestamp.fromDate(reservation.eventStartDate),
-    amountInCentavos: input.amountInCentavos,
-    method: 'cash',
-    reference: input.reference,
-    createdAt: serverTimestamp(),
-  });
-
-  await batch.commit();
 }
 
 export function getPaymentErrorMessage(error: unknown): string {
@@ -169,6 +195,49 @@ export function getPaymentErrorMessage(error: unknown): string {
   }
 
   return 'We could not record that payment. Please try again.';
+}
+
+function existingPaymentMatchesAttempt(
+  paymentSnapshot: DocumentSnapshot<DocumentData>,
+  receiptSnapshot: DocumentSnapshot<DocumentData>,
+  reservationId: string,
+  input: CashPaymentInput,
+  recordedBy: string,
+  recordedByName: string,
+): boolean {
+  const payment = paymentSnapshot.data();
+  const receipt = receiptSnapshot.data();
+
+  if (!payment || !receipt) {
+    return false;
+  }
+
+  if (
+    !(payment.eventStartDate instanceof Timestamp) ||
+    !(receipt.eventStartDate instanceof Timestamp) ||
+    !(payment.createdAt instanceof Timestamp) ||
+    !(receipt.createdAt instanceof Timestamp)
+  ) {
+    return false;
+  }
+
+  return (
+    payment.reservationId === reservationId &&
+    payment.amountInCentavos === input.amountInCentavos &&
+    payment.method === 'cash' &&
+    payment.reference === input.reference &&
+    payment.note === input.note &&
+    payment.recordedBy === recordedBy &&
+    payment.recordedByName === recordedByName &&
+    receipt.reservationId === payment.reservationId &&
+    receipt.customerId === payment.customerId &&
+    receipt.packageName === payment.packageName &&
+    receipt.eventStartDate.isEqual(payment.eventStartDate) &&
+    receipt.amountInCentavos === payment.amountInCentavos &&
+    receipt.method === payment.method &&
+    receipt.reference === payment.reference &&
+    receipt.createdAt.isEqual(payment.createdAt)
+  );
 }
 
 function parsePaymentReservation(
