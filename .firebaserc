@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "dos-hermanos-hilongos"
+    "production": "dos-hermanos-hilongos"
   }
 }
