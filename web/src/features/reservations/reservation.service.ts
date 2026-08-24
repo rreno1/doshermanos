@@ -17,6 +17,7 @@ import {
 import { firestore } from '../../firebase/firebase';
 import type { CateringPackage } from '../packages/package.types';
 import type {
+  ReservationCustomizationRequest,
   ReservationDecision,
   ReservationRecord,
   ReservationRequestInput,
@@ -41,6 +42,36 @@ function dateOnlyToTimestamp(value: string): Timestamp {
   );
 
   return Timestamp.fromDate(date);
+}
+
+function parseCustomizationRequest(value: unknown): ReservationCustomizationRequest {
+  if (value === undefined) {
+    return {
+      menuRequest: '',
+      foodQuantityRequest: '',
+      supplyRequest: '',
+    };
+  }
+
+  if (!value || typeof value !== 'object') {
+    throw new Error('Reservation customization data is invalid.');
+  }
+
+  const customization = value as Record<string, unknown>;
+
+  if (
+    typeof customization.menuRequest !== 'string' ||
+    typeof customization.foodQuantityRequest !== 'string' ||
+    typeof customization.supplyRequest !== 'string'
+  ) {
+    throw new Error('Reservation customization data is invalid.');
+  }
+
+  return {
+    menuRequest: customization.menuRequest,
+    foodQuantityRequest: customization.foodQuantityRequest,
+    supplyRequest: customization.supplyRequest,
+  };
 }
 
 function parseReservationDocument(
@@ -87,6 +118,7 @@ function parseReservationDocument(
       packageName: packageSnapshot.packageName,
       priceInCentavos: packageSnapshot.priceInCentavos,
     },
+    customization: parseCustomizationRequest(value.customization),
     createdAt: value.createdAt.toDate(),
     updatedAt: value.updatedAt.toDate(),
   };
@@ -143,6 +175,7 @@ export async function createReservationRequest(
       packageName: cateringPackage.name,
       priceInCentavos: cateringPackage.priceInCentavos,
     },
+    customization: input.customization,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
