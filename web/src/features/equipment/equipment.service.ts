@@ -18,6 +18,7 @@ import {
   parseAssignableReservation,
   parseEquipmentAssignment,
   parseEquipmentItem,
+  parseEquipmentTransaction,
   requireInteger,
   requireMap,
   requireString,
@@ -31,6 +32,7 @@ import type {
   EquipmentItemEditInput,
   EquipmentItemInput,
   EquipmentReturnInput,
+  EquipmentTransactionRecord,
   StaffIdentity,
 } from './equipment.types';
 
@@ -72,6 +74,29 @@ export function subscribeToEquipmentAssignments(
     (snapshot) => {
       try {
         onAssignments(snapshot.docs.map(parseEquipmentAssignment));
+      } catch {
+        onError();
+      }
+    },
+    onError,
+  );
+}
+
+export function subscribeToEquipmentTransactions(
+  onTransactions: (transactions: EquipmentTransactionRecord[]) => void,
+  onError: () => void,
+) {
+  const transactionsQuery = query(
+    collection(firestore, 'equipmentTransactions'),
+    orderBy('createdAt', 'desc'),
+    limit(30),
+  );
+
+  return onSnapshot(
+    transactionsQuery,
+    (snapshot) => {
+      try {
+        onTransactions(snapshot.docs.map(parseEquipmentTransaction));
       } catch {
         onError();
       }
