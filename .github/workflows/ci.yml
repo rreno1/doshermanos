@@ -32,6 +32,23 @@ jobs:
       - name: Check source structure and readability
         run: node scripts/check-readability.mjs
 
+  firebase-environments:
+    name: Firebase environment guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Firebase environment separation
+        run: node scripts/check-firebase-environments.mjs
+
   web:
     name: Web typecheck and build
     runs-on: ubuntu-latest
