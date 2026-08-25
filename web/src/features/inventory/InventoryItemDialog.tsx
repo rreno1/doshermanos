@@ -121,11 +121,14 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
     }
 
     setIsSaving(true);
+    let detailsSaved = false;
 
     try {
       const inventoryItemId = item
         ? item.id
         : await createInventoryItem(validation.value);
+
+      detailsSaved = true;
 
       if (item) {
         await updateInventoryItemDetails(item.id, validation.value);
@@ -148,13 +151,17 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
       });
       onClose();
     } catch (error) {
-      if (!item && imageFile) {
+      if (detailsSaved) {
         showToast({
-          message: 'The item may have been created without its image. You can add the image by editing the item.',
+          message: item
+            ? 'Item details were saved, but the image change did not finish.'
+            : 'Item created, but the image upload did not finish. Edit the item to try again.',
           tone: 'warning',
         });
+        onClose();
+      } else {
+        setMessage(getInventoryErrorMessage(error));
       }
-      setMessage(getInventoryErrorMessage(error));
     } finally {
       setIsSaving(false);
     }
