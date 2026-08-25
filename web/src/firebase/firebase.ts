@@ -1,6 +1,7 @@
 import { getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const deploymentProjectId = 'dos-hermanos-hilongos';
 const runtimeMode = import.meta.env.MODE;
@@ -35,6 +36,8 @@ if (!isDeploymentMode && firebaseConfig.projectId === deploymentProjectId) {
 }
 
 const firebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
+const storageBucket = `gs://${firebaseConfig.projectId}.firebasestorage.app`;
 
 export const firebaseAuth = getAuth(firebaseApp);
 export const firestore = getFirestore(firebaseApp);
+export const firebaseStorage = getStorage(firebaseApp, storageBucket);
