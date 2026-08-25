@@ -1,10 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ManagementFilterField,
+  ManagementPagination,
+  ManagementTabs,
+  ManagementToolbar,
+  useManagementPage,
+} from '../../app/ManagementControls';
 import {
   rejectReservation,
   subscribeToPendingReservations,
 } from './reservation.service';
 import type { ReservationRecord } from './reservation.types';
 import './reservations.css';
+
+type ReservationSort = 'event' | 'submitted' | 'package' | 'guests';
+type SortDirection = 'asc' | 'desc';
+
+const tabs = [{ value: 'pending', label: 'Pending requests' }] as const;
 
 type ReservationReviewPanelProps = {
   staffId: string;
@@ -17,11 +29,13 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
   const [hasError, setHasError] = useState(false);
   const [busyReservationId, setBusyReservationId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [queryText, setQueryText] = useState('');
+  const [sortBy, setSortBy] = useState<ReservationSort>('submitted');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
-
     return subscribeToPendingReservations(
       (nextReservations) => {
         setReservations(nextReservations);
@@ -35,13 +49,47 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
     );
   }, []);
 
+  const visibleReservations = useMemo(
+    () => filterReservations(reservations, queryText, sortBy, sortDirection),
+    [reservations, queryText, sortBy, sortDirection],
+  );
+  const page = useManagementPage(
+    visibleReservations,
+    `${queryText}|${sortBy}|${sortDirection}`,
+  );
+
   return (
     <section className="reservation-review-section" id="reservation-review" aria-label="Reservations">
-      <div className="reservation-review-heading">
-        <span className="reservation-review-count">{reservations.length} pending · up to 50 shown</span>
-      </div>
+      <ManagementTabs value="pending" options={[...tabs]} onChange={() => undefined} label="Reservation views" />
 
-      <div className="reservation-capacity-note" role="status">
+      <ManagementToolbar
+        summary={[{ label: 'pending requests', value: reservations.length }]}
+        searchValue={queryText}
+        searchPlaceholder="Search pending requests"
+        onSearchChange={setQueryText}
+        filterContent={(
+          <>
+            <ManagementFilterField label="Sort by">
+              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as ReservationSort)}>
+                <option value="submitted">Submitted date</option>
+                <option value="event">Event date</option>
+                <option value="package">Package</option>
+                <option value="guests">Guest count</option>
+              </select>
+            </ManagementFilterField>
+            <ManagementFilterField label="Direction">
+              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
+                <option value="asc">Ascending</option><option value="desc">Descending</option>
+              </select>
+            </ManagementFilterField>
+            <button type="button" className="management-secondary-button" onClick={() => { setSortBy('submitted'); setSortDirection('desc'); }}>
+              Reset sort
+            </button>
+          </>
+        )}
+      />
+
+      <div className="management-info-note" role="status">
         Confirmation stays disabled until approved event-capacity and customization-pricing rules are available.
       </div>
 
@@ -51,107 +99,65 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
   );
 
   function renderContent() {
-    if (isLoading) {
-      return <ReservationReviewStatus message="Loading pending requests…" />;
-    }
-
-    if (hasError) {
-      return <ReservationReviewStatus message="Pending requests could not be loaded." error />;
-    }
-
-    if (reservations.length === 0) {
-      return <ReservationReviewStatus message="No pending reservation requests." />;
+    if (isLoading) return <ReservationReviewStatus message="Loading pending requests…" />;
+    if (hasError) return <ReservationReviewStatus message="Pending requests could not be loaded." error />;
+    if (visibleReservations.length === 0) {
+      return <ReservationReviewStatus message={reservations.length === 0 ? 'No pending reservation requests.' : 'No pending requests match the current search.'} />;
     }
 
     return (
-      <div className="reservation-review-list">
-        {reservations.map((reservation) => {
-          const isBusy = busyReservationId === reservation.id;
-
-          return (
-            <article key={reservation.id} className="reservation-review-row">
-              <div className="reservation-review-main">
-                <div className="reservation-review-row-heading">
-                  <strong>{reservation.package.packageName}</strong>
-                  <span>Pending review</span>
-                </div>
-                <p>{formatEventRange(reservation.event.startDate, reservation.event.endDate)}</p>
-                <dl className="reservation-review-details">
-                  <div>
-                    <dt>Location</dt>
-                    <dd>{reservation.event.location}</dd>
-                  </div>
-                  <div>
-                    <dt>Guests</dt>
-                    <dd>{reservation.event.guestCount.toLocaleString('en-PH')}</dd>
-                  </div>
-                  <div>
-                    <dt>Package base</dt>
-                    <dd>{formatMoney(reservation.package.priceInCentavos)}</dd>
-                  </div>
-                  <div>
-                    <dt>Submitted</dt>
-                    <dd>{formatSubmittedTime(reservation.createdAt)}</dd>
-                  </div>
-                </dl>
-                {reservation.customization.menuRequest ? (
-                  <p className="reservation-review-requirements">
-                    <strong>Menu:</strong> {reservation.customization.menuRequest}
-                  </p>
-                ) : null}
-                {reservation.customization.foodQuantityRequest ? (
-                  <p className="reservation-review-requirements">
-                    <strong>Food quantity:</strong> {reservation.customization.foodQuantityRequest}
-                  </p>
-                ) : null}
-                {reservation.customization.supplyRequest ? (
-                  <p className="reservation-review-requirements">
-                    <strong>Supplies:</strong> {reservation.customization.supplyRequest}
-                  </p>
-                ) : null}
-                {reservation.event.serviceRequirements ? (
-                  <p className="reservation-review-requirements">
-                    <strong>Service:</strong> {reservation.event.serviceRequirements}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="reservation-review-actions">
-                <button
-                  type="button"
-                  disabled
-                  title="Confirmation requires approved capacity and customization rules"
-                >
-                  Confirm
-                </button>
-                <button
-                  type="button"
-                  className="reservation-reject-button"
-                  disabled={isBusy}
-                  onClick={() => handleReject(reservation)}
-                >
-                  {isBusy ? 'Rejecting…' : 'Reject'}
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      <>
+        <div className="management-table-wrap">
+          <table className="management-table">
+            <thead>
+              <tr>
+                <th scope="col">Package</th>
+                <th scope="col">Event</th>
+                <th scope="col">Location</th>
+                <th scope="col">Guests</th>
+                <th scope="col">Package base</th>
+                <th scope="col">Requests</th>
+                <th scope="col">Submitted</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {page.pageItems.map((reservation) => {
+                const isBusy = busyReservationId === reservation.id;
+                return (
+                  <tr key={reservation.id}>
+                    <td><div className="management-table-primary"><strong>{reservation.package.packageName}</strong><span><span className="management-status-badge management-status-badge-warn">Pending review</span></span></div></td>
+                    <td>{formatEventRange(reservation.event.startDate, reservation.event.endDate)}</td>
+                    <td>{reservation.event.location}</td>
+                    <td>{reservation.event.guestCount.toLocaleString('en-PH')}</td>
+                    <td>{formatMoney(reservation.package.priceInCentavos)}</td>
+                    <td><span className="management-table-muted">{formatRequests(reservation)}</span></td>
+                    <td>{formatSubmittedTime(reservation.createdAt)}</td>
+                    <td>
+                      <div className="management-table-actions">
+                        <button type="button" className="management-row-button" disabled title="Confirmation requires approved capacity and customization rules">Confirm</button>
+                        <button type="button" className="management-danger-button" disabled={isBusy} onClick={() => void handleReject(reservation)}>
+                          {isBusy ? 'Rejecting…' : 'Reject'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <ManagementPagination page={page.page} totalItems={visibleReservations.length} onPageChange={page.setPage} />
+      </>
     );
   }
 
   async function handleReject(reservation: ReservationRecord) {
-    const shouldReject = window.confirm(
-      `Reject the ${reservation.package.packageName} request for ${formatEventRange(reservation.event.startDate, reservation.event.endDate)}?`,
-    );
-
-    if (!shouldReject) {
-      return;
-    }
+    const shouldReject = window.confirm(`Reject the ${reservation.package.packageName} request for ${formatEventRange(reservation.event.startDate, reservation.event.endDate)}?`);
+    if (!shouldReject) return;
 
     setBusyReservationId(reservation.id);
     setActionError(null);
-
     try {
       await rejectReservation(reservation.id, staffId, staffName);
     } catch {
@@ -162,40 +168,44 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
   }
 }
 
-function ReservationReviewStatus({ message, error = false }: { message: string; error?: boolean }) {
-  return (
-    <div
-      className={error ? 'reservation-review-status reservation-review-status-error' : 'reservation-review-status'}
-      role={error ? 'alert' : 'status'}
-    >
-      {message}
-    </div>
-  );
+function filterReservations(reservations: ReservationRecord[], query: string, sortBy: ReservationSort, direction: SortDirection) {
+  const text = query.trim().toLocaleLowerCase();
+  return [...reservations]
+    .filter((reservation) => !text || [
+      reservation.package.packageName,
+      reservation.event.location,
+      reservation.event.serviceRequirements,
+      reservation.customization.menuRequest,
+      reservation.customization.foodQuantityRequest,
+      reservation.customization.supplyRequest,
+    ].join(' ').toLocaleLowerCase().includes(text))
+    .sort((left, right) => {
+      const leftValue = sortBy === 'event' ? left.event.startDate.getTime() : sortBy === 'package' ? left.package.packageName : sortBy === 'guests' ? left.event.guestCount : left.createdAt.getTime();
+      const rightValue = sortBy === 'event' ? right.event.startDate.getTime() : sortBy === 'package' ? right.package.packageName : sortBy === 'guests' ? right.event.guestCount : right.createdAt.getTime();
+      const result = typeof leftValue === 'number' && typeof rightValue === 'number' ? leftValue - rightValue : String(leftValue).localeCompare(String(rightValue), 'en-PH', { sensitivity: 'base' });
+      return direction === 'asc' ? result : -result;
+    });
 }
 
-function formatEventRange(startDate: Date, endDate: Date): string {
-  const formatter = new Intl.DateTimeFormat('en-PH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
+function formatRequests(reservation: ReservationRecord) {
+  const requests = [
+    reservation.customization.menuRequest ? `Menu: ${reservation.customization.menuRequest}` : '',
+    reservation.customization.foodQuantityRequest ? `Food: ${reservation.customization.foodQuantityRequest}` : '',
+    reservation.customization.supplyRequest ? `Supplies: ${reservation.customization.supplyRequest}` : '',
+    reservation.event.serviceRequirements ? `Service: ${reservation.event.serviceRequirements}` : '',
+  ].filter(Boolean);
+  return requests.length > 0 ? requests.join(' · ') : 'No special requests';
+}
+
+function ReservationReviewStatus({ message, error = false }: { message: string; error?: boolean }) {
+  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
+}
+
+function formatEventRange(startDate: Date, endDate: Date) {
+  const formatter = new Intl.DateTimeFormat('en-PH', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
   const start = formatter.format(startDate);
   const end = formatter.format(endDate);
-
   return start === end ? start : `${start} – ${end}`;
 }
-
-function formatMoney(amountInCentavos: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-  }).format(amountInCentavos / 100);
-}
-
-function formatSubmittedTime(date: Date): string {
-  return new Intl.DateTimeFormat('en-PH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
-}
+function formatMoney(amountInCentavos: number) { return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amountInCentavos / 100); }
+function formatSubmittedTime(date: Date) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date); }
