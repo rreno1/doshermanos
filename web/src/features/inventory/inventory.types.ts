@@ -6,6 +6,7 @@ export type InventoryItem = {
   lowStockThreshold: number;
   isActive: boolean;
   lastMovementId: string | null;
+  updatedAt: Date;
 };
 
 export type InventoryMovementType = 'stock_in' | 'stock_out' | 'correction';
