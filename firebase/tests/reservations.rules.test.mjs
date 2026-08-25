@@ -82,6 +82,21 @@ function reservationRequest(customerId, options = {}) {
   };
 }
 
+function manualReservationRequest(reservationId, options = {}) {
+  return {
+    ...reservationRequest(`manual:${reservationId}`, options),
+    source: 'manual',
+    manualCustomer: {
+      name: options.customerName ?? 'Walk-in Customer',
+      contact: options.customerContact ?? '09171234567',
+    },
+    enteredBy: {
+      userId: options.enteredBy ?? 'staff-a',
+      displayName: options.enteredByName ?? 'Staff A',
+    },
+  };
+}
+
 function rejectionDecision(reservationId, customerId, options = {}) {
   return {
     reservationId,
@@ -147,6 +162,68 @@ test('customer can create their own pending reservation request', async () => {
     setDoc(
       doc(database, 'reservations', 'customer-a-request'),
       reservationRequest('customer-a'),
+    ),
+  );
+});
+
+test('staff can create an attributed manual reservation request', async () => {
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+  await assertSucceeds(
+    setDoc(
+      doc(database, 'reservations', 'manual-request'),
+      manualReservationRequest('manual-request'),
+    ),
+  );
+});
+
+test('admin can create an attributed manual reservation request', async () => {
+  const database = testEnvironment.authenticatedContext('admin-a').firestore();
+  await assertSucceeds(
+    setDoc(
+      doc(database, 'reservations', 'admin-manual-request'),
+      manualReservationRequest('admin-manual-request', {
+        enteredBy: 'admin-a',
+        enteredByName: 'Admin A',
+      }),
+    ),
+  );
+});
+
+test('staff cannot forge manual reservation ownership or actor attribution', async () => {
+  const database = testEnvironment.authenticatedContext('staff-a').firestore();
+
+  await assertFails(
+    setDoc(
+      doc(database, 'reservations', 'manual-forged-owner'),
+      {
+        ...manualReservationRequest('manual-forged-owner'),
+        customerId: 'customer-a',
+      },
+    ),
+  );
+
+  await assertFails(
+    setDoc(
+      doc(database, 'reservations', 'manual-forged-actor'),
+      manualReservationRequest('manual-forged-actor', {
+        enteredBy: 'admin-a',
+        enteredByName: 'Admin A',
+      }),
+    ),
+  );
+});
+
+test('customers cannot submit manual reservation attribution', async () => {
+  const database = testEnvironment.authenticatedContext('customer-a').firestore();
+  await assertFails(
+    setDoc(
+      doc(database, 'reservations', 'customer-manual-forgery'),
+      {
+        ...reservationRequest('customer-a'),
+        source: 'manual',
+        manualCustomer: { name: 'Customer A', contact: '09170000000' },
+        enteredBy: { userId: 'customer-a', displayName: 'Customer A' },
+      },
     ),
   );
 });
