@@ -8,6 +8,7 @@ import {
   useManagementPage,
 } from '../../app/ManagementControls';
 import { InventoryItemDialog } from './InventoryItemDialog';
+import { InventoryItemGrid } from './InventoryItemGrid';
 import { InventoryMovementDialog } from './InventoryMovementDialog';
 import {
   subscribeToInventory,
@@ -77,8 +78,18 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   }, []);
 
   const activeItems = useMemo(() => items.filter((item) => item.isActive), [items]);
+  const inStockItems = useMemo(
+    () => activeItems.filter((item) => item.quantity > item.lowStockThreshold),
+    [activeItems],
+  );
   const lowStockItems = useMemo(
-    () => activeItems.filter((item) => item.quantity <= item.lowStockThreshold),
+    () => activeItems.filter(
+      (item) => item.quantity > 0 && item.quantity <= item.lowStockThreshold,
+    ),
+    [activeItems],
+  );
+  const outOfStockItems = useMemo(
+    () => activeItems.filter((item) => item.quantity === 0),
     [activeItems],
   );
   const visibleItems = useMemo(
@@ -122,9 +133,13 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
       <ManagementTabs value={tab} options={tabs} onChange={changeTab} label="Inventory views" />
 
       <ManagementToolbar
-        summary={[
-          { label: 'active items', value: activeItems.length },
+        summary={tab === 'items' ? [
+          { label: 'items', value: items.length },
+          { label: 'in stock', value: inStockItems.length },
           { label: 'low stock', value: lowStockItems.length, warn: lowStockItems.length > 0 },
+          { label: 'out of stock', value: outOfStockItems.length, warn: outOfStockItems.length > 0 },
+        ] : [
+          { label: 'recent movements', value: movements.length },
         ]}
         searchValue={queryText}
         searchPlaceholder={tab === 'items' ? 'Search inventory' : 'Search stock activity'}
@@ -173,7 +188,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 
     return (
       <ManagementTableFrame
-        loadingMessage={isLoadingItems ? 'Loading inventory items…' : undefined}
+        loadingMessage={isLoadingItems ? 'Loading pantry inventory…' : undefined}
         errorMessage={!isLoadingItems && inventoryError ? 'Inventory items could not be loaded.' : undefined}
         emptyMessage={!isLoadingItems && !inventoryError ? emptyMessage : undefined}
         pagination={!isLoadingItems && !inventoryError && visibleItems.length > 0 ? {
@@ -182,38 +197,11 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
           onPageChange: itemPage.setPage,
         } : undefined}
       >
-        <div className="management-table-wrap">
-          <table className="management-table">
-            <thead>
-              <tr>
-                <th scope="col">Item</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Low-stock threshold</th>
-                <th scope="col">Status</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itemPage.pageItems.map((item) => {
-                const isLowStock = item.isActive && item.quantity <= item.lowStockThreshold;
-                return (
-                  <tr key={item.id}>
-                    <td><div className="management-table-primary"><strong>{item.name}</strong><span>{item.unit}</span></div></td>
-                    <td>{item.quantity.toLocaleString('en-PH')} {item.unit}</td>
-                    <td>{item.lowStockThreshold.toLocaleString('en-PH')} {item.unit}</td>
-                    <td><InventoryStatus item={item} isLowStock={isLowStock} /></td>
-                    <td>
-                      <div className="management-table-actions">
-                        <button type="button" className="management-row-button" onClick={() => openEditItemDialog(item)}>Edit</button>
-                        <button type="button" className="management-primary-button" disabled={!item.isActive} onClick={() => setStockItem(item)}>Update stock</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <InventoryItemGrid
+          items={itemPage.pageItems}
+          onEdit={openEditItemDialog}
+          onUpdateStock={setStockItem}
+        />
       </ManagementTableFrame>
     );
   }
@@ -289,9 +277,10 @@ function InventoryFilters({
   const filterOptions = tab === 'items'
     ? [
       { value: 'all', label: 'All statuses' },
-      { value: 'active', label: 'Active' },
-      { value: 'inactive', label: 'Inactive' },
+      { value: 'in_stock', label: 'In stock' },
       { value: 'low', label: 'Low stock' },
+      { value: 'out', label: 'Out of stock' },
+      { value: 'inactive', label: 'Inactive' },
     ]
     : [
       { value: 'all', label: 'All movement types' },
@@ -313,12 +302,12 @@ function InventoryFilters({
 
   return (
     <>
-      <ManagementFilterField label={tab === 'items' ? 'Status' : 'Movement type'}>
+      <ManagementFilterField label={tab === 'items' ? 'Stock status' : 'Movement type'}>
         <ManagementSelect
           value={filterValue}
           options={filterOptions}
           onChange={onFilterChange}
-          ariaLabel={tab === 'items' ? 'Filter inventory by status' : 'Filter stock activity by type'}
+          ariaLabel={tab === 'items' ? 'Filter inventory by stock status' : 'Filter stock activity by type'}
         />
       </ManagementFilterField>
       <ManagementFilterField label="Sort by">
@@ -345,12 +334,6 @@ function InventoryFilters({
   );
 }
 
-function InventoryStatus({ item, isLowStock }: { item: InventoryItem; isLowStock: boolean }) {
-  if (!item.isActive) return <span className="management-status-badge management-status-badge-muted">Inactive</span>;
-  if (isLowStock) return <span className="management-status-badge management-status-badge-warn">Low stock</span>;
-  return <span className="management-status-badge management-status-badge-active">In stock</span>;
-}
-
 function MovementBadge({ movement }: { movement: InventoryMovement }) {
   const label = movement.type === 'stock_in' ? 'Stock in' : movement.type === 'stock_out' ? 'Stock out' : 'Correction';
   const className = movement.type === 'correction'
@@ -359,10 +342,17 @@ function MovementBadge({ movement }: { movement: InventoryMovement }) {
   return <span className={className}>{label} · {movement.quantityChange > 0 ? '+' : ''}{movement.quantityChange}</span>;
 }
 
-function filterItems(items: InventoryItem[], query: string, status: string, sortBy: InventorySort, direction: SortDirection) {
+function filterItems(
+  items: InventoryItem[],
+  query: string,
+  status: string,
+  sortBy: InventorySort,
+  direction: SortDirection,
+) {
   const text = query.trim().toLocaleLowerCase();
+
   return [...items]
-    .filter((item) => status === 'all' || (status === 'active' && item.isActive) || (status === 'inactive' && !item.isActive) || (status === 'low' && item.isActive && item.quantity <= item.lowStockThreshold))
+    .filter((item) => matchesItemStatus(item, status))
     .filter((item) => !text || `${item.name} ${item.unit}`.toLocaleLowerCase().includes(text))
     .sort((left, right) => compare(
       sortBy === 'quantity' ? left.quantity : sortBy === 'threshold' ? left.lowStockThreshold : left.name,
@@ -371,7 +361,23 @@ function filterItems(items: InventoryItem[], query: string, status: string, sort
     ));
 }
 
-function filterMovements(movements: InventoryMovement[], query: string, type: string, sortBy: InventorySort, direction: SortDirection) {
+function matchesItemStatus(item: InventoryItem, status: string) {
+  if (status === 'all') return true;
+  if (status === 'inactive') return !item.isActive;
+  if (!item.isActive) return false;
+  if (status === 'out') return item.quantity === 0;
+  if (status === 'low') return item.quantity > 0 && item.quantity <= item.lowStockThreshold;
+  if (status === 'in_stock') return item.quantity > item.lowStockThreshold;
+  return true;
+}
+
+function filterMovements(
+  movements: InventoryMovement[],
+  query: string,
+  type: string,
+  sortBy: InventorySort,
+  direction: SortDirection,
+) {
   const text = query.trim().toLocaleLowerCase();
   return [...movements]
     .filter((movement) => type === 'all' || movement.type === type)
@@ -384,7 +390,9 @@ function filterMovements(movements: InventoryMovement[], query: string, type: st
 }
 
 function compare(left: string | number, right: string | number, direction: SortDirection) {
-  const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  const result = typeof left === 'number' && typeof right === 'number'
+    ? left - right
+    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
   return direction === 'asc' ? result : -result;
 }
 
