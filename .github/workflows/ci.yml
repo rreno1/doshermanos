@@ -49,6 +49,23 @@ jobs:
       - name: Check Firebase environment separation
         run: node scripts/check-firebase-environments.mjs
 
+  hosting-security:
+    name: Firebase Hosting security guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Firebase Hosting security headers and cache policy
+        run: node scripts/check-hosting-security.mjs
+
   web:
     name: Web typecheck and build
     runs-on: ubuntu-latest
