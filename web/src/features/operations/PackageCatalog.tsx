@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
-import { ReservationRequestDialog } from '../reservations/ReservationRequestDialog';
+import { ReservationRequestDialog } from './ReservationRequestDialog';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
 
