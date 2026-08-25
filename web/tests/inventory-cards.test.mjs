@@ -2,34 +2,44 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const panelPath = new URL('../src/features/resources/InventoryPanel.tsx', import.meta.url);
-const gridPath = new URL('../src/features/resources/InventoryItemGrid.tsx', import.meta.url);
-const imageServicePath = new URL('../src/features/resources/inventory-image.service.ts', import.meta.url);
+const inventoryPanelPath = new URL('../src/features/resources/InventoryPanel.tsx', import.meta.url);
+const inventoryGridPath = new URL('../src/features/resources/InventoryItemGrid.tsx', import.meta.url);
+const equipmentPanelPath = new URL('../src/features/resources/EquipmentPanel.tsx', import.meta.url);
+const equipmentGridPath = new URL('../src/features/resources/EquipmentRegistryGrid.tsx', import.meta.url);
+const equipmentDialogPath = new URL('../src/features/resources/EquipmentItemDialog.tsx', import.meta.url);
+const imageServicePath = new URL('../src/features/resources/resource-image.service.ts', import.meta.url);
+const progressivePath = new URL('../src/features/resources/useProgressiveItems.ts', import.meta.url);
 const cardsCssPath = new URL('../src/features/resources/inventory-cards.css', import.meta.url);
 const storageRulesPath = new URL('../../firebase/storage.rules', import.meta.url);
 
-test('inventory items use the management card surface while activity stays tabular', async () => {
-  const [panelSource, gridSource, cardsCss] = await Promise.all([
-    readFile(panelPath, 'utf8'),
-    readFile(gridPath, 'utf8'),
+test('inventory and equipment registries use matching cards with scroll driven reveal', async () => {
+  const [inventoryPanel, inventoryGrid, equipmentPanel, equipmentGrid, progressiveSource, cardsCss] = await Promise.all([
+    readFile(inventoryPanelPath, 'utf8'),
+    readFile(inventoryGridPath, 'utf8'),
+    readFile(equipmentPanelPath, 'utf8'),
+    readFile(equipmentGridPath, 'utf8'),
+    readFile(progressivePath, 'utf8'),
     readFile(cardsCssPath, 'utf8'),
   ]);
 
-  assert.match(panelSource, /<InventoryItemGrid/);
-  assert.match(panelSource, /Loading pantry inventory/);
-  assert.match(panelSource, /label: 'in stock'/);
-  assert.match(panelSource, /label: 'low stock'/);
-  assert.match(panelSource, /label: 'out of stock'/);
-  assert.match(gridSource, /<article className="inventory-card">/);
-  assert.match(gridSource, /Update stock/);
+  assert.match(inventoryPanel, /useProgressiveItems/);
+  assert.match(equipmentPanel, /useProgressiveItems/);
+  assert.doesNotMatch(inventoryPanel, /itemPage\.pageItems/);
+  assert.doesNotMatch(equipmentPanel, /itemPage\.pageItems/);
+  assert.match(inventoryGrid, /<article className="inventory-card">/);
+  assert.match(equipmentGrid, /inventory-card equipment-card/);
+  assert.match(equipmentGrid, /useResourceImageUrl\('equipment'/);
+  assert.match(progressiveSource, /IntersectionObserver/);
+  assert.match(progressiveSource, /defaultBatchSize = 12/);
   assert.match(cardsCss, /grid-template-columns: repeat\(3/);
   assert.match(cardsCss, /@media \(max-width: 620px\)[\s\S]*repeat\(2/);
-  assert.match(panelSource, /<table className="management-table">/);
+  assert.match(inventoryPanel, /<table className="management-table">/);
 });
 
-test('inventory image uploads are constrained and protected', async () => {
-  const [imageService, storageRules] = await Promise.all([
+test('inventory and equipment image uploads share constrained Firebase Storage handling', async () => {
+  const [imageService, equipmentDialog, storageRules] = await Promise.all([
     readFile(imageServicePath, 'utf8'),
+    readFile(equipmentDialogPath, 'utf8'),
     readFile(storageRulesPath, 'utf8'),
   ]);
 
@@ -37,9 +47,24 @@ test('inventory image uploads are constrained and protected', async () => {
   assert.match(imageService, /image\/jpeg/);
   assert.match(imageService, /image\/png/);
   assert.match(imageService, /image\/webp/);
-  assert.match(imageService, /inventory\/\$\{inventoryItemId\}\/item-image/);
+  assert.match(imageService, /\$\{kind\}\/\$\{resourceId\}\/item-image/);
+  assert.match(equipmentDialog, /label="Equipment image"/);
   assert.match(storageRules, /match \/inventory\/\{inventoryItemId\}\/item-image/);
+  assert.match(storageRules, /match \/equipment\/\{equipmentItemId\}\/item-image/);
   assert.match(storageRules, /role in \['staff', 'admin'\]/);
   assert.match(storageRules, /request\.resource\.size <= 5 \* 1024 \* 1024/);
   assert.match(storageRules, /image\/\(jpeg\|png\|webp\)/);
+});
+
+test('resource image placeholders do not wait on a missing-image spinner', async () => {
+  const [inventoryGrid, equipmentGrid] = await Promise.all([
+    readFile(inventoryGridPath, 'utf8'),
+    readFile(equipmentGridPath, 'utf8'),
+  ]);
+
+  assert.doesNotMatch(inventoryGrid, /isLoadingImage/);
+  assert.doesNotMatch(inventoryGrid, /inventory-image-spinner/);
+  assert.doesNotMatch(equipmentGrid, /isLoadingImage/);
+  assert.match(inventoryGrid, /InventoryPlaceholderIcon/);
+  assert.match(equipmentGrid, /EquipmentPlaceholderIcon/);
 });
