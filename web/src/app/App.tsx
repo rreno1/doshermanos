@@ -4,15 +4,13 @@ import { AuthMenu } from '../features/auth/AuthMenu';
 import { useAuth } from '../features/auth/AuthProvider';
 import type { UserProfile } from '../features/auth/auth.types';
 import { DashboardPanel } from '../features/dashboard/DashboardPanel';
-import { EquipmentPanel } from '../features/equipment/EquipmentPanel';
-import { InventoryPanel } from '../features/inventory/InventoryPanel';
-import { PackageCatalog } from '../features/packages/PackageCatalog';
-import { PackageManagementPanel } from '../features/packages/PackageManagementPanel';
 import { MyPayments } from '../features/payments/MyPayments';
 import { PaymentsPanel } from '../features/payments/PaymentsPanel';
 import { ReportsPanel } from '../features/reports/ReportsPanel';
-import { MyReservations } from '../features/reservations/MyReservations';
-import { ReservationReviewPanel } from '../features/reservations/ReservationReviewPanel';
+import { MyReservations } from '../features/operations/MyReservations';
+import { OperationsPanel } from '../features/operations/OperationsPanel';
+import { PackageCatalog } from '../features/operations/PackageCatalog';
+import { ResourcesPanel } from '../features/resources/ResourcesPanel';
 import { UsersRolesPanel } from '../features/users/UsersRolesPanel';
 import { ManagementShell } from './ManagementShell';
 import { navigate, usePathname } from './navigation';
@@ -21,11 +19,9 @@ type WorkspaceRole = 'staff' | 'admin';
 
 type ManagementPage =
   | 'dashboard'
-  | 'reservations'
-  | 'packages'
-  | 'inventory'
+  | 'operations'
+  | 'resources'
   | 'payments'
-  | 'equipment'
   | 'reports'
   | 'users'
   | 'audit';
@@ -50,6 +46,12 @@ export function App() {
       const expectedBasePath = getWorkspaceBasePath(workspaceRole);
       if (!isPathWithinWorkspace(pathname, expectedBasePath)) {
         navigate(expectedBasePath, { replace: true });
+        return;
+      }
+
+      const legacyPath = getLegacyManagementRedirect(pathname, expectedBasePath);
+      if (legacyPath) {
+        navigate(legacyPath, { replace: true });
         return;
       }
 
@@ -79,6 +81,11 @@ export function App() {
 
   if (workspaceRole && managementPath) {
     const basePath = getWorkspaceBasePath(workspaceRole);
+    const legacyPath = getLegacyManagementRedirect(pathname, basePath);
+    if (legacyPath) {
+      return <AppLoading message="Opening your workspace…" />;
+    }
+
     const page = getManagementPage(pathname, basePath, workspaceRole);
 
     if (!page) {
@@ -188,16 +195,12 @@ function renderManagementPage(
   switch (page) {
     case 'dashboard':
       return <DashboardPanel workspaceBasePath={basePath} role={role} />;
-    case 'reservations':
-      return <ReservationReviewPanel staffId={profile.id} staffName={profile.displayName} />;
-    case 'packages':
-      return <PackageManagementPanel />;
-    case 'inventory':
-      return <InventoryPanel staffId={profile.id} staffName={profile.displayName} />;
+    case 'operations':
+      return <OperationsPanel staffId={profile.id} staffName={profile.displayName} />;
+    case 'resources':
+      return <ResourcesPanel staffId={profile.id} staffName={profile.displayName} />;
     case 'payments':
       return <PaymentsPanel staffId={profile.id} staffName={profile.displayName} />;
-    case 'equipment':
-      return <EquipmentPanel staffId={profile.id} staffName={profile.displayName} />;
     case 'reports':
       return <ReportsPanel />;
     case 'users':
@@ -231,6 +234,20 @@ function isPathWithinWorkspace(pathname: string, basePath: string) {
   return pathname === basePath || pathname.startsWith(`${basePath}/`);
 }
 
+function getLegacyManagementRedirect(pathname: string, basePath: string) {
+  const routeSegment = pathname.slice(basePath.length).replace(/^\/+|\/+$/g, '');
+
+  if (routeSegment === 'reservations' || routeSegment === 'packages') {
+    return `${basePath}/operations`;
+  }
+
+  if (routeSegment === 'inventory' || routeSegment === 'equipment') {
+    return `${basePath}/resources`;
+  }
+
+  return null;
+}
+
 function getManagementPage(
   pathname: string,
   basePath: string,
@@ -245,11 +262,9 @@ function getManagementPage(
   }
 
   if (
-    routeSegment === 'reservations' ||
-    routeSegment === 'packages' ||
-    routeSegment === 'inventory' ||
+    routeSegment === 'operations' ||
+    routeSegment === 'resources' ||
     routeSegment === 'payments' ||
-    routeSegment === 'equipment' ||
     routeSegment === 'reports'
   ) {
     return routeSegment;
@@ -269,11 +284,9 @@ function getManagementPage(
 function getPageTitle(page: ManagementPage) {
   switch (page) {
     case 'dashboard': return 'Dashboard';
-    case 'reservations': return 'Reservations';
-    case 'packages': return 'Packages';
-    case 'inventory': return 'Inventory';
+    case 'operations': return 'Operations';
+    case 'resources': return 'Resources';
     case 'payments': return 'Payments';
-    case 'equipment': return 'Equipment';
     case 'reports': return 'Reports';
     case 'users': return 'Users & roles';
     case 'audit': return 'Audit trail';
@@ -284,16 +297,12 @@ function getPageDescription(page: ManagementPage) {
   switch (page) {
     case 'dashboard':
       return 'Monitor current operations and open the management area that needs attention.';
-    case 'reservations':
-      return 'Create manual reservation requests and review incoming catering requests.';
-    case 'packages':
-      return 'Manage the catering packages and base prices shown to customers.';
-    case 'inventory':
-      return 'Track supplies, stock levels, and recorded stock movements.';
+    case 'operations':
+      return 'Create reservation requests, review incoming bookings, and manage catering packages.';
+    case 'resources':
+      return 'Manage pantry inventory, equipment availability, assignments, and resource activity.';
     case 'payments':
       return 'Record cash payments and review recent payment activity.';
-    case 'equipment':
-      return 'Manage equipment availability, event assignments, and release activity.';
     case 'reports':
       return 'Review operational records and export the current report when needed.';
     case 'users':
