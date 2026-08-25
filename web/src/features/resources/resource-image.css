@@ -1,0 +1,72 @@
+.resource-image-field {
+  display: grid;
+  gap: 9px;
+}
+
+.resource-image-field-label {
+  color: #263732;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.resource-image-preview {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--management-border-strong, #d8e0dc);
+  border-radius: 14px;
+  background: #eef2ef;
+}
+
+.resource-image-preview img,
+.resource-image-preview-empty {
+  width: 100%;
+  height: 100%;
+}
+
+.resource-image-preview img {
+  display: block;
+  object-fit: cover;
+}
+
+.resource-image-preview-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 9px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.resource-image-preview-empty svg {
+  width: 38px;
+  height: 38px;
+  fill: none;
+  stroke: #8a9793;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.resource-image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.resource-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resource-image-field small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
