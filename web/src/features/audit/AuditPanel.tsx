@@ -25,19 +25,7 @@ export function AuditPanel() {
   }, []);
 
   return (
-    <section className="audit-section" id="audit" aria-labelledby="audit-title">
-      <div className="audit-heading">
-        <div>
-          <p className="audit-kicker">Administrative accountability</p>
-          <h2 id="audit-title">Operational audit trail</h2>
-          <p>
-            Review recent reservation decisions, inventory, payment, and physical equipment
-            activity from their append-only operational records.
-          </p>
-        </div>
-        <span className="audit-scope-note">Admin only</span>
-      </div>
-
+    <section className="audit-section" id="audit" aria-label="Audit trail">
       {renderContent()}
     </section>
   );
@@ -52,7 +40,7 @@ export function AuditPanel() {
     }
 
     if (activities.length === 0) {
-      return <AuditStatus message="Operational activity will appear here as records are created." />;
+      return <AuditStatus message="No audit activity yet." />;
     }
 
     return (
