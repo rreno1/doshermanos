@@ -129,7 +129,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   return (
     <section className="equipment-section" id="equipment" aria-label="Equipment">
       <div className="equipment-heading">
-        <div className="equipment-heading-actions">
+        <span className="equipment-heading-actions">
           <button type="button" className="equipment-secondary-button" onClick={openNewItem}>
             Add equipment
           </button>
@@ -141,7 +141,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
           >
             Assign to event
           </button>
-        </div>
+        </span>
       </div>
 
       <div className="equipment-summary" aria-label="Equipment summary">
