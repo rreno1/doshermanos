@@ -120,22 +120,15 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
     try {
       await cancelEquipmentAssignment(assignment.id);
     } catch {
-      setActionError('The assignment could not be cancelled. It may have already changed.');
+      setActionError('Assignment could not be cancelled. It may have already changed.');
     } finally {
       setCancellingId(null);
     }
   }
 
   return (
-    <section className="equipment-section" id="equipment" aria-labelledby="equipment-title">
+    <section className="equipment-section" id="equipment" aria-label="Equipment">
       <div className="equipment-heading">
-        <div>
-          <p className="equipment-kicker">Event accountability</p>
-          <h2 id="equipment-title">Equipment</h2>
-          <p>
-            Register reusable equipment, assign it to events, record physical release, and account for every item when it returns. The registry view shows up to 100 items.
-          </p>
-        </div>
         <div className="equipment-heading-actions">
           <button type="button" className="equipment-secondary-button" onClick={openNewItem}>
             Add equipment
@@ -151,11 +144,11 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         </div>
       </div>
 
-      <div className="equipment-summary" aria-label="Equipment summary for the current registry view">
-        <Summary label="Active items shown" value={activeItems.length} />
-        <Summary label="Available units shown" value={totals.available} />
-        <Summary label="In use shown" value={totals.inUse} />
-        <Summary label="Damaged or missing shown" value={totals.issues} warn={totals.issues > 0} />
+      <div className="equipment-summary" aria-label="Equipment summary">
+        <Summary label="Active items" value={activeItems.length} />
+        <Summary label="Available" value={totals.available} />
+        <Summary label="In use" value={totals.inUse} />
+        <Summary label="Issues" value={totals.issues} warn={totals.issues > 0} />
       </div>
 
       {actionError ? (
@@ -168,7 +161,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         <div className="equipment-column">
           <div className="equipment-subheading">
             <h3>Registry</h3>
-            <span>{items.length} shown · up to 100 items</span>
+            <span>{items.length} of 100 shown</span>
           </div>
           {renderItems()}
         </div>
@@ -176,7 +169,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         <div className="equipment-column">
           <div className="equipment-subheading">
             <h3>Event assignments</h3>
-            <span>Latest 60 assignment updates</span>
+            <span>Latest 60</span>
           </div>
           {renderAssignments()}
         </div>
@@ -184,8 +177,8 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
 
       <div className="equipment-activity">
         <div className="equipment-activity-header">
-          <h3>Recent equipment activity</h3>
-          <span>Latest 30 physical releases and returns</span>
+          <h3>Recent activity</h3>
+          <span>Latest 30</span>
         </div>
         <EquipmentActivityList
           transactions={transactions}
@@ -230,10 +223,10 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
 
   function renderAssignments() {
     if (isLoadingAssignments) {
-      return <StatusBox>Loading event assignments…</StatusBox>;
+      return <StatusBox>Loading assignments…</StatusBox>;
     }
     if (assignmentsError) {
-      return <StatusBox error>Equipment assignments could not be loaded.</StatusBox>;
+      return <StatusBox error>Assignments could not be loaded.</StatusBox>;
     }
     return (
       <EquipmentAssignmentList
