@@ -8,6 +8,7 @@ import { MyPayments } from '../features/payments/MyPayments';
 import { PaymentsPanel } from '../features/payments/PaymentsPanel';
 import { MyReservations } from '../features/reservations/MyReservations';
 import { ReservationReviewPanel } from '../features/reservations/ReservationReviewPanel';
+import '../styles/staff-workspace.css';
 
 export function App() {
   const { authState } = useAuth();
@@ -30,16 +31,38 @@ export function App() {
       <main id="top">
         {isStaffWorkspace && authState.profile ? (
           <>
-            <section className="hero" aria-labelledby="hero-title">
+            <section className="hero staff-hero" aria-labelledby="hero-title">
               <p className="eyebrow">Staff workspace</p>
               <h1 id="hero-title">Keep operations ready for every event.</h1>
               <p className="hero-copy">
-                Review reservation requests, inventory, payments, and event equipment from one operational workspace.
+                Move directly between reservation review, inventory, payments, and event equipment without searching through one long page.
               </p>
-              <a className="primary-link" href="#reservation-review">
-                Review operations
+              <a className="primary-link" href="#staff-navigation">
+                Open workspace
               </a>
             </section>
+
+            <section
+              className="staff-navigation"
+              id="staff-navigation"
+              aria-labelledby="staff-navigation-title"
+            >
+              <div className="staff-navigation-heading">
+                <div>
+                  <p className="eyebrow">Operations</p>
+                  <h2 id="staff-navigation-title">Workspace navigation</h2>
+                </div>
+                <p>Choose the area you need. Each link moves to an existing protected workspace.</p>
+              </div>
+              <nav className="staff-navigation-links" aria-label="Staff workspace">
+                <a href="#reservation-review">Reservations</a>
+                <a href="#inventory">Inventory</a>
+                <a href="#payments">Payments</a>
+                <a href="#equipment">Equipment</a>
+                {isAdminWorkspace ? <a href="#audit">Audit trail</a> : null}
+              </nav>
+            </section>
+
             <ReservationReviewPanel
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
