@@ -7,10 +7,10 @@ import {
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
-import { subscribeToEquipment } from '../equipment/equipment.service';
-import type { EquipmentItem } from '../equipment/equipment.types';
-import { subscribeToInventory } from '../inventory/inventory.service';
-import type { InventoryItem } from '../inventory/inventory.types';
+import { subscribeToEquipment } from '../resources/equipment.service';
+import type { EquipmentItem } from '../resources/equipment.types';
+import { subscribeToInventory } from '../resources/inventory.service';
+import type { InventoryItem } from '../resources/inventory.types';
 import { createCsv, downloadCsv } from './report.export';
 import {
   subscribeToReportPayments,
