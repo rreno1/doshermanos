@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { ManagementTabs } from '../../app/ManagementControls';
+import { BackToTopButton } from './BackToTopButton';
 import { EquipmentPanel } from './EquipmentPanel';
 import { InventoryPanel } from './InventoryPanel';
 import './resources.css';
+import './resources-scroll.css';
 
 type ResourcesTab =
   | 'inventory-items'
@@ -39,6 +41,8 @@ export function ResourcesPanel({ staffId, staffName }: { staffId: string; staffN
           view={tab === 'equipment-registry' ? 'registry' : tab === 'assignments' ? 'assignments' : 'activity'}
         />
       )}
+
+      <BackToTopButton />
     </section>
   );
 }
