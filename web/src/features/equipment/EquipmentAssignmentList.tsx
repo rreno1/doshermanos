@@ -16,78 +16,68 @@ export function EquipmentAssignmentList({
   cancellingId,
 }: Props) {
   if (assignments.length === 0) {
-    return (
-      <div className="equipment-status-box">
-        No equipment assignments yet. Assign equipment to an event when preparation begins.
-      </div>
-    );
+    return <div className="management-empty-state">No assignments match the current view.</div>;
   }
 
   return (
-    <div className="equipment-assignment-list">
-      {assignments.map((assignment) => (
-        <article className="equipment-assignment-card" key={assignment.id}>
-          <div className="equipment-assignment-heading">
-            <div>
-              <p className="equipment-assignment-package">{assignment.packageName}</p>
-              <h4>{assignment.equipmentName}</h4>
-              <p>{formatEventRange(assignment)}</p>
-            </div>
-            <StatusBadge status={assignment.status} />
-          </div>
-
-          <div className="equipment-assignment-quantity">
-            <strong>{assignment.assignedQuantity}</strong>
-            <span>{assignment.unit} assigned</span>
-          </div>
-
-          {assignment.note ? <p className="equipment-assignment-note">{assignment.note}</p> : null}
-
-          {assignment.status === 'closed' ? (
-            <div className="equipment-return-summary" aria-label="Return result">
-              <SummaryValue label="Returned" value={assignment.returnedGoodQuantity} />
-              <SummaryValue label="Damaged" value={assignment.damagedQuantity} warn={assignment.damagedQuantity > 0} />
-              <SummaryValue label="Missing" value={assignment.missingQuantity} warn={assignment.missingQuantity > 0} />
-            </div>
-          ) : null}
-
-          {assignment.returnNote ? (
-            <p className="equipment-assignment-note">Return note: {assignment.returnNote}</p>
-          ) : null}
-
-          <div className="equipment-assignment-actions">
-            {assignment.status === 'assigned' ? (
-              <>
-                <button
-                  type="button"
-                  className="equipment-primary-button"
-                  onClick={() => onRelease(assignment)}
-                >
-                  Release equipment
-                </button>
-                <button
-                  type="button"
-                  className="equipment-text-button"
-                  disabled={cancellingId === assignment.id}
-                  onClick={() => onCancel(assignment)}
-                >
-                  {cancellingId === assignment.id ? 'Cancelling…' : 'Cancel assignment'}
-                </button>
-              </>
-            ) : null}
-
-            {assignment.status === 'released' ? (
-              <button
-                type="button"
-                className="equipment-primary-button"
-                onClick={() => onReturn(assignment)}
-              >
-                Receive return
-              </button>
-            ) : null}
-          </div>
-        </article>
-      ))}
+    <div className="management-table-wrap">
+      <table className="management-table">
+        <thead>
+          <tr>
+            <th scope="col">Equipment</th>
+            <th scope="col">Reservation</th>
+            <th scope="col">Event</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Return result</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {assignments.map((assignment) => (
+            <tr key={assignment.id}>
+              <td>
+                <div className="management-table-primary">
+                  <strong>{assignment.equipmentName}</strong>
+                  <span>{assignment.note || assignment.unit}</span>
+                </div>
+              </td>
+              <td>{assignment.packageName}</td>
+              <td>{formatEventRange(assignment)}</td>
+              <td>{assignment.assignedQuantity.toLocaleString('en-PH')} {assignment.unit}</td>
+              <td>{formatReturnResult(assignment)}</td>
+              <td><StatusBadge status={assignment.status} /></td>
+              <td>
+                <div className="management-table-actions">
+                  {assignment.status === 'assigned' ? (
+                    <>
+                      <button type="button" className="management-primary-button" onClick={() => onRelease(assignment)}>
+                        Release
+                      </button>
+                      <button
+                        type="button"
+                        className="management-row-button"
+                        disabled={cancellingId === assignment.id}
+                        onClick={() => onCancel(assignment)}
+                      >
+                        {cancellingId === assignment.id ? 'Cancelling…' : 'Cancel'}
+                      </button>
+                    </>
+                  ) : null}
+                  {assignment.status === 'released' ? (
+                    <button type="button" className="management-primary-button" onClick={() => onReturn(assignment)}>
+                      Receive return
+                    </button>
+                  ) : null}
+                  {assignment.status === 'closed' || assignment.status === 'cancelled' ? (
+                    <span className="management-table-muted">No action</span>
+                  ) : null}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -99,29 +89,24 @@ function StatusBadge({ status }: { status: EquipmentAssignment['status'] }) {
     closed: 'Closed',
     cancelled: 'Cancelled',
   } as const;
+  const classes = {
+    assigned: 'management-status-badge management-status-badge-active',
+    released: 'management-status-badge management-status-badge-warn',
+    closed: 'management-status-badge management-status-badge-good',
+    cancelled: 'management-status-badge management-status-badge-muted',
+  } as const;
 
-  return (
-    <span className={`equipment-assignment-status equipment-assignment-status-${status}`}>
-      {labels[status]}
-    </span>
-  );
+  return <span className={classes[status]}>{labels[status]}</span>;
 }
 
-function SummaryValue({
-  label,
-  value,
-  warn = false,
-}: {
-  label: string;
-  value: number;
-  warn?: boolean;
-}) {
-  return (
-    <div className={warn ? 'equipment-return-value equipment-return-value-warn' : 'equipment-return-value'}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
+function formatReturnResult(assignment: EquipmentAssignment) {
+  if (assignment.status !== 'closed') {
+    return '—';
+  }
+
+  const result = `${assignment.returnedGoodQuantity} usable`;
+  const issues = assignment.damagedQuantity + assignment.missingQuantity;
+  return issues === 0 ? result : `${result} · ${assignment.damagedQuantity} damaged · ${assignment.missingQuantity} missing`;
 }
 
 function formatEventRange(assignment: EquipmentAssignment): string {
