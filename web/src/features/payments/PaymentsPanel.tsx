@@ -55,24 +55,14 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
   }, []);
 
   return (
-    <section className="payments-section" id="payments" aria-labelledby="payments-title">
-      <div className="payments-heading">
-        <div>
-          <p className="payment-kicker">Money received</p>
-          <h2 id="payments-title">Payments</h2>
-          <p>
-            Record cash payments against reservations and keep a customer-safe receipt history.
-          </p>
-        </div>
-      </div>
-
+    <section className="payments-section" id="payments" aria-label="Payments">
       <StaffPaymentLinkCard />
 
       <div className="payments-layout">
         <div className="payments-main-column">
           <div className="payments-subheading">
             <h3>Reservations</h3>
-            <span>Latest {reservations.length}</span>
+            <span>{reservations.length} shown</span>
           </div>
           {renderReservationList()}
         </div>
@@ -101,11 +91,11 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
     }
 
     if (reservationError) {
-      return <PaymentStatusBox message="We could not load reservations for payment recording." error />;
+      return <PaymentStatusBox message="Reservations could not be loaded." error />;
     }
 
     if (reservations.length === 0) {
-      return <PaymentStatusBox message="There are no reservations ready for payment recording." />;
+      return <PaymentStatusBox message="No reservations are ready for payment recording." />;
     }
 
     return (
@@ -118,9 +108,7 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
             </div>
             <div className="payment-reservation-meta">
               <span>{formatReservationStatus(reservation.status)}</span>
-              <span>
-                Package base {formatMoney(reservation.packageBasePriceInCentavos)}
-              </span>
+              <span>{formatMoney(reservation.packageBasePriceInCentavos)}</span>
             </div>
             <button
               type="button"
@@ -137,15 +125,15 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
 
   function renderPaymentList() {
     if (isLoadingPayments) {
-      return <PaymentStatusBox message="Loading recent payments…" compact />;
+      return <PaymentStatusBox message="Loading payments…" compact />;
     }
 
     if (paymentError) {
-      return <PaymentStatusBox message="Recent payment activity could not be loaded." error compact />;
+      return <PaymentStatusBox message="Recent payments could not be loaded." error compact />;
     }
 
     if (payments.length === 0) {
-      return <PaymentStatusBox message="Recorded payments will appear here." compact />;
+      return <PaymentStatusBox message="No payments recorded yet." compact />;
     }
 
     return (
@@ -164,7 +152,7 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
               </time>
             </div>
             {payment.reference ? <p>Reference: {payment.reference}</p> : null}
-            {payment.note ? <p>Internal: {payment.note}</p> : null}
+            {payment.note ? <p>{payment.note}</p> : null}
           </li>
         ))}
       </ol>
