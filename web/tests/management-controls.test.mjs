@@ -11,7 +11,7 @@ import {
   ManagementToolbar,
 } from '../src/app/ManagementControls.tsx';
 
-const controlsPath = new URL('../src/app/ManagementControls.tsx', import.meta.url);
+const selectPath = new URL('../src/app/ManagementSelect.tsx', import.meta.url);
 const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
@@ -70,16 +70,16 @@ test('management select is custom and does not render a native select control', 
 });
 
 test('management select menus use a body portal so table overflow cannot clip them', async () => {
-  const [controlsSource, interactionsCss] = await Promise.all([
-    readFile(controlsPath, 'utf8'),
+  const [selectSource, interactionsCss] = await Promise.all([
+    readFile(selectPath, 'utf8'),
     readFile(interactionsCssPath, 'utf8'),
   ]);
 
-  assert.match(controlsSource, /createPortal/);
-  assert.match(controlsSource, /document\.body/);
-  assert.match(controlsSource, /management-select-menu-portal/);
-  assert.match(controlsSource, /getBoundingClientRect/);
-  assert.match(controlsSource, /spaceBelow < minimumUsefulHeight/);
+  assert.match(selectSource, /createPortal/);
+  assert.match(selectSource, /document\.body/);
+  assert.match(selectSource, /management-select-menu-portal/);
+  assert.match(selectSource, /getBoundingClientRect/);
+  assert.match(selectSource, /spaceBelow < minimumUsefulHeight/);
   assert.match(interactionsCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
   assert.match(interactionsCss, /z-index:\s*1000/);
 });
