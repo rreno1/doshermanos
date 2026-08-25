@@ -91,7 +91,7 @@ export function ReservationRequestDialog({
     if (!customerId) {
       return (
         <div className="reservation-access-note" role="status">
-          Sign in from Account in the header with an active customer account to request this package.
+          Use Sign in in the header with an active customer account to request this package.
         </div>
       );
     }

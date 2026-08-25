@@ -230,7 +230,7 @@ function buildReport(
   if (kind === 'inventory') {
     return {
       title: 'Inventory report',
-      note: 'Current inventory registry snapshot, including stock levels and low-stock warning thresholds.',
+      note: 'Shows up to 100 inventory registry items, including current stock levels and low-stock warning thresholds.',
       filename: 'dos-hermanos-inventory.csv',
       headers: ['Item', 'Unit', 'Quantity', 'Low-stock threshold', 'Status', 'Stock warning'],
       rows: (inventory ?? []).map((item) => [
@@ -246,7 +246,7 @@ function buildReport(
 
   return {
     title: 'Equipment accountability report',
-    note: 'Current equipment registry snapshot showing available, in-use, damaged, and missing quantities.',
+    note: 'Shows up to 100 equipment registry items with current available, in-use, damaged, and missing quantities.',
     filename: 'dos-hermanos-equipment.csv',
     headers: ['Equipment', 'Unit', 'Total', 'Available', 'In use', 'Damaged', 'Missing', 'Status'],
     rows: (equipment ?? []).map((item) => [

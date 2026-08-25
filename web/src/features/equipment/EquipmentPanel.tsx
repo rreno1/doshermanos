@@ -133,7 +133,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
           <p className="equipment-kicker">Event accountability</p>
           <h2 id="equipment-title">Equipment</h2>
           <p>
-            Register reusable equipment, assign it to events, record physical release, and account for every item when it returns.
+            Register reusable equipment, assign it to events, record physical release, and account for every item when it returns. The registry view shows up to 100 items.
           </p>
         </div>
         <div className="equipment-heading-actions">
@@ -151,11 +151,11 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         </div>
       </div>
 
-      <div className="equipment-summary" aria-label="Equipment summary">
-        <Summary label="Active items" value={activeItems.length} />
-        <Summary label="Available units" value={totals.available} />
-        <Summary label="In use" value={totals.inUse} />
-        <Summary label="Damaged or missing" value={totals.issues} warn={totals.issues > 0} />
+      <div className="equipment-summary" aria-label="Equipment summary for the current registry view">
+        <Summary label="Active items shown" value={activeItems.length} />
+        <Summary label="Available units shown" value={totals.available} />
+        <Summary label="In use shown" value={totals.inUse} />
+        <Summary label="Damaged or missing shown" value={totals.issues} warn={totals.issues > 0} />
       </div>
 
       {actionError ? (
@@ -168,7 +168,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
         <div className="equipment-column">
           <div className="equipment-subheading">
             <h3>Registry</h3>
-            <span>Current physical counts</span>
+            <span>{items.length} shown · up to 100 items</span>
           </div>
           {renderItems()}
         </div>

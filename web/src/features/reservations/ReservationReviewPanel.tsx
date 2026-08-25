@@ -47,7 +47,7 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
             simultaneous-event capacity and authoritative customization rules are approved.
           </p>
         </div>
-        <span className="reservation-review-count">{reservations.length} pending</span>
+        <span className="reservation-review-count">{reservations.length} shown · up to 50</span>
       </div>
 
       <div className="reservation-capacity-note" role="status">
@@ -71,7 +71,7 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
     }
 
     if (reservations.length === 0) {
-      return <ReservationReviewStatus message="There are no pending reservation requests." />;
+      return <ReservationReviewStatus message="There are no pending reservation requests in the current view." />;
     }
 
     return (

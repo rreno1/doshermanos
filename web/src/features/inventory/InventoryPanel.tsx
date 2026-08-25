@@ -84,7 +84,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
           <p className="inventory-kicker">Operations</p>
           <h2 id="inventory-title">Inventory</h2>
           <p>
-            Track whole-number stock counts, low-stock thresholds, and every quantity change.
+            Track whole-number stock counts, low-stock thresholds, and every quantity change. The registry view shows up to 100 items.
           </p>
         </div>
         <button
@@ -96,10 +96,10 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
         </button>
       </div>
 
-      <div className="inventory-summary" aria-label="Inventory summary">
-        <SummaryValue label="Active items" value={activeItems.length} />
+      <div className="inventory-summary" aria-label="Inventory summary for the current view">
+        <SummaryValue label="Active items shown" value={activeItems.length} />
         <SummaryValue
-          label="Low stock"
+          label="Low stock shown"
           value={lowStockItems.length}
           warn={lowStockItems.length > 0}
         />
@@ -109,7 +109,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
         <div className="inventory-main-column">
           <div className="inventory-subheading">
             <h3>Tracked items</h3>
-            <span>{items.length} total</span>
+            <span>{items.length} shown · up to 100</span>
           </div>
           {renderInventoryList()}
         </div>

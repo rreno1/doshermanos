@@ -1,90 +1,122 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { ReservationRequestDialog } from '../reservations/ReservationRequestDialog';
-import { PackageCard } from './PackageCard';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
 
-type CatalogState =
-  | { status: 'loading'; packages: CateringPackage[] }
-  | { status: 'ready'; packages: CateringPackage[] }
-  | { status: 'error'; packages: CateringPackage[] };
+type PackageState =
+  | { status: 'loading'; packages: CateringPackage[]; message: string | null }
+  | { status: 'ready'; packages: CateringPackage[]; message: string | null }
+  | { status: 'error'; packages: CateringPackage[]; message: string };
+
+const pesoFormatter = new Intl.NumberFormat('en-PH', {
+  style: 'currency',
+  currency: 'PHP',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
 
 export function PackageCatalog() {
   const { authState } = useAuth();
-  const [catalogState, setCatalogState] = useState<CatalogState>({
+  const [packageState, setPackageState] = useState<PackageState>({
     status: 'loading',
     packages: [],
+    message: null,
   });
   const [selectedPackage, setSelectedPackage] = useState<CateringPackage | null>(null);
 
   useEffect(() => {
-    let isCurrentRequest = true;
+    let cancelled = false;
 
-    async function loadPackages() {
-      try {
-        const packages = await loadActivePackages();
-
-        if (isCurrentRequest) {
-          setCatalogState({ status: 'ready', packages });
+    void loadActivePackages()
+      .then((packages) => {
+        if (!cancelled) {
+          setPackageState({ status: 'ready', packages, message: null });
         }
-      } catch {
-        if (isCurrentRequest) {
-          setCatalogState({ status: 'error', packages: [] });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPackageState({
+            status: 'error',
+            packages: [],
+            message: 'We could not load catering packages right now. Please try again later.',
+          });
         }
-      }
-    }
-
-    void loadPackages();
+      });
 
     return () => {
-      isCurrentRequest = false;
+      cancelled = true;
     };
   }, []);
 
-  const canRequest = authState.status === 'active' && authState.profile?.role === 'customer';
+  const canRequest =
+    authState.status === 'active' && authState.profile?.role === 'customer';
 
   return (
     <section className="catalog-section" id="packages" aria-labelledby="packages-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Available packages</p>
-          <h2 id="packages-title">Find the right starting point.</h2>
+          <p className="eyebrow">Catering packages</p>
+          <h2 id="packages-title">Simple choices, ready to customize.</h2>
         </div>
         <p>
           {canRequest
-            ? 'Choose a package and send your event details for review.'
-            : 'Browse the current packages. Sign in from Account when you are ready to request one.'}
+            ? 'Choose a base package, add your event details and customization requests, then send it for review.'
+            : 'Browse the current packages. Use Sign in in the header when you are ready to request one.'}
         </p>
       </div>
 
-      {catalogState.status === 'loading' ? (
+      {packageState.status === 'loading' ? (
         <div className="catalog-status" role="status">
           <span className="loading-dot" aria-hidden="true" />
-          Loading available packages…
+          Loading packages…
         </div>
       ) : null}
 
-      {catalogState.status === 'error' ? (
+      {packageState.status === 'error' ? (
         <div className="catalog-status catalog-error" role="alert">
-          We could not load the packages right now. Please refresh and try again.
+          {packageState.message}
         </div>
       ) : null}
 
-      {catalogState.status === 'ready' && catalogState.packages.length === 0 ? (
+      {packageState.status === 'ready' && packageState.packages.length === 0 ? (
         <div className="catalog-status">
-          No catering packages are available right now. Please check again later.
+          No active catering packages are available yet.
         </div>
       ) : null}
 
-      {catalogState.status === 'ready' && catalogState.packages.length > 0 ? (
+      {packageState.status === 'ready' && packageState.packages.length > 0 ? (
         <div className="package-grid">
-          {catalogState.packages.map((cateringPackage) => (
-            <PackageCard
-              key={cateringPackage.id}
-              cateringPackage={cateringPackage}
-              onRequest={canRequest ? () => setSelectedPackage(cateringPackage) : undefined}
-            />
+          {packageState.packages.map((cateringPackage) => (
+            <article className="package-card" key={cateringPackage.id}>
+              <div className="package-card-heading">
+                <div>
+                  <p className="package-label">Package</p>
+                  <h3>{cateringPackage.name}</h3>
+                </div>
+                <p className="package-price">
+                  <span>Starts at</span>
+                  {pesoFormatter.format(cateringPackage.priceInCentavos / 100)}
+                </p>
+              </div>
+              <p className="package-description">{cateringPackage.description}</p>
+              {cateringPackage.menuHighlights.length > 0 ? (
+                <div className="package-menu">
+                  {cateringPackage.menuHighlights.map((menuItem) => (
+                    <span key={menuItem}>{menuItem}</span>
+                  ))}
+                </div>
+              ) : null}
+              <div className="package-card-action">
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={() => setSelectedPackage(cateringPackage)}
+                >
+                  {canRequest ? 'Request this package' : 'View request details'}
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       ) : null}
