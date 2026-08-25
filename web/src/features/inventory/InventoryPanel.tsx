@@ -78,28 +78,21 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   }
 
   return (
-    <section className="inventory-section" id="inventory" aria-labelledby="inventory-title">
+    <section className="inventory-section" id="inventory" aria-label="Inventory">
       <div className="inventory-heading">
-        <div>
-          <p className="inventory-kicker">Operations</p>
-          <h2 id="inventory-title">Inventory</h2>
-          <p>
-            Track whole-number stock counts, low-stock thresholds, and every quantity change. The registry view shows up to 100 items.
-          </p>
-        </div>
         <button
           type="button"
           className="inventory-primary-button"
           onClick={openNewItemDialog}
         >
-          Add inventory item
+          Add item
         </button>
       </div>
 
-      <div className="inventory-summary" aria-label="Inventory summary for the current view">
-        <SummaryValue label="Active items shown" value={activeItems.length} />
+      <div className="inventory-summary" aria-label="Inventory summary">
+        <SummaryValue label="Active items" value={activeItems.length} />
         <SummaryValue
-          label="Low stock shown"
+          label="Low stock"
           value={lowStockItems.length}
           warn={lowStockItems.length > 0}
         />
@@ -108,8 +101,8 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
       <div className="inventory-layout">
         <div className="inventory-main-column">
           <div className="inventory-subheading">
-            <h3>Tracked items</h3>
-            <span>{items.length} shown · up to 100</span>
+            <h3>Items</h3>
+            <span>{items.length} of 100 shown</span>
           </div>
           {renderInventoryList()}
         </div>
@@ -143,11 +136,11 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
     }
 
     if (inventoryError) {
-      return <StatusBox message="We could not load inventory right now." error />;
+      return <StatusBox message="Inventory could not be loaded." error />;
     }
 
     if (items.length === 0) {
-      return <StatusBox message="No inventory items are being tracked yet." />;
+      return <StatusBox message="No inventory items yet." />;
     }
 
     return (
@@ -166,15 +159,15 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 
   function renderMovementList() {
     if (isLoadingMovements) {
-      return <StatusBox message="Loading recent stock changes…" compact />;
+      return <StatusBox message="Loading stock changes…" compact />;
     }
 
     if (movementError) {
-      return <StatusBox message="Recent stock activity could not be loaded." error compact />;
+      return <StatusBox message="Stock activity could not be loaded." error compact />;
     }
 
     if (movements.length === 0) {
-      return <StatusBox message="Stock changes will appear here." compact />;
+      return <StatusBox message="No stock activity yet." compact />;
     }
 
     return (
