@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
@@ -136,14 +137,23 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
   );
 
   function renderReservations() {
-    if (isLoadingReservations) return <PaymentStatusBox message="Loading reservations…" />;
-    if (reservationError) return <PaymentStatusBox message="Reservations could not be loaded." error />;
-    if (visibleReservations.length === 0) {
-      return <PaymentStatusBox message={reservations.length === 0 ? 'No reservations are ready for payment recording.' : 'No reservations match the current view.'} />;
-    }
+    const emptyMessage = reservations.length === 0
+      ? 'No reservations are ready for payment recording.'
+      : visibleReservations.length === 0
+        ? 'No reservations match the current view.'
+        : undefined;
 
     return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoadingReservations ? 'Loading payable reservations…' : undefined}
+        errorMessage={!isLoadingReservations && reservationError ? 'Payable reservations could not be loaded.' : undefined}
+        emptyMessage={!isLoadingReservations && !reservationError ? emptyMessage : undefined}
+        pagination={!isLoadingReservations && !reservationError && visibleReservations.length > 0 ? {
+          page: reservationPage.page,
+          totalItems: visibleReservations.length,
+          onPageChange: reservationPage.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead><tr><th>Package</th><th>Event date</th><th>Status</th><th>Base package</th><th>Actions</th></tr></thead>
@@ -160,20 +170,28 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={reservationPage.page} totalItems={visibleReservations.length} onPageChange={reservationPage.setPage} />
-      </>
+      </ManagementTableFrame>
     );
   }
 
   function renderPaymentRecords() {
-    if (isLoadingPayments) return <PaymentStatusBox message="Loading payment records…" />;
-    if (paymentError) return <PaymentStatusBox message="Payment records could not be loaded." error />;
-    if (visiblePayments.length === 0) {
-      return <PaymentStatusBox message={payments.length === 0 ? 'No payments recorded yet.' : 'No payment records match the current view.'} />;
-    }
+    const emptyMessage = payments.length === 0
+      ? 'No payments recorded yet.'
+      : visiblePayments.length === 0
+        ? 'No payment records match the current view.'
+        : undefined;
 
     return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoadingPayments ? 'Loading payment records…' : undefined}
+        errorMessage={!isLoadingPayments && paymentError ? 'Payment records could not be loaded.' : undefined}
+        emptyMessage={!isLoadingPayments && !paymentError ? emptyMessage : undefined}
+        pagination={!isLoadingPayments && !paymentError && visiblePayments.length > 0 ? {
+          page: paymentPage.page,
+          totalItems: visiblePayments.length,
+          onPageChange: paymentPage.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead><tr><th>Amount</th><th>Package</th><th>Event date</th><th>Reference</th><th>Recorded by</th><th>Recorded at</th></tr></thead>
@@ -191,13 +209,21 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={paymentPage.page} totalItems={visiblePayments.length} onPageChange={paymentPage.setPage} />
-      </>
+      </ManagementTableFrame>
     );
   }
 }
 
-function PaymentFilters({ tab, filterValue, sortBy, sortDirection, onFilterChange, onSortChange, onDirectionChange, onReset }: {
+function PaymentFilters({
+  tab,
+  filterValue,
+  sortBy,
+  sortDirection,
+  onFilterChange,
+  onSortChange,
+  onDirectionChange,
+  onReset,
+}: {
   tab: PaymentsTab;
   filterValue: string;
   sortBy: PaymentSort;
@@ -207,25 +233,55 @@ function PaymentFilters({ tab, filterValue, sortBy, sortDirection, onFilterChang
   onDirectionChange: (value: SortDirection) => void;
   onReset: () => void;
 }) {
+  const sortOptions = tab === 'reservations'
+    ? [
+      { value: 'event', label: 'Event date' },
+      { value: 'package', label: 'Package' },
+      { value: 'status', label: 'Status' },
+    ]
+    : [
+      { value: 'date', label: 'Recorded date' },
+      { value: 'amount', label: 'Amount' },
+      { value: 'package', label: 'Package' },
+      { value: 'recorder', label: 'Recorded by' },
+    ];
+
   return (
     <>
       {tab === 'reservations' ? (
         <ManagementFilterField label="Status">
-          <select value={filterValue} onChange={(event) => onFilterChange(event.target.value)}>
-            <option value="all">All statuses</option><option value="pending_review">Pending review</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option>
-          </select>
+          <ManagementSelect
+            value={filterValue}
+            options={[
+              { value: 'all', label: 'All statuses' },
+              { value: 'pending_review', label: 'Pending review' },
+              { value: 'confirmed', label: 'Confirmed' },
+              { value: 'completed', label: 'Completed' },
+            ]}
+            onChange={onFilterChange}
+            ariaLabel="Filter payable reservations by status"
+          />
         </ManagementFilterField>
       ) : null}
       <ManagementFilterField label="Sort by">
-        <select value={sortBy} onChange={(event) => onSortChange(event.target.value as PaymentSort)}>
-          {tab === 'reservations' ? (
-            <><option value="event">Event date</option><option value="package">Package</option><option value="status">Status</option></>
-          ) : (
-            <><option value="date">Recorded date</option><option value="amount">Amount</option><option value="package">Package</option><option value="recorder">Recorded by</option></>
-          )}
-        </select>
+        <ManagementSelect
+          value={sortBy}
+          options={sortOptions as { value: PaymentSort; label: string }[]}
+          onChange={onSortChange}
+          ariaLabel="Sort payment view by"
+        />
       </ManagementFilterField>
-      <ManagementFilterField label="Direction"><select value={sortDirection} onChange={(event) => onDirectionChange(event.target.value as SortDirection)}><option value="asc">Ascending</option><option value="desc">Descending</option></select></ManagementFilterField>
+      <ManagementFilterField label="Direction">
+        <ManagementSelect
+          value={sortDirection}
+          options={[
+            { value: 'asc', label: 'Ascending' },
+            { value: 'desc', label: 'Descending' },
+          ]}
+          onChange={onDirectionChange}
+          ariaLabel="Payment sort direction"
+        />
+      </ManagementFilterField>
       <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
     </>
   );
@@ -255,10 +311,6 @@ function filterPayments(payments: PaymentRecord[], query: string, sortBy: Paymen
 function compare(left: string | number, right: string | number, direction: SortDirection) {
   const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
   return direction === 'asc' ? result : -result;
-}
-
-function PaymentStatusBox({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
 }
 
 function formatMoney(amountInCentavos: number) { return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amountInCentavos / 100); }
