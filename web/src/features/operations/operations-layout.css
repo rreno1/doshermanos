@@ -1,0 +1,22 @@
+.operations-section > .reservation-review-section {
+  width: 100%;
+  margin: 0;
+  padding: 24px 0 0;
+  display: grid;
+  gap: 12px;
+  scroll-margin-top: 0;
+}
+
+.operations-section > .reservation-review-section > .management-data-toolbar,
+.operations-section > .reservation-review-section > .management-info-note,
+.operations-section > .reservation-review-section > .management-table-frame {
+  width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .operations-section > .reservation-review-section {
+    width: 100%;
+    padding-top: 18px;
+  }
+}
