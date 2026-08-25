@@ -1,4 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  ManagementFilterField,
+  ManagementPagination,
+  ManagementTabs,
+  ManagementToolbar,
+  useManagementPage,
+} from '../../app/ManagementControls';
 import { subscribeToEquipment } from '../equipment/equipment.service';
 import type { EquipmentItem } from '../equipment/equipment.types';
 import { subscribeToInventory } from '../inventory/inventory.service';
@@ -13,6 +20,7 @@ import {
 import './reports.css';
 
 type ReportKind = 'reservations' | 'sales' | 'payments' | 'inventory' | 'equipment';
+type SortDirection = 'asc' | 'desc';
 
 type ReportDefinition = {
   title: string;
@@ -22,12 +30,12 @@ type ReportDefinition = {
   rows: string[][];
 };
 
-const reportKinds: { kind: ReportKind; label: string }[] = [
-  { kind: 'reservations', label: 'Reservations' },
-  { kind: 'sales', label: 'Sales' },
-  { kind: 'payments', label: 'Payments' },
-  { kind: 'inventory', label: 'Inventory' },
-  { kind: 'equipment', label: 'Equipment' },
+const reportKinds: { value: ReportKind; label: string }[] = [
+  { value: 'reservations', label: 'Reservations' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'payments', label: 'Payments' },
+  { value: 'inventory', label: 'Inventory' },
+  { value: 'equipment', label: 'Equipment' },
 ];
 
 export function ReportsPanel() {
@@ -36,6 +44,9 @@ export function ReportsPanel() {
   const [payments, setPayments] = useState<ReportPayment[] | null>();
   const [inventory, setInventory] = useState<InventoryItem[] | null>();
   const [equipment, setEquipment] = useState<EquipmentItem[] | null>();
+  const [queryText, setQueryText] = useState('');
+  const [sortColumn, setSortColumn] = useState(0);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const sourceKind = reportKind === 'sales' ? 'reservations' : reportKind;
 
   useEffect(() => {
@@ -43,17 +54,14 @@ export function ReportsPanel() {
       setReservations(undefined);
       return subscribeToReportReservations(setReservations, () => setReservations(null));
     }
-
     if (sourceKind === 'payments') {
       setPayments(undefined);
       return subscribeToReportPayments(setPayments, () => setPayments(null));
     }
-
     if (sourceKind === 'inventory') {
       setInventory(undefined);
       return subscribeToInventory(setInventory, () => setInventory(null));
     }
-
     setEquipment(undefined);
     return subscribeToEquipment(setEquipment, () => setEquipment(null));
   }, [sourceKind]);
@@ -62,92 +70,104 @@ export function ReportsPanel() {
     () => buildReport(reportKind, reservations, payments, inventory, equipment),
     [reportKind, reservations, payments, inventory, equipment],
   );
-
-  const sourceState =
-    reportKind === 'reservations' || reportKind === 'sales'
-      ? reservations
-      : reportKind === 'payments'
-        ? payments
-        : reportKind === 'inventory'
-          ? inventory
-          : equipment;
-
+  const sourceState = reportKind === 'reservations' || reportKind === 'sales'
+    ? reservations
+    : reportKind === 'payments'
+      ? payments
+      : reportKind === 'inventory'
+        ? inventory
+        : equipment;
   const reportReady = Array.isArray(sourceState);
+  const visibleRows = useMemo(
+    () => filterRows(report.rows, queryText, sortColumn, sortDirection),
+    [report.rows, queryText, sortColumn, sortDirection],
+  );
+  const page = useManagementPage(
+    visibleRows,
+    `${reportKind}|${queryText}|${sortColumn}|${sortDirection}`,
+  );
+
+  function changeReport(nextKind: ReportKind) {
+    setReportKind(nextKind);
+    setQueryText('');
+    setSortColumn(0);
+    setSortDirection('asc');
+  }
 
   function exportCurrentReport() {
-    if (!reportReady) {
-      return;
-    }
-
-    downloadCsv(report.filename, createCsv(report.headers, report.rows));
+    if (reportReady) downloadCsv(report.filename, createCsv(report.headers, report.rows));
   }
 
   return (
     <section className="reports-section" id="reports" aria-label="Reports">
-      <div className="reports-controls" aria-label="Choose a report">
-        {reportKinds.map((option) => (
-          <button
-            key={option.kind}
-            type="button"
-            aria-pressed={reportKind === option.kind}
-            className={reportKind === option.kind ? 'report-selector-active' : ''}
-            onClick={() => setReportKind(option.kind)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <ManagementTabs value={reportKind} options={reportKinds} onChange={changeReport} label="Report types" />
 
-      <div className="report-toolbar">
-        <div>
-          <h3>{report.title}</h3>
-          {report.note ? <p>{report.note}</p> : null}
-        </div>
-        <div className="report-actions">
-          <button type="button" disabled={!reportReady} onClick={exportCurrentReport}>
+      <ManagementToolbar
+        summary={[{ label: 'records', value: reportReady ? report.rows.length : '—' }]}
+        searchValue={queryText}
+        searchPlaceholder={`Search ${report.title.toLocaleLowerCase()}`}
+        onSearchChange={setQueryText}
+        filterContent={(
+          <>
+            <ManagementFilterField label="Sort by">
+              <select value={sortColumn} onChange={(event) => setSortColumn(Number(event.target.value))}>
+                {report.headers.map((header, index) => <option key={header} value={index}>{header}</option>)}
+              </select>
+            </ManagementFilterField>
+            <ManagementFilterField label="Direction">
+              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
+                <option value="asc">Ascending</option><option value="desc">Descending</option>
+              </select>
+            </ManagementFilterField>
+            <button type="button" className="management-secondary-button" disabled={!reportReady} onClick={() => window.print()}>Print</button>
+            <button type="button" className="management-secondary-button" onClick={() => { setSortColumn(0); setSortDirection('asc'); }}>Reset sort</button>
+          </>
+        )}
+        primaryAction={(
+          <button type="button" className="management-primary-button" disabled={!reportReady} onClick={exportCurrentReport}>
             Export CSV
           </button>
-          <button type="button" disabled={!reportReady} onClick={() => window.print()}>
-            Print
-          </button>
-        </div>
-      </div>
+        )}
+      />
 
-      {sourceState === undefined ? (
-        <div className="report-status" role="status">Loading records…</div>
-      ) : sourceState === null ? (
-        <div className="report-status report-status-error" role="alert">
-          Report could not be loaded.
-        </div>
-      ) : (
-        <>
-          <p className="report-count">{report.rows.length.toLocaleString('en-PH')} records</p>
-          <div className="report-table-wrap">
-            <table className="report-table">
-              <thead>
-                <tr>
-                  {report.headers.map((header) => <th key={header}>{header}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {report.rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={report.headers.length}>No records.</td>
-                  </tr>
-                ) : report.rows.map((row, rowIndex) => (
-                  <tr key={`${reportKind}-${rowIndex}`}>
-                    {row.map((cell, cellIndex) => (
-                      <td key={`${rowIndex}-${cellIndex}`}>{cell}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+      {report.note ? <p className="management-info-note">{report.note}</p> : null}
+      {renderReport()}
     </section>
   );
+
+  function renderReport() {
+    if (sourceState === undefined) return <div className="management-empty-state" role="status">Loading records…</div>;
+    if (sourceState === null) return <div className="management-empty-state management-empty-state-error" role="alert">Report could not be loaded.</div>;
+    if (visibleRows.length === 0) return <div className="management-empty-state">{report.rows.length === 0 ? 'No records.' : 'No records match the current search.'}</div>;
+
+    return (
+      <>
+        <div className="management-table-wrap">
+          <table className="management-table">
+            <thead><tr>{report.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead>
+            <tbody>
+              {page.pageItems.map((row, rowIndex) => (
+                <tr key={`${reportKind}-${page.page}-${rowIndex}`}>
+                  {row.map((cell, cellIndex) => <td key={`${rowIndex}-${cellIndex}`}>{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ManagementPagination page={page.page} totalItems={visibleRows.length} onPageChange={page.setPage} />
+      </>
+    );
+  }
+}
+
+function filterRows(rows: string[][], query: string, sortColumn: number, direction: SortDirection) {
+  const text = query.trim().toLocaleLowerCase();
+  return [...rows]
+    .filter((row) => !text || row.join(' ').toLocaleLowerCase().includes(text))
+    .sort((left, right) => {
+      const result = String(left[sortColumn] ?? '').localeCompare(String(right[sortColumn] ?? ''), 'en-PH', { numeric: true, sensitivity: 'base' });
+      return direction === 'asc' ? result : -result;
+    });
 }
 
 function buildReport(
@@ -177,10 +197,7 @@ function buildReport(
   }
 
   if (kind === 'sales') {
-    const saleReservations = (reservations ?? []).filter(
-      (reservation) => reservation.status === 'confirmed' || reservation.status === 'completed',
-    );
-
+    const saleReservations = (reservations ?? []).filter((reservation) => reservation.status === 'confirmed' || reservation.status === 'completed');
     return {
       title: 'Sales',
       note: 'Base-package snapshots only; not final customized revenue.',
@@ -252,27 +269,7 @@ function buildReport(
   };
 }
 
-function formatStatus(value: string): string {
-  return value
-    .split('_')
-    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
-    .join(' ');
-}
-
-function formatDate(value: Date): string {
-  return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' }).format(value);
-}
-
-function formatDateTime(value: Date): string {
-  return new Intl.DateTimeFormat('en-PH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(value);
-}
-
-function formatMoney(valueInCentavos: number): string {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-  }).format(valueInCentavos / 100);
-}
+function formatStatus(value: string) { return value.split('_').map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`).join(' '); }
+function formatDate(value: Date) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' }).format(value); }
+function formatDateTime(value: Date) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(value); }
+function formatMoney(valueInCentavos: number) { return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(valueInCentavos / 100); }
