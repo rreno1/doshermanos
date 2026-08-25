@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile } from 'node:fs/promises';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
@@ -9,6 +10,9 @@ import {
   ManagementTabs,
   ManagementToolbar,
 } from '../src/app/ManagementControls.tsx';
+
+const controlsPath = new URL('../src/app/ManagementControls.tsx', import.meta.url);
+const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
@@ -63,6 +67,21 @@ test('management select is custom and does not render a native select control', 
   assert.match(markup, /management-select-trigger/);
   assert.match(markup, /aria-haspopup="listbox"/);
   assert.equal(markup.includes('<select'), false);
+});
+
+test('management select menus use a body portal so table overflow cannot clip them', async () => {
+  const [controlsSource, interactionsCss] = await Promise.all([
+    readFile(controlsPath, 'utf8'),
+    readFile(interactionsCssPath, 'utf8'),
+  ]);
+
+  assert.match(controlsSource, /createPortal/);
+  assert.match(controlsSource, /document\.body/);
+  assert.match(controlsSource, /management-select-menu-portal/);
+  assert.match(controlsSource, /getBoundingClientRect/);
+  assert.match(controlsSource, /spaceBelow < minimumUsefulHeight/);
+  assert.match(interactionsCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
+  assert.match(interactionsCss, /z-index:\s*1000/);
 });
 
 test('management table frame owns pagination and dynamic loading state', () => {
