@@ -1,10 +1,12 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 export const MANAGEMENT_PAGE_SIZE = 7;
 
@@ -28,6 +30,14 @@ type PaginationProps = {
   page: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+};
+
+type SelectMenuPosition = {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxHeight: number;
 };
 
 export function ManagementTabs<T extends string>({
@@ -166,16 +176,64 @@ export function ManagementSelect<T extends string>({
   placeholder?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<SelectMenuPosition | null>(null);
   const selectRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
-
-  useDismissibleLayer(isOpen, selectRef, () => setIsOpen(false));
 
   useEffect(() => {
     if (disabled) {
       setIsOpen(false);
     }
   }, [disabled]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function updatePosition() {
+      if (selectRef.current) {
+        setMenuPosition(getSelectMenuPosition(selectRef.current));
+      }
+    }
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node;
+      if (!selectRef.current?.contains(target) && !menuRef.current?.contains(target)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   return (
     <div className={`management-select${disabled ? ' management-select-disabled' : ''}`} ref={selectRef}>
@@ -194,8 +252,14 @@ export function ManagementSelect<T extends string>({
         </svg>
       </button>
 
-      {isOpen ? (
-        <div className="management-select-menu" role="listbox" aria-label={ariaLabel}>
+      {isOpen && menuPosition ? createPortal(
+        <div
+          ref={menuRef}
+          className="management-select-menu management-select-menu-portal"
+          role="listbox"
+          aria-label={ariaLabel}
+          style={menuPosition}
+        >
           {options.map((option) => (
             <button
               key={option.value}
@@ -212,7 +276,8 @@ export function ManagementSelect<T extends string>({
               {option.value === value ? <span aria-hidden="true">✓</span> : null}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </div>
   );
@@ -309,6 +374,44 @@ export function useManagementPage<T>(items: T[], resetKey: string) {
     page,
     setPage,
     pageItems: items.slice(startIndex, startIndex + MANAGEMENT_PAGE_SIZE),
+  };
+}
+
+function getSelectMenuPosition(element: HTMLElement): SelectMenuPosition {
+  const rect = element.getBoundingClientRect();
+  const viewportPadding = 12;
+  const menuGap = 6;
+  const preferredMaxHeight = 260;
+  const minimumUsefulHeight = 120;
+  const spaceBelow = window.innerHeight - rect.bottom - menuGap - viewportPadding;
+  const spaceAbove = rect.top - menuGap - viewportPadding;
+  const openAbove = spaceBelow < minimumUsefulHeight && spaceAbove > spaceBelow;
+  const availableHeight = openAbove ? spaceAbove : spaceBelow;
+  const maxHeight = Math.max(
+    80,
+    Math.min(preferredMaxHeight, availableHeight),
+  );
+  const maximumWidth = Math.max(120, window.innerWidth - viewportPadding * 2);
+  const width = Math.min(Math.max(rect.width, 150), maximumWidth);
+  const left = Math.min(
+    Math.max(rect.left, viewportPadding),
+    Math.max(viewportPadding, window.innerWidth - viewportPadding - width),
+  );
+
+  if (openAbove) {
+    return {
+      bottom: window.innerHeight - rect.top + menuGap,
+      left,
+      width,
+      maxHeight,
+    };
+  }
+
+  return {
+    top: rect.bottom + menuGap,
+    left,
+    width,
+    maxHeight,
   };
 }
 
