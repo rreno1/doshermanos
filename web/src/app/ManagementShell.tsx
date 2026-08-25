@@ -3,6 +3,7 @@ import { AuthMenu } from '../features/auth/AuthMenu';
 import type { UserProfile } from '../features/auth/auth.types';
 import { AppLink } from './navigation';
 import '../styles/management-shell.css';
+import '../styles/management-ui.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
@@ -58,7 +59,7 @@ export function ManagementShell({
       >
         <div className="management-brand-block">
           <span className="management-brand-name">Dos Hermanos</span>
-          <span className="management-brand-label">Catering management</span>
+          <span className="management-brand-label">Catering</span>
         </div>
 
         <nav className="management-navigation" aria-label="Management modules">
@@ -79,9 +80,8 @@ export function ManagementShell({
         </nav>
 
         <div className="management-sidebar-account">
-          <span>{formatRole(role)}</span>
           <strong>{profile.displayName}</strong>
-          <span className="management-sidebar-account-id">{profile.id.slice(0, 12)}…</span>
+          <span>{formatRole(role)}</span>
         </div>
       </aside>
 
@@ -106,10 +106,7 @@ export function ManagementShell({
             >
               <span aria-hidden="true">☰</span>
             </button>
-            <div>
-              <span className="management-topbar-label">{formatRole(role)} workspace</span>
-              <strong>{pageTitle}</strong>
-            </div>
+            <h1>{pageTitle}</h1>
           </div>
           <AuthMenu />
         </header>
