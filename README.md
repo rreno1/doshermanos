@@ -16,25 +16,23 @@ PayMongo and Cloud Functions remain excluded from the current implementation pha
 
 The current slices provide:
 
-- Firebase project and Hosting configuration boundaries;
-- default-deny Firestore authorization;
-- automated Firestore Security Rules tests in CI;
+- explicit Firebase development, staging, and production configuration boundaries;
+- default-deny Firestore authorization with automated Security Rules tests;
 - customer Email/Password registration, sign-in, sign-out, and password reset;
 - public active-package catalogs on web and mobile;
-- protected customer reservation requests;
-- package name/base-price snapshot validation against the authoritative active package;
-- event dates, location, guest count, and optional service requirements;
+- protected customer reservation requests with package and customization snapshots;
 - customer-owned reservation tracking with bounded queries;
-- mobile native date selection through Expo UI;
-- protection against clients creating already-confirmed reservations;
+- protection against client-side reservation confirmation;
+- staff/admin reservation review with immutable rejection decisions;
 - staff/admin inventory and append-only inventory movement tracking;
-- staff cash payment recording with customer-safe payment receipts;
-- idempotent retry handling for one manual cash-payment operation;
+- staff cash payment recording with customer-safe payment receipts and idempotent retry handling;
 - disabled hosted payment-link readiness without a live payment provider;
-- staff/admin equipment registry and event assignment;
-- atomic equipment release and return accountability;
-- damaged/missing equipment tracking with immutable transaction history;
-- administrator operational audit view derived from append-only domain histories.
+- staff/admin equipment registry, assignment, release, return, and damaged/missing accountability;
+- staff operational dashboard with bounded reservation, inventory, payment, and equipment summaries;
+- reservation, sales-activity, payment, inventory, and equipment reports with CSV and print output;
+- administrator operational audit view derived from append-only domain histories;
+- Firebase Hosting security headers, CSP, safe shell caching, and CI policy checks;
+- a top-level web error fallback and keyboard-accessible navigation improvements.
 
 No sample business data is committed.
 
@@ -44,21 +42,21 @@ Equipment assignment is currently a preparation/accountability workflow rather t
 
 ## Firebase environment separation
 
-Local development must use a separate Firebase development project. The production project is:
+Production Firebase project:
 
 ```text
 dos-hermanos-hilongos
 ```
 
-The repository intentionally has no default Firebase CLI project. Production is available only through the explicit `production` alias, and both web and mobile development runtimes reject the production project ID.
+The repository intentionally has no default Firebase CLI project. Production is available only through the explicit `production` alias. Non-production web and mobile runtimes refuse to connect to the production project.
 
-A separate development Firebase project still needs to be provisioned. Until then, the normal development `.env.example` files remain blank. See `docs/firebase-environments.md`.
+Separate development and staging Firebase projects must be provisioned before those environments use a remote backend. See `docs/firebase-environments.md`.
 
-## Web setup
+## Web development
 
 ```bash
 cd web
-npm install
+npm ci
 cp .env.example .env.local
 ```
 
@@ -68,59 +66,67 @@ Fill `.env.local` with the separate development Firebase web-app configuration, 
 npm run dev
 ```
 
-Do not use the production Firebase configuration for `npm run dev`.
+## Staging web build and deployment
 
-For an intentional production build, use `web/.env.production.example` as the production configuration template.
+Provision a separate staging Firebase project first and add it to `.firebaserc` as `staging`. Then:
 
-## Mobile setup
+```bash
+cd web
+cp .env.staging.example .env.staging
+# Fill .env.staging with the staging Firebase public client configuration.
+npm ci
+cd ..
+node scripts/check-staging-readiness.mjs
+cd web
+npm run build:staging
+cd ..
+firebase deploy --only firestore --project staging
+firebase deploy --only hosting --project staging
+```
+
+The staging readiness check fails when the staging alias is missing, the staging web configuration is incomplete, the project IDs disagree, or staging points at production.
+
+Before staging deployment, also complete `docs/staging-smoke-checklist.md`.
+
+## Mobile development
 
 ```bash
 cd mobile
-npm install
+npm ci
 cp .env.example .env.local
 ```
 
-Fill `.env.local` with the separate development Firebase client configuration, then run:
+Fill `.env.local` with the separate development Firebase client configuration and keep `EXPO_PUBLIC_APP_ENV=development`, then run:
 
 ```bash
 npm run start
 ```
 
-Do not use the production Firebase configuration in an Expo development session. `mobile/.env.production.example` is reserved for intentional production configuration.
+`mobile/.env.staging.example` and `mobile/.env.production.example` define the required environment markers for non-development builds.
 
-Expo SDK 57 uses `@expo/ui` for the native reservation date picker.
+## Production deployment
 
-## Authentication setup
-
-The account UI is already implemented. When ready, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
-
-## Firebase deployment
-
-The production project is linked through the explicit Firebase CLI alias `production`. Do not use a bare `firebase deploy` command.
-
-Deploy production Firestore rules and indexes only after reviewing the target project:
-
-```bash
-firebase deploy --only firestore --project production
-```
-
-Build the production web application before deploying Hosting:
+Do not use a bare `firebase deploy` command.
 
 ```bash
 cd web
 cp .env.production.example .env.production
+npm ci
 npm run build
 cd ..
+firebase deploy --only firestore --project production
 firebase deploy --only hosting --project production
 ```
 
-The Firebase Console-generated snippet also included Storage, Messaging, and Analytics metadata. Those products are not initialized merely because values were supplied. Storage and Messaging remain outside the current implementation, and Analytics is intentionally not initialized until there is a defined analytics/privacy requirement.
+## Authentication setup
+
+When configuring a Firebase environment, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
 
 ## Firestore rule tests
 
 ```bash
 cd firebase/tests
-npm install
+npm ci
 npm test
 ```
 
