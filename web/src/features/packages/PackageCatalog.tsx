@@ -34,7 +34,9 @@ export function PackageCatalog() {
           setPackageState({ status: 'ready', packages, message: null });
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error('Failed to load active catering packages.', error);
+
         if (!cancelled) {
           setPackageState({
             status: 'error',
@@ -62,7 +64,7 @@ export function PackageCatalog() {
         <p>
           {canRequest
             ? 'Choose a base package, add your event details and customization requests, then send it for review.'
-            : 'Browse the current packages. Use Sign in in the header when you are ready to request one.'}
+            : 'Browse the current packages. Use Google login in the header when you are ready to request one.'}
         </p>
       </div>
 
