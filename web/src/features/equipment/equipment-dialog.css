@@ -176,14 +176,47 @@
   background: #eaf5f1;
 }
 
-.equipment-dialog-actions {
+.equipment-dialog-actions,
+.equipment-dialog-actions-main {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.equipment-dialog-actions {
   padding-top: 4px;
 }
 
+.equipment-dialog-actions-edit {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.equipment-delete-button {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid rgba(132, 56, 56, 0.2);
+  border-radius: 10px;
+  color: #843838;
+  background: #fff7f7;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.equipment-delete-button:hover:not(:disabled) {
+  border-color: rgba(132, 56, 56, 0.34);
+  background: #fff0f0;
+}
+
+.equipment-delete-button:disabled,
+.equipment-close-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .equipment-close-button:focus-visible,
+.equipment-delete-button:focus-visible,
 .equipment-field input:focus-visible,
 .equipment-field select:focus-visible,
 .equipment-field textarea:focus-visible,
@@ -213,6 +246,20 @@
   .equipment-field-row,
   .equipment-return-grid {
     grid-template-columns: 1fr;
+  }
+
+  .equipment-dialog-actions-edit {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .equipment-dialog-actions-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .equipment-delete-button {
+    width: 100%;
   }
 }
 
