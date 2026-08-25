@@ -1,0 +1,21 @@
+.portal-access-state {
+  min-height: 460px;
+  display: grid;
+  align-content: center;
+  max-width: 680px;
+  padding: 56px 0;
+}
+
+.portal-access-state h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.portal-access-state > p:not(.portal-eyebrow) {
+  margin: 18px 0 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
