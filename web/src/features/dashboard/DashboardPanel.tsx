@@ -13,6 +13,7 @@ type DashboardPanelProps = {
 
 type ModuleLink = {
   label: string;
+  description: string;
   path: string;
   adminOnly?: boolean;
 };
@@ -65,14 +66,48 @@ export function DashboardPanel({ workspaceBasePath, role }: DashboardPanelProps)
   }, []);
 
   const moduleLinks: ModuleLink[] = [
-    { label: 'Reservations', path: `${workspaceBasePath}/reservations` },
-    { label: 'Packages', path: `${workspaceBasePath}/packages` },
-    { label: 'Inventory', path: `${workspaceBasePath}/inventory` },
-    { label: 'Payments', path: `${workspaceBasePath}/payments` },
-    { label: 'Equipment', path: `${workspaceBasePath}/equipment` },
-    { label: 'Reports', path: `${workspaceBasePath}/reports` },
-    { label: 'Users & roles', path: `${workspaceBasePath}/users`, adminOnly: true },
-    { label: 'Audit trail', path: `${workspaceBasePath}/audit`, adminOnly: true },
+    {
+      label: 'Reservations',
+      description: 'Review customer requests',
+      path: `${workspaceBasePath}/reservations`,
+    },
+    {
+      label: 'Packages',
+      description: 'Manage catering packages',
+      path: `${workspaceBasePath}/packages`,
+    },
+    {
+      label: 'Inventory',
+      description: 'Track stock and movements',
+      path: `${workspaceBasePath}/inventory`,
+    },
+    {
+      label: 'Payments',
+      description: 'Record and review payments',
+      path: `${workspaceBasePath}/payments`,
+    },
+    {
+      label: 'Equipment',
+      description: 'Manage event equipment',
+      path: `${workspaceBasePath}/equipment`,
+    },
+    {
+      label: 'Reports',
+      description: 'View and export records',
+      path: `${workspaceBasePath}/reports`,
+    },
+    {
+      label: 'Users & roles',
+      description: 'Manage account access',
+      path: `${workspaceBasePath}/users`,
+      adminOnly: true,
+    },
+    {
+      label: 'Audit trail',
+      description: 'Review system activity',
+      path: `${workspaceBasePath}/audit`,
+      adminOnly: true,
+    },
   ];
 
   const visibleModuleLinks = moduleLinks.filter(
@@ -81,6 +116,10 @@ export function DashboardPanel({ workspaceBasePath, role }: DashboardPanelProps)
 
   return (
     <section className="dashboard-section" id="dashboard" aria-label="Dashboard">
+      <p className="dashboard-intro">
+        See the operational items that need attention, then open a module to manage the details.
+      </p>
+
       <div className="dashboard-grid" aria-label="Operational summary">
         <DashboardMetric
           to={`${workspaceBasePath}/reservations`}
@@ -112,14 +151,24 @@ export function DashboardPanel({ workspaceBasePath, role }: DashboardPanelProps)
 
       <div className="dashboard-module-section">
         <div className="dashboard-module-heading">
-          <h3>Quick access</h3>
+          <div>
+            <h3>Quick access</h3>
+            <p>Jump directly to a management area.</p>
+          </div>
         </div>
 
         <div className="dashboard-module-grid">
           {visibleModuleLinks.map((moduleLink) => (
             <AppLink className="dashboard-module-link" key={moduleLink.path} to={moduleLink.path}>
-              <strong>{moduleLink.label}</strong>
-              <span className="dashboard-module-open">Open →</span>
+              <div className="dashboard-module-link-heading">
+                <strong>{moduleLink.label}</strong>
+                <span className="dashboard-module-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <path d="M4 10h11m-4-4 4 4-4 4" />
+                  </svg>
+                </span>
+              </div>
+              <span className="dashboard-module-description">{moduleLink.description}</span>
             </AppLink>
           ))}
         </div>
