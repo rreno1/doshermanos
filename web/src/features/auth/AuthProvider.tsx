@@ -27,6 +27,7 @@ type AuthState = {
 
 type AuthContextValue = {
   authState: AuthState;
+  loadingMessage: string | null;
   refreshAuthState: () => Promise<void>;
 };
 
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: 'loading',
     profile: null,
   });
+  const [loadingMessage, setLoadingMessage] = useState<string | null>('Checking your session…');
   const resolutionNumber = useRef(0);
 
   const resolveUser = useCallback(async (user: User | null) => {
@@ -51,10 +53,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resolutionNumber.current = currentResolution;
 
     if (!user) {
+      setLoadingMessage(null);
       setAuthState(signedOutState);
       return;
     }
 
+    setLoadingMessage('Loading your account…');
     setAuthState({ status: 'loading', profile: null });
 
     try {
@@ -65,10 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (!profile) {
+        setLoadingMessage(null);
         setAuthState({ status: 'error', profile: null });
         return;
       }
 
+      setLoadingMessage(null);
       setAuthState({
         status: profile.status,
         profile,
@@ -78,15 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      setLoadingMessage(null);
       setAuthState({ status: 'error', profile: null });
     }
   }, []);
 
   const refreshAuthState = useCallback(async () => {
+    setLoadingMessage(firebaseAuth.currentUser ? 'Refreshing your account…' : 'Checking your session…');
     await resolveUser(firebaseAuth.currentUser);
   }, [resolveUser]);
 
   useEffect(() => {
+    setLoadingMessage('Checking your session…');
     const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
       void resolveUser(user);
     });
@@ -98,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [resolveUser]);
 
   return (
-    <AuthContext.Provider value={{ authState, refreshAuthState }}>
+    <AuthContext.Provider value={{ authState, loadingMessage, refreshAuthState }}>
       {children}
     </AuthContext.Provider>
   );
