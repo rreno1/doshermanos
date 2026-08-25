@@ -2,7 +2,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-const productionProjectId = 'dos-hermanos-hilongos';
+const deploymentProjectId = 'dos-hermanos-hilongos';
 const runtimeMode = import.meta.env.MODE;
 
 const firebaseConfig = {
@@ -20,15 +20,17 @@ if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
 }
 
-if (runtimeMode === 'production' && firebaseConfig.projectId !== productionProjectId) {
+const isDeploymentMode = runtimeMode === 'staging' || runtimeMode === 'production';
+
+if (isDeploymentMode && firebaseConfig.projectId !== deploymentProjectId) {
   throw new Error(
-    'Production mode must connect to the approved production Firebase project.',
+    'Staging and production builds must connect to the approved Firebase deployment project.',
   );
 }
 
-if (runtimeMode !== 'production' && firebaseConfig.projectId === productionProjectId) {
+if (!isDeploymentMode && firebaseConfig.projectId === deploymentProjectId) {
   throw new Error(
-    'Non-production mode cannot connect to the production Firebase project. Configure a separate development or staging project instead.',
+    'Local development cannot connect to the shared staging/production Firebase project. Configure a separate development project instead.',
   );
 }
 
