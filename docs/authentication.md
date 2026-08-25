@@ -2,43 +2,44 @@
 
 ## Current provider
 
-The current implementation uses Firebase Authentication with the **Email/Password** provider on both web and mobile.
+The web application uses Firebase Authentication with the **Google** provider only. Email/Password registration, password sign-in, and password reset are intentionally removed from the web interface.
 
-The provider can remain disabled in Firebase Console while the project is being built. The UI is already wired and will show a safe configuration message until Email/Password authentication is enabled.
+The mobile app still requires separate native Google OAuth client configuration before release. Do not treat the mobile authentication flow as release-ready until that native Google setup is complete.
 
-## Firebase Console setup
-
-When ready to activate authentication:
+## Firebase Console setup for web
 
 1. Open the Firebase project.
 2. Go to **Authentication** -> **Sign-in method**.
-3. Enable **Email/Password**.
-4. Configure the Firebase Authentication password policy to match the application's password requirements rather than relying only on client-side validation.
-5. Keep other providers disabled unless the project explicitly approves them later.
+3. Enable **Google**.
+4. Keep **Email/Password** disabled for the web release unless the project requirements explicitly change.
+5. Under **Authentication** -> **Settings** -> **Authorized domains**, make sure the Firebase Hosting domain is authorized. Add the intended custom domain when it is connected later.
 
 No private Firebase credentials belong in either client. The existing web and mobile `.env` files contain only Firebase client configuration values.
 
-## Account creation
+## Customer account creation
 
-Customer registration explicitly creates:
+Customers do not create a separate Dos Hermanos password account.
 
-1. a Firebase Authentication identity using email and password;
-2. a Firebase display name;
-3. `users/{uid}` in Firestore with:
-   - `displayName`;
+On a successful first Google sign-in, the web client:
+
+1. authenticates the Google identity through Firebase Authentication;
+2. checks whether `users/{uid}` already exists;
+3. preserves an existing profile if one is present;
+4. otherwise creates `users/{uid}` with:
+   - the Google display name, or a safe email-derived fallback;
    - `role: customer`;
    - `status: active`;
    - server timestamps.
 
-Profile creation is part of the registration flow. Normal sign-in does not silently create a missing Firestore profile. If registration cannot finish its profile setup, the client attempts to remove the newly created Firebase Authentication identity; if cleanup cannot complete, it signs the session out and reports a safe failure.
+The Firestore Security Rules independently enforce that a self-created profile can only be an active customer. A client cannot create itself as staff or administrator.
 
-Clients cannot register themselves as staff or administrator. The Firestore Security Rules independently enforce the customer-only role and active status during self-registration.
+Existing staff and administrator profiles are never overwritten by the Google sign-in flow. Their role remains controlled by the existing Firestore profile.
 
-## Existing users without a profile
+## Existing authenticated users without a profile
 
-An authenticated identity without `users/{uid}` is treated as an account-setup problem rather than being silently converted into a customer account during sign-in. Staff and administrator identities therefore cannot accidentally become customer profiles simply because their profile document is missing.
+Google first sign-in is allowed to create a missing customer profile because Firebase creates the Google Authentication identity as part of that flow. If profile creation fails, the web client signs the session out and reports a safe error instead of leaving a partially configured signed-in session.
 
-Immediately after a new Firebase Authentication identity is created, the authentication observer may run before the Firestore profile write has completed. The provider performs a small bounded retry while the registration flow finishes. If the profile still does not exist, access fails closed and the account-setup error state is shown.
+The authentication provider still performs a small bounded retry because Firebase's authentication observer can run before the first profile write has completed.
 
 ## Authorization
 
@@ -51,16 +52,11 @@ Authentication and authorization remain separate:
 
 Suspended and inactive users may still have a Firebase Authentication session, but protected business-data rules require an active application profile.
 
-## Password reset
-
-The application uses Firebase's password-reset email flow. The interface does not reveal whether a submitted email address belongs to an account; it displays the same generic completion message.
-
 ## Client data handling
 
 The authentication implementation does not:
 
-- log passwords or authentication tokens;
-- store passwords in Firestore;
+- store Google passwords or authentication tokens in Firestore;
 - place tokens in URLs;
 - expose service-account credentials;
 - use client-side role checks as authorization;
@@ -72,4 +68,4 @@ The mobile app explicitly initializes Firebase Authentication with React Native 
 
 Firebase documents `getReactNativePersistence()` for this React Native use case, and the React Native runtime bundle exports it. Current Firebase 12.x Expo TypeScript resolution can still omit that export from the declaration selected by TypeScript. The mobile Firebase initializer therefore uses one narrow `@ts-expect-error` on that documented import, with an explanation in the source. This exception must be removed as soon as the upstream Expo typing path exposes the export correctly; `@ts-ignore` is not permitted by the repository readability guardrail.
 
-Session behavior must still be exercised on Android and iOS during the release pass.
+Native Google authentication for Android and iOS must use the approved OAuth client configuration and must still be exercised on real devices during the release pass.
