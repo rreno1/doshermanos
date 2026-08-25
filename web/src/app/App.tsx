@@ -7,6 +7,7 @@ import { InventoryPanel } from '../features/inventory/InventoryPanel';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
 import { MyPayments } from '../features/payments/MyPayments';
 import { PaymentsPanel } from '../features/payments/PaymentsPanel';
+import { ReportsPanel } from '../features/reports/ReportsPanel';
 import { MyReservations } from '../features/reservations/MyReservations';
 import { ReservationReviewPanel } from '../features/reservations/ReservationReviewPanel';
 import '../styles/staff-workspace.css';
@@ -59,6 +60,7 @@ export function App() {
               </div>
               <nav className="staff-navigation-links" aria-label="Staff workspace">
                 <a href="#dashboard">Dashboard</a>
+                <a href="#reports">Reports</a>
                 <a href="#reservation-review">Reservations</a>
                 <a href="#inventory">Inventory</a>
                 <a href="#payments">Payments</a>
@@ -67,6 +69,7 @@ export function App() {
               </nav>
             </section>
 
+            <ReportsPanel />
             <ReservationReviewPanel
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
