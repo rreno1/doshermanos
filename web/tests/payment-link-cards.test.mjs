@@ -7,26 +7,27 @@ import {
   StaffPaymentLinkCard,
 } from '../src/features/payments/PaymentLinkCards.tsx';
 
-function assertDisabledReadinessCard(markup, buttonText) {
-  assert.match(markup, new RegExp(buttonText));
-  assert.match(markup, /<button[^>]*disabled/);
+function assertNoLiveCheckout(markup) {
   assert.equal(markup.includes('href='), false);
   assert.equal(markup.includes('<form'), false);
   assert.equal(markup.includes('<input'), false);
 }
 
-test('staff hosted payment readiness has no live checkout control', () => {
+test('staff payment boundary stays informational and has no live checkout control', () => {
   const markup = renderToStaticMarkup(createElement(StaffPaymentLinkCard));
 
-  assertDisabledReadinessCard(markup, 'Payment link coming soon');
-  assert.match(markup, /Ready, not connected/);
-  assert.match(markup, /No provider, URL, webhook/);
+  assertNoLiveCheckout(markup);
+  assert.equal(markup.includes('<button'), false);
+  assert.match(markup, /Online payment is not enabled/);
+  assert.match(markup, /verified cash payments only/);
 });
 
 test('customer hosted payment readiness stays disabled and avoids card collection', () => {
   const markup = renderToStaticMarkup(createElement(CustomerPaymentLinkCard));
 
-  assertDisabledReadinessCard(markup, 'Online payment not enabled');
+  assertNoLiveCheckout(markup);
+  assert.match(markup, /Online payment not enabled/);
+  assert.match(markup, /<button[^>]*disabled/);
   assert.match(markup, /Coming soon/);
   assert.match(markup, /does not collect card details inside this app/);
 });
