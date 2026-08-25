@@ -3,7 +3,6 @@ import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
-  ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
@@ -16,22 +15,20 @@ import {
 } from './inventory.service';
 import type { InventoryItem, InventoryMovement } from './inventory.types';
 import './inventory.css';
+import './inventory-cards.css';
+import './inventory-image.css';
 
-type InventoryTab = 'items' | 'activity';
+export type InventoryView = 'items' | 'activity';
 type SortDirection = 'asc' | 'desc';
 type InventorySort = 'name' | 'quantity' | 'threshold' | 'date' | 'type';
-
-const tabs = [
-  { value: 'items', label: 'Items' },
-  { value: 'activity', label: 'Activity' },
-] satisfies { value: InventoryTab; label: string }[];
 
 type InventoryPanelProps = {
   staffId: string;
   staffName: string;
+  view: InventoryView;
 };
 
-export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
+export function InventoryPanel({ staffId, staffName, view }: InventoryPanelProps) {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
@@ -41,7 +38,6 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [stockItem, setStockItem] = useState<InventoryItem | null>(null);
-  const [tab, setTab] = useState<InventoryTab>('items');
   const [queryText, setQueryText] = useState('');
   const [filterValue, setFilterValue] = useState('all');
   const [sortBy, setSortBy] = useState<InventorySort>('name');
@@ -77,6 +73,13 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
     );
   }, []);
 
+  useEffect(() => {
+    setQueryText('');
+    setFilterValue('all');
+    setSortBy(view === 'items' ? 'name' : 'date');
+    setSortDirection(view === 'items' ? 'asc' : 'desc');
+  }, [view]);
+
   const activeItems = useMemo(() => items.filter((item) => item.isActive), [items]);
   const inStockItems = useMemo(
     () => activeItems.filter((item) => item.quantity > item.lowStockThreshold),
@@ -105,14 +108,6 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   const itemPage = useManagementPage(visibleItems, `items|${resetKey}`);
   const movementPage = useManagementPage(visibleMovements, `activity|${resetKey}`);
 
-  function changeTab(nextTab: InventoryTab) {
-    setTab(nextTab);
-    setQueryText('');
-    setFilterValue('all');
-    setSortBy(nextTab === 'items' ? 'name' : 'date');
-    setSortDirection(nextTab === 'items' ? 'asc' : 'desc');
-  }
-
   function openNewItemDialog() {
     setEditingItem(null);
     setIsItemDialogOpen(true);
@@ -129,11 +124,9 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   }
 
   return (
-    <section className="inventory-section" id="inventory" aria-label="Inventory">
-      <ManagementTabs value={tab} options={tabs} onChange={changeTab} label="Inventory views" />
-
+    <div className="inventory-section" id="inventory" aria-label={view === 'items' ? 'Inventory items' : 'Inventory activity'}>
       <ManagementToolbar
-        summary={tab === 'items' ? [
+        summary={view === 'items' ? [
           { label: 'items', value: items.length },
           { label: 'in stock', value: inStockItems.length },
           { label: 'low stock', value: lowStockItems.length, warn: lowStockItems.length > 0 },
@@ -142,11 +135,11 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
           { label: 'recent movements', value: movements.length },
         ]}
         searchValue={queryText}
-        searchPlaceholder={tab === 'items' ? 'Search inventory' : 'Search stock activity'}
+        searchPlaceholder={view === 'items' ? 'Search inventory' : 'Search stock activity'}
         onSearchChange={setQueryText}
         filterContent={(
           <InventoryFilters
-            tab={tab}
+            view={view}
             filterValue={filterValue}
             sortBy={sortBy}
             sortDirection={sortDirection}
@@ -155,19 +148,19 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
             onDirectionChange={setSortDirection}
             onReset={() => {
               setFilterValue('all');
-              setSortBy(tab === 'items' ? 'name' : 'date');
-              setSortDirection(tab === 'items' ? 'asc' : 'desc');
+              setSortBy(view === 'items' ? 'name' : 'date');
+              setSortDirection(view === 'items' ? 'asc' : 'desc');
             }}
           />
         )}
-        primaryAction={tab === 'items' ? (
+        primaryAction={view === 'items' ? (
           <button type="button" className="management-primary-button" onClick={openNewItemDialog}>
             Add item
           </button>
         ) : undefined}
       />
 
-      {tab === 'items' ? renderItems() : renderActivity()}
+      {view === 'items' ? renderItems() : renderActivity()}
 
       <InventoryItemDialog isOpen={isItemDialogOpen} item={editingItem} onClose={closeItemDialog} />
       <InventoryMovementDialog
@@ -176,7 +169,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
         recordedByName={staffName}
         onClose={() => setStockItem(null)}
       />
-    </section>
+    </div>
   );
 
   function renderItems() {
@@ -256,7 +249,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
 }
 
 function InventoryFilters({
-  tab,
+  view,
   filterValue,
   sortBy,
   sortDirection,
@@ -265,7 +258,7 @@ function InventoryFilters({
   onDirectionChange,
   onReset,
 }: {
-  tab: InventoryTab;
+  view: InventoryView;
   filterValue: string;
   sortBy: InventorySort;
   sortDirection: SortDirection;
@@ -274,7 +267,7 @@ function InventoryFilters({
   onDirectionChange: (value: SortDirection) => void;
   onReset: () => void;
 }) {
-  const filterOptions = tab === 'items'
+  const filterOptions = view === 'items'
     ? [
       { value: 'all', label: 'All statuses' },
       { value: 'in_stock', label: 'In stock' },
@@ -288,7 +281,7 @@ function InventoryFilters({
       { value: 'stock_out', label: 'Stock out' },
       { value: 'correction', label: 'Correction' },
     ];
-  const sortOptions = tab === 'items'
+  const sortOptions = view === 'items'
     ? [
       { value: 'name', label: 'Name' },
       { value: 'quantity', label: 'Quantity' },
@@ -302,12 +295,12 @@ function InventoryFilters({
 
   return (
     <>
-      <ManagementFilterField label={tab === 'items' ? 'Stock status' : 'Movement type'}>
+      <ManagementFilterField label={view === 'items' ? 'Stock status' : 'Movement type'}>
         <ManagementSelect
           value={filterValue}
           options={filterOptions}
           onChange={onFilterChange}
-          ariaLabel={tab === 'items' ? 'Filter inventory by stock status' : 'Filter stock activity by type'}
+          ariaLabel={view === 'items' ? 'Filter inventory by stock status' : 'Filter stock activity by type'}
         />
       </ManagementFilterField>
       <ManagementFilterField label="Sort by">
