@@ -22,6 +22,7 @@ export function parseEquipmentItem(snapshot: DocumentSnapshot): EquipmentItem {
     damagedQuantity: requireInteger(data.damagedQuantity, 'Equipment damage count is invalid.'),
     missingQuantity: requireInteger(data.missingQuantity, 'Equipment missing count is invalid.'),
     isActive: data.isActive === true,
+    isDeleted: data.isDeleted === true,
     lastTransactionId:
       data.lastTransactionId === null
         ? null
