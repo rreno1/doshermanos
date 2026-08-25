@@ -34,9 +34,7 @@ export function PackageCatalog() {
           setPackageState({ status: 'ready', packages, message: null });
         }
       })
-      .catch((error: unknown) => {
-        console.error('Failed to load active catering packages.', error);
-
+      .catch(() => {
         if (!cancelled) {
           setPackageState({
             status: 'error',
