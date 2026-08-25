@@ -15,7 +15,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebase';
-import type { CateringPackage } from '../packages/package.types';
+import type { CateringPackage } from './package.types';
 import type {
   ManualReservationCustomer,
   ReservationCustomizationRequest,
