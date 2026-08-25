@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateReservationForm } from '../src/features/reservations/reservation.validation.ts';
+import { validateReservationForm } from '../src/features/operations/reservation.validation.ts';
 
 function validForm(overrides = {}) {
   return {
