@@ -80,7 +80,7 @@ export function subscribeToRecentInventoryMovements(
 
 export async function createInventoryItem(
   input: InventoryItemDetailsInput,
-): Promise<void> {
+): Promise<string> {
   const itemRef = doc(collection(firestore, 'inventory'));
 
   await setDoc(itemRef, {
@@ -93,6 +93,8 @@ export async function createInventoryItem(
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  return itemRef.id;
 }
 
 export async function updateInventoryItemDetails(
@@ -104,6 +106,12 @@ export async function updateInventoryItemDetails(
     unit: input.unit,
     lowStockThreshold: input.lowStockThreshold,
     isActive: input.isActive,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function touchInventoryItem(inventoryItemId: string): Promise<void> {
+  await updateDoc(doc(firestore, 'inventory', inventoryItemId), {
     updatedAt: serverTimestamp(),
   });
 }
@@ -214,6 +222,7 @@ function parseInventoryItem(
     lowStockThreshold: value.lowStockThreshold,
     isActive: value.isActive,
     lastMovementId: value.lastMovementId,
+    updatedAt: value.updatedAt instanceof Timestamp ? value.updatedAt.toDate() : new Date(),
   };
 }
 
