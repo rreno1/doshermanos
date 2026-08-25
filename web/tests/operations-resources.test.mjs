@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const appPath = new URL('../src/app/App.tsx', import.meta.url);
 const shellPath = new URL('../src/app/ManagementShell.tsx', import.meta.url);
 const operationsPath = new URL('../src/features/operations/OperationsPanel.tsx', import.meta.url);
+const operationsLayoutPath = new URL('../src/features/operations/operations-layout.css', import.meta.url);
 const resourcesPath = new URL('../src/features/resources/ResourcesPanel.tsx', import.meta.url);
 const equipmentPanelPath = new URL('../src/features/resources/EquipmentPanel.tsx', import.meta.url);
 const equipmentGridPath = new URL('../src/features/resources/EquipmentRegistryGrid.tsx', import.meta.url);
@@ -49,6 +50,20 @@ test('operations and resources keep the approved tab order', async () => {
       && assignments > registry
       && equipmentActivity > assignments,
   );
+});
+
+test('pending requests use the management workspace width without legacy section spacing', async () => {
+  const [operationsSource, layoutSource] = await Promise.all([
+    readFile(operationsPath, 'utf8'),
+    readFile(operationsLayoutPath, 'utf8'),
+  ]);
+
+  assert.match(operationsSource, /operations-layout\.css/);
+  assert.match(layoutSource, /\.operations-section > \.reservation-review-section/);
+  assert.match(layoutSource, /width:\s*100%/);
+  assert.match(layoutSource, /margin:\s*0/);
+  assert.match(layoutSource, /padding:\s*24px 0 0/);
+  assert.doesNotMatch(layoutSource, /padding:\s*72px/);
 });
 
 test('equipment registry shares inventory cards and toolbar controls share one exact height', async () => {
