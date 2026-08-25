@@ -16,12 +16,24 @@ type PublicPortalProps = {
 };
 
 export function PublicPortal({ pathname, profile, status, workspaceRole }: PublicPortalProps) {
+  if (status === 'signed_out') {
+    return (
+      <PortalShell pathname={pathname} profile={null} workspaceRole={null} landing>
+        <LandingPage />
+      </PortalShell>
+    );
+  }
+
   const activeProfile = status === 'active' ? profile : null;
 
   if (!activeProfile) {
     return (
       <PortalShell pathname={pathname} profile={null} workspaceRole={null} landing>
-        <LandingPage />
+        <section className="portal-access-state" aria-labelledby="portal-access-title">
+          <p className="portal-eyebrow">Dos Hermanos account</p>
+          <h1 id="portal-access-title">Portal access is unavailable.</h1>
+          <p>Open your account menu for the current account status or sign out to return to the public landing page.</p>
+        </section>
       </PortalShell>
     );
   }
