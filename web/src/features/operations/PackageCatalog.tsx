@@ -49,8 +49,9 @@ export function PackageCatalog() {
     };
   }, []);
 
-  const canRequest =
-    authState.status === 'active' && authState.profile?.role === 'customer';
+  const canRequest = authState.status === 'active' && authState.profile?.role === 'customer';
+  const managementViewer = authState.status === 'active' &&
+    (authState.profile?.role === 'staff' || authState.profile?.role === 'admin');
 
   return (
     <section className="catalog-section" id="packages" aria-labelledby="packages-title">
@@ -62,7 +63,9 @@ export function PackageCatalog() {
         <p>
           {canRequest
             ? 'Choose a base package, add your event details and customization requests, then send it for review.'
-            : 'Browse the current packages. Use Google login in the header when you are ready to request one.'}
+            : managementViewer
+              ? 'Browse the customer-facing package catalog. Manual reservation requests are entered from your Workspace.'
+              : 'Browse the current packages. Use Google login in the header when you are ready to request one.'}
         </p>
       </div>
 
@@ -80,9 +83,7 @@ export function PackageCatalog() {
       ) : null}
 
       {packageState.status === 'ready' && packageState.packages.length === 0 ? (
-        <div className="catalog-status">
-          No active catering packages are available yet.
-        </div>
+        <div className="catalog-status">No active catering packages are available yet.</div>
       ) : null}
 
       {packageState.status === 'ready' && packageState.packages.length > 0 ? (
@@ -107,15 +108,17 @@ export function PackageCatalog() {
                   ))}
                 </div>
               ) : null}
-              <div className="package-card-action">
-                <button
-                  className="primary-button"
-                  type="button"
-                  onClick={() => setSelectedPackage(cateringPackage)}
-                >
-                  {canRequest ? 'Request this package' : 'View request details'}
-                </button>
-              </div>
+              {canRequest ? (
+                <div className="package-card-action">
+                  <button
+                    className="primary-button"
+                    type="button"
+                    onClick={() => setSelectedPackage(cateringPackage)}
+                  >
+                    Request this package
+                  </button>
+                </div>
+              ) : null}
             </article>
           ))}
         </div>
