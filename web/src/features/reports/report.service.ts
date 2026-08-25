@@ -10,7 +10,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebase';
-import type { ReservationStatus } from '../reservations/reservation.types';
+import type { ReservationStatus } from '../operations/reservation.types';
 
 const REPORT_ROW_LIMIT = 250;
 const reservationStatuses = new Set<ReservationStatus>([
