@@ -11,6 +11,15 @@ Use this checklist after the staging Firebase project is provisioned and before 
 - [ ] Protect `main` and require the CI checks used by this repository before production promotion.
 - [ ] The latest CI run is green before deployment.
 
+## Staging Firebase prerequisites
+
+- [ ] Enable Email/Password in Firebase Authentication for the staging project.
+- [ ] Configure the Firebase Authentication password policy to enforce at least the application's 10-character minimum.
+- [ ] Create dedicated staging customer, staff, and administrator identities. Do not reuse production accounts.
+- [ ] For each staging staff/administrator identity, create the matching `users/{uid}` Firestore profile with `displayName`, the intended `role`, `status: active`, and valid timestamp fields. Normal client registration intentionally creates customers only.
+- [ ] Add only approved staging package records needed for testing. No sample package or pricing data should be copied into the repository just to make the catalog non-empty.
+- [ ] Confirm the staging Authentication authorized-domain configuration includes the Firebase Hosting staging domain used for testing.
+
 ## Deployment
 
 - [ ] Run `npm ci` and `npm run build:staging` in `web`.
