@@ -1,15 +1,12 @@
 import { useEffect } from 'react';
 import { AuditPanel } from '../features/audit/AuditPanel';
-import { AuthMenu } from '../features/auth/AuthMenu';
 import { useAuth } from '../features/auth/AuthProvider';
 import type { UserProfile } from '../features/auth/auth.types';
 import { DashboardPanel } from '../features/dashboard/DashboardPanel';
-import { MyPayments } from '../features/payments/MyPayments';
-import { PaymentsPanel } from '../features/payments/PaymentsPanel';
-import { ReportsPanel } from '../features/reports/ReportsPanel';
-import { MyReservations } from '../features/operations/MyReservations';
 import { OperationsPanel } from '../features/operations/OperationsPanel';
-import { PackageCatalog } from '../features/operations/PackageCatalog';
+import { PaymentsPanel } from '../features/payments/PaymentsPanel';
+import { PublicPortal } from '../features/portal/PublicPortal';
+import { ReportsPanel } from '../features/reports/ReportsPanel';
 import { ResourcesPanel } from '../features/resources/ResourcesPanel';
 import { UsersRolesPanel } from '../features/users/UsersRolesPanel';
 import { ManagementShell } from './ManagementShell';
@@ -31,6 +28,7 @@ export function App() {
   const pathname = usePathname();
   const workspaceRole = getWorkspaceRole(authState.profile, authState.status);
   const managementPath = isManagementPath(pathname);
+  const publicPathAllowed = isAllowedPublicPath(pathname, authState.status, authState.profile);
 
   useEffect(() => {
     if (authState.status === 'loading') {
@@ -62,10 +60,10 @@ export function App() {
       return;
     }
 
-    if (pathname !== '/') {
+    if (!publicPathAllowed) {
       navigate('/', { replace: true });
     }
-  }, [authState.status, managementPath, pathname, workspaceRole]);
+  }, [authState.status, managementPath, pathname, publicPathAllowed, workspaceRole]);
 
   if (authState.status === 'loading') {
     return <AppLoading message={loadingMessage ?? 'Loading Dos Hermanos…'} />;
@@ -75,7 +73,7 @@ export function App() {
     return <AppLoading message="Opening Dos Hermanos…" />;
   }
 
-  if (!managementPath && pathname !== '/') {
+  if (!managementPath && !publicPathAllowed) {
     return <AppLoading message="Opening Dos Hermanos…" />;
   }
 
@@ -104,7 +102,14 @@ export function App() {
     }
   }
 
-  return <PublicSite />;
+  return (
+    <PublicPortal
+      pathname={pathname}
+      profile={authState.profile}
+      status={authState.status}
+      workspaceRole={workspaceRole}
+    />
+  );
 }
 
 function AppLoading({ message }: { message: string }) {
@@ -117,46 +122,6 @@ function AppLoading({ message }: { message: string }) {
       <span className="app-loading-spinner" aria-hidden="true" />
       <p>{message}</p>
     </main>
-  );
-}
-
-function PublicSite() {
-  return (
-    <div className="app-shell" id="top">
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
-
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="Dos Hermanos Catering home">
-          <span className="brand-name">Dos Hermanos</span>
-          <span className="brand-label">Catering</span>
-        </a>
-        <AuthMenu />
-      </header>
-
-      <main id="main-content" tabIndex={-1}>
-        <section className="hero" aria-labelledby="hero-title">
-          <p className="eyebrow">Catering made easier</p>
-          <h1 id="hero-title">Choose a package that fits your event.</h1>
-          <p className="hero-copy">
-            Browse available packages, send your event details, and track the request in one place.
-          </p>
-          <a className="primary-link" href="#packages">
-            View packages
-          </a>
-        </section>
-
-        <PackageCatalog />
-        <MyReservations />
-        <MyPayments />
-      </main>
-
-      <footer className="site-footer">
-        <span>Dos Hermanos Catering</span>
-        <span>Hilongos, Leyte</span>
-      </footer>
-    </div>
   );
 }
 
@@ -228,6 +193,22 @@ function getWorkspaceBasePath(role: WorkspaceRole) {
 
 function isManagementPath(pathname: string) {
   return pathname === '/admin' || pathname.startsWith('/admin/') || pathname === '/staff' || pathname.startsWith('/staff/');
+}
+
+function isAllowedPublicPath(pathname: string, status: string, profile: UserProfile | null) {
+  if (pathname === '/') {
+    return true;
+  }
+
+  if (status !== 'active' || !profile) {
+    return false;
+  }
+
+  if (pathname === '/packages') {
+    return true;
+  }
+
+  return profile.role === 'customer' && (pathname === '/reservations' || pathname === '/payments');
 }
 
 function isPathWithinWorkspace(pathname: string, basePath: string) {
