@@ -8,7 +8,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import './toast.css';
 
 export type ToastTone = 'success' | 'error' | 'warning' | 'info';
 
