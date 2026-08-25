@@ -1,6 +1,7 @@
 import { AuditPanel } from '../features/audit/AuditPanel';
 import { AuthMenu } from '../features/auth/AuthMenu';
 import { useAuth } from '../features/auth/AuthProvider';
+import { DashboardPanel } from '../features/dashboard/DashboardPanel';
 import { EquipmentPanel } from '../features/equipment/EquipmentPanel';
 import { InventoryPanel } from '../features/inventory/InventoryPanel';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
@@ -35,12 +36,14 @@ export function App() {
               <p className="eyebrow">Staff workspace</p>
               <h1 id="hero-title">Keep operations ready for every event.</h1>
               <p className="hero-copy">
-                Move directly between reservation review, inventory, payments, and event equipment without searching through one long page.
+                Check the operational summary, then move directly to the area that needs attention.
               </p>
-              <a className="primary-link" href="#staff-navigation">
-                Open workspace
+              <a className="primary-link" href="#dashboard">
+                View dashboard
               </a>
             </section>
+
+            <DashboardPanel />
 
             <section
               className="staff-navigation"
@@ -55,6 +58,7 @@ export function App() {
                 <p>Choose the area you need. Each link moves to an existing protected workspace.</p>
               </div>
               <nav className="staff-navigation-links" aria-label="Staff workspace">
+                <a href="#dashboard">Dashboard</a>
                 <a href="#reservation-review">Reservations</a>
                 <a href="#inventory">Inventory</a>
                 <a href="#payments">Payments</a>
