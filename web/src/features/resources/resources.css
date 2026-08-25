@@ -1,0 +1,16 @@
+.resources-section > .inventory-section,
+.resources-section > .equipment-section {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  scroll-margin-top: 0;
+}
+
+.resources-section .management-table-frame,
+.resources-section .inventory-card-grid,
+.resources-section .equipment-card-grid {
+  min-width: 0;
+}
