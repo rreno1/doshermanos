@@ -1,5 +1,6 @@
 {
   "projects": {
+    "staging": "dos-hermanos-hilongos",
     "production": "dos-hermanos-hilongos"
   }
 }
