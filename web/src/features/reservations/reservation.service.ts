@@ -17,10 +17,13 @@ import {
 import { firestore } from '../../firebase/firebase';
 import type { CateringPackage } from '../packages/package.types';
 import type {
+  ManualReservationCustomer,
   ReservationCustomizationRequest,
   ReservationDecision,
+  ReservationEnteredBy,
   ReservationRecord,
   ReservationRequestInput,
+  ReservationSource,
   ReservationStatus,
 } from './reservation.types';
 
@@ -35,6 +38,12 @@ const reservationStatuses: ReservationStatus[] = [
   'completed',
 ];
 
+type ReservationAttribution = {
+  source: ReservationSource;
+  manualCustomer: ManualReservationCustomer | null;
+  enteredBy: ReservationEnteredBy | null;
+};
+
 function dateOnlyToTimestamp(value: string): Timestamp {
   const [yearText, monthText, dayText] = value.split('-');
   const date = new Date(
@@ -42,6 +51,30 @@ function dateOnlyToTimestamp(value: string): Timestamp {
   );
 
   return Timestamp.fromDate(date);
+}
+
+function buildReservationDetails(
+  cateringPackage: CateringPackage,
+  input: ReservationRequestInput,
+) {
+  return {
+    status: 'pending_review',
+    event: {
+      startDate: dateOnlyToTimestamp(input.startDate),
+      endDate: dateOnlyToTimestamp(input.endDate),
+      location: input.location,
+      guestCount: input.guestCount,
+      serviceRequirements: input.serviceRequirements,
+    },
+    package: {
+      packageId: cateringPackage.id,
+      packageName: cateringPackage.name,
+      priceInCentavos: cateringPackage.priceInCentavos,
+    },
+    customization: input.customization,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
 }
 
 function parseCustomizationRequest(value: unknown): ReservationCustomizationRequest {
@@ -71,6 +104,49 @@ function parseCustomizationRequest(value: unknown): ReservationCustomizationRequ
     menuRequest: customization.menuRequest,
     foodQuantityRequest: customization.foodQuantityRequest,
     supplyRequest: customization.supplyRequest,
+  };
+}
+
+function parseReservationAttribution(value: DocumentData): ReservationAttribution {
+  const hasAttribution = value.source !== undefined
+    || value.manualCustomer !== undefined
+    || value.enteredBy !== undefined;
+
+  if (!hasAttribution) {
+    return {
+      source: 'customer_portal',
+      manualCustomer: null,
+      enteredBy: null,
+    };
+  }
+
+  const manualCustomer = value.manualCustomer;
+  const enteredBy = value.enteredBy;
+
+  if (
+    value.source !== 'manual' ||
+    !manualCustomer ||
+    typeof manualCustomer !== 'object' ||
+    typeof manualCustomer.name !== 'string' ||
+    typeof manualCustomer.contact !== 'string' ||
+    !enteredBy ||
+    typeof enteredBy !== 'object' ||
+    typeof enteredBy.userId !== 'string' ||
+    typeof enteredBy.displayName !== 'string'
+  ) {
+    throw new Error('Reservation attribution data is invalid.');
+  }
+
+  return {
+    source: 'manual',
+    manualCustomer: {
+      name: manualCustomer.name,
+      contact: manualCustomer.contact,
+    },
+    enteredBy: {
+      userId: enteredBy.userId,
+      displayName: enteredBy.displayName,
+    },
   };
 }
 
@@ -106,6 +182,7 @@ function parseReservationDocument(
     id: document.id,
     customerId: value.customerId,
     status: value.status as ReservationStatus,
+    ...parseReservationAttribution(value),
     event: {
       startDate: event.startDate.toDate(),
       endDate: event.endDate.toDate(),
@@ -162,22 +239,30 @@ export async function createReservationRequest(
 
   await setDoc(reservationRef, {
     customerId,
-    status: 'pending_review',
-    event: {
-      startDate: dateOnlyToTimestamp(input.startDate),
-      endDate: dateOnlyToTimestamp(input.endDate),
-      location: input.location,
-      guestCount: input.guestCount,
-      serviceRequirements: input.serviceRequirements,
+    ...buildReservationDetails(cateringPackage, input),
+  });
+
+  return reservationRef.id;
+}
+
+export async function createManualReservationRequest(
+  enteredById: string,
+  enteredByName: string,
+  manualCustomer: ManualReservationCustomer,
+  cateringPackage: CateringPackage,
+  input: ReservationRequestInput,
+): Promise<string> {
+  const reservationRef = doc(collection(firestore, 'reservations'));
+
+  await setDoc(reservationRef, {
+    customerId: `manual:${reservationRef.id}`,
+    source: 'manual',
+    manualCustomer,
+    enteredBy: {
+      userId: enteredById,
+      displayName: enteredByName,
     },
-    package: {
-      packageId: cateringPackage.id,
-      packageName: cateringPackage.name,
-      priceInCentavos: cateringPackage.priceInCentavos,
-    },
-    customization: input.customization,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    ...buildReservationDetails(cateringPackage, input),
   });
 
   return reservationRef.id;
