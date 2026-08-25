@@ -62,20 +62,11 @@ export function App() {
 
     if (pathname !== '/') {
       navigate('/', { replace: true });
-      return;
-    }
-
-    if (workspaceRole) {
-      navigate(getWorkspaceBasePath(workspaceRole), { replace: true });
     }
   }, [authState.status, managementPath, pathname, workspaceRole]);
 
   if (authState.status === 'loading') {
     return <AppLoading message={loadingMessage ?? 'Loading Dos Hermanos…'} />;
-  }
-
-  if (workspaceRole && !managementPath) {
-    return <AppLoading message="Opening your workspace…" />;
   }
 
   if (managementPath && !workspaceRole) {
@@ -294,7 +285,7 @@ function getPageDescription(page: ManagementPage) {
     case 'dashboard':
       return 'Monitor current operations and open the management area that needs attention.';
     case 'reservations':
-      return 'Review incoming catering requests and their event details.';
+      return 'Create manual reservation requests and review incoming catering requests.';
     case 'packages':
       return 'Manage the catering packages and base prices shown to customers.';
     case 'inventory':
