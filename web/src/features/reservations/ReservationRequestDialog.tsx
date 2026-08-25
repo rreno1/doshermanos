@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import type { CateringPackage } from '../packages/package.types';
 import { ReservationForm } from './ReservationForm';
+import { createReservationRequest } from './reservation.service';
 import './reservations.css';
 
 type ReservationRequestDialogProps = {
@@ -110,8 +111,8 @@ export function ReservationRequestDialog({
 
     return (
       <ReservationForm
-        customerId={customerId}
         cateringPackage={cateringPackage}
+        onSubmitRequest={(input) => createReservationRequest(customerId, cateringPackage, input)}
         onSubmitted={() => setIsComplete(true)}
       />
     );
