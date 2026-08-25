@@ -4,7 +4,7 @@ import {
   validateEquipmentAssignment,
   validateEquipmentItem,
   validateEquipmentReturn,
-} from '../src/features/equipment/equipment.validation.ts';
+} from '../src/features/resources/equipment.validation.ts';
 
 test('equipment item and assignment validation accepts valid whole-number quantities', () => {
   assert.equal(
