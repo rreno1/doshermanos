@@ -3,8 +3,8 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from 'react';
-import './management-interactions.css';
 
 export const MANAGEMENT_PAGE_SIZE = 7;
 
@@ -121,7 +121,7 @@ function ManagementFilterMenu({ children }: { children: ReactNode }) {
         type="button"
         className="management-filter-trigger"
         aria-label="Filters and sorting"
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={isOpen}
         title="Filters and sorting"
         onClick={() => setIsOpen((open) => !open)}
@@ -130,11 +130,7 @@ function ManagementFilterMenu({ children }: { children: ReactNode }) {
           <path d="M4 7h12M4 13h12" />
         </svg>
       </button>
-      {isOpen ? (
-        <div className="management-filter-panel" role="menu">
-          {children}
-        </div>
-      ) : null}
+      {isOpen ? <div className="management-filter-panel">{children}</div> : null}
     </div>
   );
 }
@@ -318,7 +314,7 @@ export function useManagementPage<T>(items: T[], resetKey: string) {
 
 function useDismissibleLayer(
   isOpen: boolean,
-  ref: React.RefObject<HTMLElement | null>,
+  ref: RefObject<HTMLElement | null>,
   onDismiss: () => void,
 ) {
   useEffect(() => {
