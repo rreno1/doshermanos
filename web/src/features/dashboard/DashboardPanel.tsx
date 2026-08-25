@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AppLink } from '../../app/navigation';
-import { subscribeToEquipment } from '../equipment/equipment.service';
-import { subscribeToInventory } from '../inventory/inventory.service';
+import { subscribeToPendingReservations } from '../operations/reservation.service';
 import { subscribeToRecentPayments } from '../payments/payment.service';
-import { subscribeToPendingReservations } from '../reservations/reservation.service';
+import { subscribeToEquipment } from '../resources/equipment.service';
+import { subscribeToInventory } from '../resources/inventory.service';
 import './dashboard.css';
 
 type DashboardPanelProps = {
@@ -53,11 +53,9 @@ export function DashboardPanel({ workspaceBasePath, role }: DashboardPanelProps)
   ), []);
 
   const moduleLinks: ModuleLink[] = [
-    { label: 'Reservations', description: 'Review customer requests', path: `${workspaceBasePath}/reservations` },
-    { label: 'Packages', description: 'Manage catering packages', path: `${workspaceBasePath}/packages` },
-    { label: 'Inventory', description: 'Track stock and movements', path: `${workspaceBasePath}/inventory` },
+    { label: 'Operations', description: 'Reservations and catering packages', path: `${workspaceBasePath}/operations` },
+    { label: 'Resources', description: 'Inventory and event equipment', path: `${workspaceBasePath}/resources` },
     { label: 'Payments', description: 'Record and review payments', path: `${workspaceBasePath}/payments` },
-    { label: 'Equipment', description: 'Manage event equipment', path: `${workspaceBasePath}/equipment` },
     { label: 'Reports', description: 'View and export records', path: `${workspaceBasePath}/reports` },
     { label: 'Users & roles', description: 'Manage account access', path: `${workspaceBasePath}/users`, adminOnly: true },
     { label: 'Audit trail', description: 'Review system activity', path: `${workspaceBasePath}/audit`, adminOnly: true },
@@ -68,10 +66,10 @@ export function DashboardPanel({ workspaceBasePath, role }: DashboardPanelProps)
   return (
     <section className="dashboard-section" id="dashboard" aria-label="Dashboard">
       <div className="dashboard-grid" aria-label="Operational summary">
-        <DashboardMetric to={`${workspaceBasePath}/reservations`} label="Pending requests" value={pendingReservations} detail="Up to 50 awaiting review" />
-        <DashboardMetric to={`${workspaceBasePath}/inventory`} label="Low-stock items" value={lowStockItems} detail="Within the current inventory view" warn={lowStockItems !== null && lowStockItems > 0} />
+        <DashboardMetric to={`${workspaceBasePath}/operations`} label="Pending requests" value={pendingReservations} detail="Up to 50 awaiting review" />
+        <DashboardMetric to={`${workspaceBasePath}/resources`} label="Low-stock items" value={lowStockItems} detail="Within the current inventory view" warn={lowStockItems !== null && lowStockItems > 0} />
         <DashboardMetric to={`${workspaceBasePath}/payments`} label="Recent payments" value={recentPayments} detail="Up to 50 latest records" />
-        <DashboardMetric to={`${workspaceBasePath}/equipment`} label="Equipment issues" value={equipmentIssues} detail="Damaged or missing units" warn={equipmentIssues !== null && equipmentIssues > 0} />
+        <DashboardMetric to={`${workspaceBasePath}/resources`} label="Equipment issues" value={equipmentIssues} detail="Damaged or missing units" warn={equipmentIssues !== null && equipmentIssues > 0} />
       </div>
 
       <div className="dashboard-module-section">
