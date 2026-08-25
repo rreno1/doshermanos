@@ -1,17 +1,14 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type FormEvent,
-} from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useToast } from '../../app/ToastProvider';
 import {
-  getInventoryImageUrl,
-  removeInventoryImage,
-  uploadInventoryImage,
-  validateInventoryImage,
-} from './inventory-image.service';
+  ResourceImagePicker,
+  useResourceImageDraft,
+} from './ResourceImagePicker';
+import {
+  getResourceImageErrorMessage,
+  removeResourceImage,
+  uploadResourceImage,
+} from './resource-image.service';
 import {
   createInventoryItem,
   getInventoryErrorMessage,
@@ -56,59 +53,14 @@ export function InventoryItemDialog({ isOpen, item, onClose }: InventoryItemDial
 
 function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onClose: () => void }) {
   const { showToast } = useToast();
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(item?.name ?? '');
   const [unit, setUnit] = useState(item?.unit ?? '');
   const [lowStockThreshold, setLowStockThreshold] = useState(String(item?.lowStockThreshold ?? 0));
   const [isActive, setIsActive] = useState(item?.isActive ?? true);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [storedImageUrl, setStoredImageUrl] = useState<string | null>(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(Boolean(item));
-  const [removeImage, setRemoveImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const imageDraft = useResourceImageDraft('inventory', item?.id ?? null);
   const isEditing = item !== null;
-  const previewUrl = useImagePreview(imageFile);
-  const displayedImageUrl = previewUrl ?? (removeImage ? null : storedImageUrl);
-
-  useEffect(() => {
-    if (!item) return;
-
-    let isCurrent = true;
-    setIsLoadingImage(true);
-
-    getInventoryImageUrl(item.id)
-      .then((url) => {
-        if (isCurrent) setStoredImageUrl(url);
-      })
-      .catch(() => {
-        if (isCurrent) setStoredImageUrl(null);
-      })
-      .finally(() => {
-        if (isCurrent) setIsLoadingImage(false);
-      });
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [item]);
-
-  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
-    event.target.value = '';
-
-    if (!file) return;
-
-    const imageError = validateInventoryImage(file);
-    if (imageError) {
-      setMessage(imageError);
-      return;
-    }
-
-    setMessage(null);
-    setImageFile(file);
-    setRemoveImage(false);
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -122,30 +74,34 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
 
     setIsSaving(true);
     let inventoryItemId = item?.id ?? null;
-    let detailsSaved = false;
 
     try {
       if (item) {
         await updateInventoryItemDetails(item.id, validation.value);
-        detailsSaved = true;
       } else {
         inventoryItemId = await createInventoryItem(validation.value);
-        detailsSaved = true;
       }
 
       if (!inventoryItemId) {
         throw new Error('Inventory item identifier is unavailable.');
       }
 
-      const imageChanged = imageFile !== null || removeImage;
-      if (imageFile) {
-        await uploadInventoryImage(inventoryItemId, imageFile);
-      } else if (removeImage) {
-        await removeInventoryImage(inventoryItemId);
-      }
-
-      if (imageChanged) {
-        await touchInventoryItem(inventoryItemId);
+      if (imageDraft.file) {
+        try {
+          await uploadResourceImage('inventory', inventoryItemId, imageDraft.file);
+          await touchInventoryItem(inventoryItemId);
+        } catch (error) {
+          setMessage(getResourceImageErrorMessage(error));
+          return;
+        }
+      } else if (imageDraft.removeExisting) {
+        try {
+          await removeResourceImage('inventory', inventoryItemId);
+          await touchInventoryItem(inventoryItemId);
+        } catch (error) {
+          setMessage(getResourceImageErrorMessage(error));
+          return;
+        }
       }
 
       showToast({
@@ -154,17 +110,7 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
       });
       onClose();
     } catch (error) {
-      if (detailsSaved) {
-        showToast({
-          message: item
-            ? 'Item details were saved, but the image change did not finish.'
-            : 'Item created, but the image upload did not finish. Edit the item to try again.',
-          tone: 'warning',
-        });
-        onClose();
-      } else {
-        setMessage(getInventoryErrorMessage(error));
-      }
+      setMessage(getInventoryErrorMessage(error));
     } finally {
       setIsSaving(false);
     }
@@ -180,53 +126,11 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
         <button className="inventory-close-button" type="button" aria-label="Close inventory item form" onClick={onClose}>×</button>
       </div>
 
-      <div className="inventory-image-field">
-        <span className="inventory-image-field-label">Item image</span>
-        <div className="inventory-image-preview">
-          {displayedImageUrl ? (
-            <img src={displayedImageUrl} alt="Selected inventory item preview" />
-          ) : isLoadingImage ? (
-            <div className="inventory-image-preview-empty">
-              <span className="management-spinner" aria-hidden="true" />
-              <span>Loading image…</span>
-            </div>
-          ) : (
-            <div className="inventory-image-preview-empty">
-              <InventoryImageIcon />
-              <span>No image selected</span>
-            </div>
-          )}
-        </div>
-        <input
-          ref={imageInputRef}
-          className="inventory-image-input"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleImageChange}
-        />
-        <div className="inventory-image-actions">
-          <button
-            type="button"
-            className="management-secondary-button"
-            onClick={() => imageInputRef.current?.click()}
-          >
-            {displayedImageUrl ? 'Replace image' : 'Choose image'}
-          </button>
-          {displayedImageUrl ? (
-            <button
-              type="button"
-              className="management-row-button"
-              onClick={() => {
-                setImageFile(null);
-                setRemoveImage(true);
-              }}
-            >
-              Remove
-            </button>
-          ) : null}
-        </div>
-        <small>JPEG, PNG, or WebP. Maximum file size: 5 MB.</small>
-      </div>
+      <ResourceImagePicker
+        draft={imageDraft}
+        label="Item image"
+        onError={setMessage}
+      />
 
       <label className="inventory-field">
         <span>Item name</span>
@@ -263,33 +167,5 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
         </button>
       </div>
     </form>
-  );
-}
-
-function useImagePreview(file: File | null) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null);
-      return;
-    }
-
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  return previewUrl;
-}
-
-function InventoryImageIcon() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect x="8" y="10" width="32" height="28" rx="4" />
-      <circle cx="18" cy="20" r="3" />
-      <path d="m12 34 9-9 6 6 4-4 5 7" />
-    </svg>
   );
 }
