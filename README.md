@@ -16,7 +16,7 @@ PayMongo and Cloud Functions remain excluded from the current implementation pha
 
 The current slices provide:
 
-- explicit Firebase development, staging, and production configuration boundaries;
+- explicit Firebase development and deployment-stage configuration boundaries;
 - default-deny Firestore authorization with automated Security Rules tests;
 - customer Email/Password registration, sign-in, sign-out, and password reset;
 - public active-package catalogs on web and mobile;
@@ -40,17 +40,22 @@ Dos Hermanos may accept multiple events on the same date and at overlapping time
 
 Equipment assignment is currently a preparation/accountability workflow rather than a future-date capacity lock. Actual physical release is blocked when the registered equipment is not available or when the linked reservation is no longer eligible.
 
-## Firebase environment separation
+## Firebase deployment lifecycle
 
-Production Firebase project:
+The current Firebase deployment project is:
 
 ```text
 dos-hermanos-hilongos
 ```
 
-The repository intentionally has no default Firebase CLI project. Production is available only through the explicit `production` alias. Non-production web and mobile runtimes refuse to connect to the production project.
+It is currently used as the staging/pre-launch environment. The same Firebase project may later become the live production deployment when the system is ready and the intended domain is connected.
 
-Separate development and staging Firebase projects must be provisioned before those environments use a remote backend. See `docs/firebase-environments.md`.
+Both explicit Firebase CLI aliases currently point to the same project:
+
+- `staging` -> `dos-hermanos-hilongos`
+- `production` -> `dos-hermanos-hilongos`
+
+There is intentionally no `default` project alias. Local development remains separate and is not allowed to connect to this shared staging/production project. See `docs/firebase-environments.md`.
 
 ## Web development
 
@@ -60,7 +65,7 @@ npm ci
 cp .env.example .env.local
 ```
 
-Fill `.env.local` with the separate development Firebase web-app configuration, then run:
+Fill `.env.local` with a separate development Firebase web-app configuration, then run:
 
 ```bash
 npm run dev
@@ -68,12 +73,11 @@ npm run dev
 
 ## Staging web build and deployment
 
-Provision a separate staging Firebase project first and add it to `.firebaserc` as `staging`. Then:
+The tracked staging template already contains the public Firebase client configuration for `dos-hermanos-hilongos`.
 
 ```bash
 cd web
 cp .env.staging.example .env.staging
-# Fill .env.staging with the staging Firebase public client configuration.
 npm ci
 cd ..
 node scripts/check-staging-readiness.mjs
@@ -84,9 +88,9 @@ firebase deploy --only firestore --project staging
 firebase deploy --only hosting --project staging
 ```
 
-The staging readiness check fails when the staging alias is missing, the staging web configuration is incomplete, the project IDs disagree, or staging points at production.
+The staging readiness check verifies that the staging alias and web staging configuration both point to the approved deployment project.
 
-Before staging deployment, also complete `docs/staging-smoke-checklist.md`.
+Before treating the deployment as a valid release candidate, complete `docs/staging-smoke-checklist.md`.
 
 ## Mobile development
 
@@ -96,15 +100,17 @@ npm ci
 cp .env.example .env.local
 ```
 
-Fill `.env.local` with the separate development Firebase client configuration and keep `EXPO_PUBLIC_APP_ENV=development`, then run:
+Fill `.env.local` with a separate development Firebase client configuration and keep `EXPO_PUBLIC_APP_ENV=development`, then run:
 
 ```bash
 npm run start
 ```
 
-`mobile/.env.staging.example` and `mobile/.env.production.example` define the required environment markers for non-development builds.
+`mobile/.env.staging.example` and `mobile/.env.production.example` use the same Firebase project but different release-stage markers.
 
-## Production deployment
+## Production promotion
+
+When the current Firebase deployment is ready to be treated as production, the same project may remain in use.
 
 Do not use a bare `firebase deploy` command.
 
@@ -118,9 +124,11 @@ firebase deploy --only firestore --project production
 firebase deploy --only hosting --project production
 ```
 
+Before production promotion, review and clean staging-only accounts and test business data as appropriate.
+
 ## Authentication setup
 
-When configuring a Firebase environment, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
+When configuring the Firebase project, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
 
 ## Firestore rule tests
 
