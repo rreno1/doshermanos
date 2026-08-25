@@ -16,6 +16,7 @@ import { ReservationReviewPanel } from '../features/reservations/ReservationRevi
 import { UsersRolesPanel } from '../features/users/UsersRolesPanel';
 import { ManagementShell } from './ManagementShell';
 import { navigate, usePathname } from './navigation';
+import './app-loading.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
@@ -31,7 +32,7 @@ type ManagementPage =
   | 'audit';
 
 export function App() {
-  const { authState } = useAuth();
+  const { authState, loadingMessage } = useAuth();
   const pathname = usePathname();
   const workspaceRole = getWorkspaceRole(authState.profile, authState.status);
   const managementPath = isManagementPath(pathname);
@@ -70,11 +71,31 @@ export function App() {
     }
   }, [authState.status, managementPath, pathname, workspaceRole]);
 
+  if (authState.status === 'loading') {
+    return <AppLoading message={loadingMessage ?? 'Loading Dos Hermanos…'} />;
+  }
+
+  if (workspaceRole && !managementPath) {
+    return <AppLoading message="Opening your workspace…" />;
+  }
+
+  if (managementPath && !workspaceRole) {
+    return <AppLoading message="Opening Dos Hermanos…" />;
+  }
+
+  if (!managementPath && pathname !== '/') {
+    return <AppLoading message="Opening Dos Hermanos…" />;
+  }
+
   if (workspaceRole && managementPath) {
     const basePath = getWorkspaceBasePath(workspaceRole);
     const page = getManagementPage(pathname, basePath, workspaceRole);
 
-    if (page && authState.profile) {
+    if (!page) {
+      return <AppLoading message="Opening your workspace…" />;
+    }
+
+    if (authState.profile) {
       return (
         <ManagementWorkspace
           page={page}
@@ -87,6 +108,19 @@ export function App() {
   }
 
   return <PublicSite />;
+}
+
+function AppLoading({ message }: { message: string }) {
+  return (
+    <main className="app-loading" aria-busy="true" aria-live="polite">
+      <div className="app-loading-brand" aria-label="Dos Hermanos Catering">
+        <strong>Dos Hermanos</strong>
+        <span>Catering</span>
+      </div>
+      <span className="app-loading-spinner" aria-hidden="true" />
+      <p>{message}</p>
+    </main>
+  );
 }
 
 function PublicSite() {
@@ -244,24 +278,15 @@ function getManagementPage(
 
 function getPageTitle(page: ManagementPage) {
   switch (page) {
-    case 'dashboard':
-      return 'Dashboard';
-    case 'reservations':
-      return 'Reservations';
-    case 'packages':
-      return 'Packages';
-    case 'inventory':
-      return 'Inventory';
-    case 'payments':
-      return 'Payments';
-    case 'equipment':
-      return 'Equipment';
-    case 'reports':
-      return 'Reports';
-    case 'users':
-      return 'Users & roles';
-    case 'audit':
-      return 'Audit trail';
+    case 'dashboard': return 'Dashboard';
+    case 'reservations': return 'Reservations';
+    case 'packages': return 'Packages';
+    case 'inventory': return 'Inventory';
+    case 'payments': return 'Payments';
+    case 'equipment': return 'Equipment';
+    case 'reports': return 'Reports';
+    case 'users': return 'Users & roles';
+    case 'audit': return 'Audit trail';
   }
 }
 
