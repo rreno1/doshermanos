@@ -16,7 +16,6 @@ import { ReservationReviewPanel } from '../features/reservations/ReservationRevi
 import { UsersRolesPanel } from '../features/users/UsersRolesPanel';
 import { ManagementShell } from './ManagementShell';
 import { navigate, usePathname } from './navigation';
-import './app-loading.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
