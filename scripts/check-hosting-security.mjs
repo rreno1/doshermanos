@@ -13,6 +13,11 @@ const contentSecurityPolicy = globalHeaders.get('content-security-policy') ?? ''
 for (const directive of [
   "default-src 'self'",
   "script-src 'self'",
+  "https://apis.google.com",
+  "https://www.gstatic.com",
+  "frame-src 'self'",
+  "https://accounts.google.com",
+  "https://*.firebaseapp.com",
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'none'",
