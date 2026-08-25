@@ -121,7 +121,7 @@ export function PackageManagementPanel() {
       setForm(emptyForm);
       await refreshPackages();
     } catch {
-      setFormError('The package could not be saved. Check your access and try again.');
+      setFormError('Package could not be saved.');
     } finally {
       setIsSaving(false);
     }
@@ -133,32 +133,25 @@ export function PackageManagementPanel() {
 
     try {
       await setManagedPackageActive(cateringPackage.id, !cateringPackage.isActive);
-      setMessage(cateringPackage.isActive ? 'Package hidden from customers.' : 'Package published.');
+      setMessage(cateringPackage.isActive ? 'Package hidden.' : 'Package published.');
       await refreshPackages();
     } catch {
-      setMessage('The package status could not be changed.');
+      setMessage('Package status could not be changed.');
     } finally {
       setBusyPackageId(null);
     }
   }
 
   return (
-    <section className="package-management-section" aria-labelledby="package-management-title">
+    <section className="package-management-section" aria-label="Packages">
       <div className="package-management-heading">
-        <div>
-          <p className="package-management-kicker">Catalog management</p>
-          <h2 id="package-management-title">Catering packages</h2>
-          <p>
-            Maintain the package information customers can browse. Base package pricing remains a catalog reference and is not treated as a final customized event total.
-          </p>
-        </div>
         <button className="package-management-primary" type="button" onClick={openCreateEditor}>
           Add package
         </button>
       </div>
 
       <div className="package-management-summary" aria-label="Package summary">
-        <span><strong>{packages.length}</strong> packages shown</span>
+        <span><strong>{packages.length}</strong> packages</span>
         <span><strong>{activeCount}</strong> active</span>
         <span><strong>{packages.length - activeCount}</strong> inactive</span>
       </div>
@@ -168,10 +161,7 @@ export function PackageManagementPanel() {
       {isEditorOpen ? (
         <form className="package-management-editor" onSubmit={(event) => void handleSubmit(event)}>
           <div className="package-management-editor-heading">
-            <div>
-              <span>{editingPackageId ? 'Edit package' : 'New package'}</span>
-              <strong>{editingPackageId ? 'Update catalog information' : 'Create a catalog package'}</strong>
-            </div>
+            <strong>{editingPackageId ? 'Edit package' : 'New package'}</strong>
             <button type="button" onClick={closeEditor} disabled={isSaving}>Cancel</button>
           </div>
 
@@ -235,10 +225,10 @@ export function PackageManagementPanel() {
             <textarea
               rows={5}
               value={form.menuHighlights}
-              placeholder="One menu item per line"
+              placeholder="One item per line"
               onChange={(event) => setForm((current) => ({ ...current, menuHighlights: event.target.value }))}
             />
-            <small>Use one line per menu highlight. A maximum of 20 items is accepted.</small>
+            <small>Maximum 20 items.</small>
           </label>
 
           {formError ? <div className="package-management-error" role="alert">{formError}</div> : null}
@@ -252,7 +242,7 @@ export function PackageManagementPanel() {
       {isLoading ? <ManagementStatus message="Loading packages…" /> : null}
       {!isLoading && hasError ? <ManagementStatus message="Packages could not be loaded." error /> : null}
       {!isLoading && !hasError && packages.length === 0 ? (
-        <ManagementStatus message="No package records are available yet." />
+        <ManagementStatus message="No packages yet." />
       ) : null}
 
       {!isLoading && !hasError && packages.length > 0 ? (
@@ -272,7 +262,7 @@ export function PackageManagementPanel() {
                 <tr key={cateringPackage.id}>
                   <td>
                     <strong>{cateringPackage.name}</strong>
-                    <span>{cateringPackage.menuHighlights.length} menu highlights</span>
+                    <span>{cateringPackage.menuHighlights.length} menu items</span>
                   </td>
                   <td>{formatCurrency(cateringPackage.priceInCentavos)}</td>
                   <td>{cateringPackage.sortOrder.toLocaleString('en-PH')}</td>
