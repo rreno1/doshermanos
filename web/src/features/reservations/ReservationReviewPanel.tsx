@@ -36,24 +36,13 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
   }, []);
 
   return (
-    <section className="reservation-review-section" id="reservation-review" aria-labelledby="reservation-review-title">
+    <section className="reservation-review-section" id="reservation-review" aria-label="Reservations">
       <div className="reservation-review-heading">
-        <div>
-          <p className="reservation-review-kicker">Reservation review</p>
-          <h2 id="reservation-review-title">Pending requests</h2>
-          <p>
-            Review submitted event and customization details before taking an operational decision.
-            Rejection is available now; confirmation remains intentionally gated until the
-            simultaneous-event capacity and authoritative customization rules are approved.
-          </p>
-        </div>
-        <span className="reservation-review-count">{reservations.length} shown · up to 50</span>
+        <span className="reservation-review-count">{reservations.length} pending · up to 50 shown</span>
       </div>
 
       <div className="reservation-capacity-note" role="status">
-        Overlapping events are allowed in principle, and customization requests do not establish a
-        final menu, quantity, supply allocation, or price. Confirmation will be enabled only when
-        the approved capacity and package-calculation rules can be enforced consistently.
+        Confirmation stays disabled until approved event-capacity and customization-pricing rules are available.
       </div>
 
       {actionError ? <div className="reservation-review-error" role="alert">{actionError}</div> : null}
@@ -63,15 +52,15 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
 
   function renderContent() {
     if (isLoading) {
-      return <ReservationReviewStatus message="Loading pending reservation requests…" />;
+      return <ReservationReviewStatus message="Loading pending requests…" />;
     }
 
     if (hasError) {
-      return <ReservationReviewStatus message="Pending reservation requests could not be loaded." error />;
+      return <ReservationReviewStatus message="Pending requests could not be loaded." error />;
     }
 
     if (reservations.length === 0) {
-      return <ReservationReviewStatus message="There are no pending reservation requests in the current view." />;
+      return <ReservationReviewStatus message="No pending reservation requests." />;
     }
 
     return (
@@ -107,30 +96,33 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
                 </dl>
                 {reservation.customization.menuRequest ? (
                   <p className="reservation-review-requirements">
-                    <strong>Menu request:</strong> {reservation.customization.menuRequest}
+                    <strong>Menu:</strong> {reservation.customization.menuRequest}
                   </p>
                 ) : null}
                 {reservation.customization.foodQuantityRequest ? (
                   <p className="reservation-review-requirements">
-                    <strong>Food quantity request:</strong>{' '}
-                    {reservation.customization.foodQuantityRequest}
+                    <strong>Food quantity:</strong> {reservation.customization.foodQuantityRequest}
                   </p>
                 ) : null}
                 {reservation.customization.supplyRequest ? (
                   <p className="reservation-review-requirements">
-                    <strong>Supply request:</strong> {reservation.customization.supplyRequest}
+                    <strong>Supplies:</strong> {reservation.customization.supplyRequest}
                   </p>
                 ) : null}
                 {reservation.event.serviceRequirements ? (
                   <p className="reservation-review-requirements">
-                    <strong>Service requirements:</strong> {reservation.event.serviceRequirements}
+                    <strong>Service:</strong> {reservation.event.serviceRequirements}
                   </p>
                 ) : null}
               </div>
 
               <div className="reservation-review-actions">
-                <button type="button" disabled title="Confirmation requires approved capacity and customization rules">
-                  Confirm unavailable
+                <button
+                  type="button"
+                  disabled
+                  title="Confirmation requires approved capacity and customization rules"
+                >
+                  Confirm
                 </button>
                 <button
                   type="button"
@@ -138,7 +130,7 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
                   disabled={isBusy}
                   onClick={() => handleReject(reservation)}
                 >
-                  {isBusy ? 'Rejecting…' : 'Reject request'}
+                  {isBusy ? 'Rejecting…' : 'Reject'}
                 </button>
               </div>
             </article>
@@ -163,7 +155,7 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
     try {
       await rejectReservation(reservation.id, staffId, staffName);
     } catch {
-      setActionError('The reservation could not be rejected. Refresh the request list and try again.');
+      setActionError('The reservation could not be rejected. Refresh the list and try again.');
     } finally {
       setBusyReservationId(null);
     }
@@ -172,7 +164,10 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
 
 function ReservationReviewStatus({ message, error = false }: { message: string; error?: boolean }) {
   return (
-    <div className={error ? 'reservation-review-status reservation-review-status-error' : 'reservation-review-status'} role={error ? 'alert' : 'status'}>
+    <div
+      className={error ? 'reservation-review-status reservation-review-status-error' : 'reservation-review-status'}
+      role={error ? 'alert' : 'status'}
+    >
       {message}
     </div>
   );
