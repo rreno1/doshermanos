@@ -19,7 +19,7 @@ const emptyForm: ReservationFormValues = {
 
 type ReservationFormProps = {
   cateringPackage: CateringPackage;
-  onSubmitRequest: (input: ReservationRequestInput) => Promise<void>;
+  onSubmitRequest: (input: ReservationRequestInput) => Promise<unknown>;
   onSubmitted: () => void;
   leadingFields?: ReactNode;
   beforeSubmit?: () => boolean;
