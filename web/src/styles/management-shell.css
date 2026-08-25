@@ -95,14 +95,6 @@
   font-size: 0.9rem;
 }
 
-.management-sidebar-account-id {
-  overflow: hidden;
-  color: rgba(238, 246, 243, 0.5);
-  font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .management-workspace {
   min-width: 0;
 }
@@ -111,7 +103,7 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  min-height: 72px;
+  min-height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,22 +121,31 @@
   gap: 12px;
 }
 
-.management-topbar-heading > div {
+.management-topbar-copy {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 4px;
 }
 
-.management-topbar-label {
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 680;
-}
-
-.management-topbar-heading strong {
+.management-topbar-copy h1 {
   overflow: hidden;
+  margin: 0;
   color: #17211f;
-  font-size: 1rem;
+  font-size: 1.32rem;
+  font-weight: 760;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.management-topbar-copy p {
+  overflow: hidden;
+  max-width: 720px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -177,7 +178,7 @@
   margin-inline: 0;
   padding-top: 0;
   padding-bottom: 32px;
-  scroll-margin-top: 92px;
+  scroll-margin-top: 98px;
 }
 
 .management-page .dashboard-section {
@@ -223,12 +224,13 @@
 
 @media (max-width: 640px) {
   .management-topbar {
-    min-height: 66px;
+    min-height: 72px;
     padding-inline: 14px;
   }
 
-  .management-topbar-label {
-    display: none;
+  .management-topbar-copy p {
+    max-width: 48vw;
+    font-size: 0.7rem;
   }
 
   .management-content {
@@ -237,6 +239,12 @@
 
   .management-topbar .auth-trigger {
     max-width: 124px;
+  }
+}
+
+@media (max-width: 430px) {
+  .management-topbar-copy p {
+    display: none;
   }
 }
 
