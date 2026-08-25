@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
+import { useToast } from '../../app/ToastProvider';
 import { PackageEditorDialog } from './PackageEditorDialog';
 import { loadManagedPackages, setManagedPackageActive } from './package.service';
 import type { ManagedCateringPackage } from './package.types';
@@ -17,13 +19,13 @@ type SortDirection = 'asc' | 'desc';
 const tabs = [{ value: 'packages', label: 'Packages' }] as const;
 
 export function PackageManagementPanel() {
+  const { showToast } = useToast();
   const [packages, setPackages] = useState<ManagedCateringPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<ManagedCateringPackage | null>(null);
   const [busyPackageId, setBusyPackageId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [queryText, setQueryText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<PackageSort>('order');
@@ -60,29 +62,35 @@ export function PackageManagementPanel() {
 
   function openCreateEditor() {
     setEditingPackage(null);
-    setMessage(null);
     setIsEditorOpen(true);
   }
 
   function openEditEditor(cateringPackage: ManagedCateringPackage) {
     setEditingPackage(cateringPackage);
-    setMessage(null);
     setIsEditorOpen(true);
   }
 
   async function handleStatusChange(cateringPackage: ManagedCateringPackage) {
     setBusyPackageId(cateringPackage.id);
-    setMessage(null);
     try {
       await setManagedPackageActive(cateringPackage.id, !cateringPackage.isActive);
-      setMessage(cateringPackage.isActive ? 'Package hidden.' : 'Package published.');
+      showToast({
+        message: cateringPackage.isActive ? 'Package hidden.' : 'Package published.',
+        tone: 'success',
+      });
       await refreshPackages();
     } catch {
-      setMessage('Package status could not be changed.');
+      showToast({ message: 'Package status could not be changed.', tone: 'error' });
     } finally {
       setBusyPackageId(null);
     }
   }
+
+  const emptyMessage = packages.length === 0
+    ? 'No packages yet.'
+    : visiblePackages.length === 0
+      ? 'No packages match the current view.'
+      : undefined;
 
   return (
     <section className="package-management-section" aria-label="Packages">
@@ -100,24 +108,39 @@ export function PackageManagementPanel() {
         filterContent={(
           <>
             <ManagementFilterField label="Status">
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                <option value="all">All statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <ManagementSelect
+                value={statusFilter}
+                options={[
+                  { value: 'all', label: 'All statuses' },
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                ]}
+                onChange={setStatusFilter}
+                ariaLabel="Filter packages by status"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Sort by">
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as PackageSort)}>
-                <option value="order">Catalog order</option>
-                <option value="name">Name</option>
-                <option value="price">Base price</option>
-              </select>
+              <ManagementSelect
+                value={sortBy}
+                options={[
+                  { value: 'order', label: 'Catalog order' },
+                  { value: 'name', label: 'Name' },
+                  { value: 'price', label: 'Base price' },
+                ]}
+                onChange={setSortBy}
+                ariaLabel="Sort packages by"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Direction">
-              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
+              <ManagementSelect
+                value={sortDirection}
+                options={[
+                  { value: 'asc', label: 'Ascending' },
+                  { value: 'desc', label: 'Descending' },
+                ]}
+                onChange={setSortDirection}
+                ariaLabel="Package sort direction"
+              />
             </ManagementFilterField>
             <button
               type="button"
@@ -139,30 +162,16 @@ export function PackageManagementPanel() {
         )}
       />
 
-      {message ? <div className="package-management-message" role="status">{message}</div> : null}
-      {renderContent()}
-
-      <PackageEditorDialog
-        isOpen={isEditorOpen}
-        cateringPackage={editingPackage}
-        onClose={() => setIsEditorOpen(false)}
-        onSaved={(nextMessage) => {
-          setMessage(nextMessage);
-          void refreshPackages();
-        }}
-      />
-    </section>
-  );
-
-  function renderContent() {
-    if (isLoading) return <ManagementStatus message="Loading packages…" />;
-    if (hasError) return <ManagementStatus message="Packages could not be loaded." error />;
-    if (visiblePackages.length === 0) {
-      return <ManagementStatus message={packages.length === 0 ? 'No packages yet.' : 'No packages match the current view.'} />;
-    }
-
-    return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoading ? 'Loading catering packages…' : undefined}
+        errorMessage={!isLoading && hasError ? 'Packages could not be loaded.' : undefined}
+        emptyMessage={!isLoading && !hasError ? emptyMessage : undefined}
+        pagination={!isLoading && !hasError && visiblePackages.length > 0 ? {
+          page: page.page,
+          totalItems: visiblePackages.length,
+          onPageChange: page.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
@@ -208,10 +217,19 @@ export function PackageManagementPanel() {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={page.page} totalItems={visiblePackages.length} onPageChange={page.setPage} />
-      </>
-    );
-  }
+      </ManagementTableFrame>
+
+      <PackageEditorDialog
+        isOpen={isEditorOpen}
+        cateringPackage={editingPackage}
+        onClose={() => setIsEditorOpen(false)}
+        onSaved={(message) => {
+          showToast({ message, tone: 'success' });
+          void refreshPackages();
+        }}
+      />
+    </section>
+  );
 }
 
 function filterPackages(packages: ManagedCateringPackage[], query: string, status: string, sortBy: PackageSort, direction: SortDirection) {
@@ -227,10 +245,6 @@ function filterPackages(packages: ManagedCateringPackage[], query: string, statu
         : String(leftValue).localeCompare(String(rightValue), 'en-PH', { sensitivity: 'base' });
       return direction === 'asc' ? result : -result;
     });
-}
-
-function ManagementStatus({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
 }
 
 function formatCurrency(valueInCentavos: number) {
