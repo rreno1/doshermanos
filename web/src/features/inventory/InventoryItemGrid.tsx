@@ -46,7 +46,9 @@ function InventoryItemCard({
 
     getInventoryImageUrl(item.id)
       .then((url) => {
-        if (isCurrent) setImageUrl(url);
+        if (isCurrent) {
+          setImageUrl(url ? addImageRevision(url, item.updatedAt) : null);
+        }
       })
       .catch(() => {
         if (isCurrent) setImageUrl(null);
@@ -140,6 +142,11 @@ function getInventoryStatus(item: InventoryItem) {
     label: 'In stock',
     className: 'management-status-badge management-status-badge-active',
   };
+}
+
+function addImageRevision(url: string, updatedAt: Date) {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${updatedAt.getTime()}`;
 }
 
 function InventoryPlaceholderIcon() {
