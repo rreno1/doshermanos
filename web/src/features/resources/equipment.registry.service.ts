@@ -8,6 +8,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebase';
 import { parseEquipmentItem, requireInteger } from './equipment.parsers';
@@ -40,7 +41,7 @@ export function subscribeToEquipment(
   );
 }
 
-export async function createEquipmentItem(input: EquipmentItemInput) {
+export async function createEquipmentItem(input: EquipmentItemInput): Promise<string> {
   const equipmentRef = doc(collection(firestore, 'equipment'));
 
   await setDoc(equipmentRef, {
@@ -57,6 +58,8 @@ export async function createEquipmentItem(input: EquipmentItemInput) {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  return equipmentRef.id;
 }
 
 export async function updateEquipmentItem(
@@ -100,6 +103,12 @@ export async function updateEquipmentItem(
       isDeleted: false,
       updatedAt: serverTimestamp(),
     });
+  });
+}
+
+export async function touchEquipmentItem(equipmentId: string): Promise<void> {
+  await updateDoc(doc(firestore, 'equipment', equipmentId), {
+    updatedAt: serverTimestamp(),
   });
 }
 
