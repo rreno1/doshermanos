@@ -5,6 +5,9 @@ import { AppErrorBoundary } from './app/AppErrorBoundary';
 import { ToastProvider } from './app/ToastProvider';
 import { AuthProvider } from './features/auth/AuthProvider';
 import './styles/global.css';
+import './app/app-loading.css';
+import './app/management-interactions.css';
+import './app/toast.css';
 
 const rootElement = document.getElementById('root');
 
