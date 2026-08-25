@@ -7,11 +7,13 @@ import { DashboardPanel } from '../features/dashboard/DashboardPanel';
 import { EquipmentPanel } from '../features/equipment/EquipmentPanel';
 import { InventoryPanel } from '../features/inventory/InventoryPanel';
 import { PackageCatalog } from '../features/packages/PackageCatalog';
+import { PackageManagementPanel } from '../features/packages/PackageManagementPanel';
 import { MyPayments } from '../features/payments/MyPayments';
 import { PaymentsPanel } from '../features/payments/PaymentsPanel';
 import { ReportsPanel } from '../features/reports/ReportsPanel';
 import { MyReservations } from '../features/reservations/MyReservations';
 import { ReservationReviewPanel } from '../features/reservations/ReservationReviewPanel';
+import { UsersRolesPanel } from '../features/users/UsersRolesPanel';
 import { ManagementShell } from './ManagementShell';
 import { navigate, usePathname } from './navigation';
 
@@ -20,10 +22,12 @@ type WorkspaceRole = 'staff' | 'admin';
 type ManagementPage =
   | 'dashboard'
   | 'reservations'
+  | 'packages'
   | 'inventory'
   | 'payments'
   | 'equipment'
   | 'reports'
+  | 'users'
   | 'audit';
 
 export function App() {
@@ -161,6 +165,8 @@ function renderManagementPage(
       return <DashboardPanel workspaceBasePath={basePath} />;
     case 'reservations':
       return <ReservationReviewPanel staffId={profile.id} staffName={profile.displayName} />;
+    case 'packages':
+      return <PackageManagementPanel />;
     case 'inventory':
       return <InventoryPanel staffId={profile.id} staffName={profile.displayName} />;
     case 'payments':
@@ -169,6 +175,8 @@ function renderManagementPage(
       return <EquipmentPanel staffId={profile.id} staffName={profile.displayName} />;
     case 'reports':
       return <ReportsPanel />;
+    case 'users':
+      return role === 'admin' ? <UsersRolesPanel currentUserId={profile.id} /> : null;
     case 'audit':
       return role === 'admin' ? <AuditPanel /> : null;
   }
@@ -213,12 +221,17 @@ function getManagementPage(
 
   if (
     routeSegment === 'reservations' ||
+    routeSegment === 'packages' ||
     routeSegment === 'inventory' ||
     routeSegment === 'payments' ||
     routeSegment === 'equipment' ||
     routeSegment === 'reports'
   ) {
     return routeSegment;
+  }
+
+  if (routeSegment === 'users' && role === 'admin') {
+    return 'users';
   }
 
   if (routeSegment === 'audit' && role === 'admin') {
@@ -234,6 +247,8 @@ function getPageTitle(page: ManagementPage) {
       return 'Dashboard';
     case 'reservations':
       return 'Reservations';
+    case 'packages':
+      return 'Packages';
     case 'inventory':
       return 'Inventory';
     case 'payments':
@@ -242,6 +257,8 @@ function getPageTitle(page: ManagementPage) {
       return 'Equipment';
     case 'reports':
       return 'Reports';
+    case 'users':
+      return 'Users & roles';
     case 'audit':
       return 'Audit trail';
   }

@@ -37,10 +37,12 @@ export function ManagementShell({
   const navigationItems: NavigationItem[] = [
     { label: 'Dashboard', path: basePath },
     { label: 'Reservations', path: `${basePath}/reservations` },
+    { label: 'Packages', path: `${basePath}/packages` },
     { label: 'Inventory', path: `${basePath}/inventory` },
     { label: 'Payments', path: `${basePath}/payments` },
     { label: 'Equipment', path: `${basePath}/equipment` },
     { label: 'Reports', path: `${basePath}/reports` },
+    { label: 'Users & roles', path: `${basePath}/users`, adminOnly: true },
     { label: 'Audit trail', path: `${basePath}/audit`, adminOnly: true },
   ].filter((item) => !item.adminOnly || role === 'admin');
 
