@@ -7,7 +7,7 @@ import { getAuth, initializeAuth } from 'firebase/auth';
 import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-const productionProjectId = 'dos-hermanos-hilongos';
+const deploymentProjectId = 'dos-hermanos-hilongos';
 const allowedAppEnvironments = ['development', 'staging', 'production'] as const;
 const appEnvironment = process.env.EXPO_PUBLIC_APP_ENV;
 
@@ -30,15 +30,17 @@ if (!allowedAppEnvironments.includes(appEnvironment as (typeof allowedAppEnviron
   throw new Error('EXPO_PUBLIC_APP_ENV must be development, staging, or production.');
 }
 
-if (appEnvironment === 'production' && firebaseConfig.projectId !== productionProjectId) {
+const isDeploymentEnvironment = appEnvironment === 'staging' || appEnvironment === 'production';
+
+if (isDeploymentEnvironment && firebaseConfig.projectId !== deploymentProjectId) {
   throw new Error(
-    'Production mode must connect to the approved production Firebase project.',
+    'Staging and production builds must connect to the approved Firebase deployment project.',
   );
 }
 
-if (appEnvironment !== 'production' && firebaseConfig.projectId === productionProjectId) {
+if (!isDeploymentEnvironment && firebaseConfig.projectId === deploymentProjectId) {
   throw new Error(
-    'Non-production mode cannot connect to the production Firebase project. Configure a separate development or staging project instead.',
+    'Local development cannot connect to the shared staging/production Firebase project. Configure a separate development project instead.',
   );
 }
 
