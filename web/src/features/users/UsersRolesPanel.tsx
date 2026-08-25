@@ -56,24 +56,17 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
       await updateUserAccess(user.id, user.role, user.status);
       setMessage(`${user.displayName}'s access was updated.`);
     } catch {
-      setMessage('The user access change could not be saved.');
+      setMessage('Access change could not be saved.');
     } finally {
       setSavingUserId(null);
     }
   }
 
   return (
-    <section className="users-section" aria-labelledby="users-title">
+    <section className="users-section" aria-label="Users and roles">
       <div className="users-heading">
-        <div>
-          <p className="users-kicker">Administrator only</p>
-          <h2 id="users-title">Users &amp; roles</h2>
-          <p>
-            Review application profiles and assign the access level each user needs. Firestore security rules remain the authoritative permission boundary.
-          </p>
-        </div>
         <label className="users-search">
-          <span>Search users</span>
+          <span>Search</span>
           <input
             type="search"
             value={queryText}
@@ -84,18 +77,18 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
       </div>
 
       <div className="users-summary" aria-label="User summary">
-        <span><strong>{users.length}</strong> profiles shown</span>
-        <span><strong>{users.filter((user) => user.role === 'admin').length}</strong> administrators</span>
+        <span><strong>{users.length}</strong> profiles</span>
+        <span><strong>{users.filter((user) => user.role === 'admin').length}</strong> admins</span>
         <span><strong>{users.filter((user) => user.role === 'staff').length}</strong> staff</span>
         <span><strong>{users.filter((user) => user.role === 'customer').length}</strong> customers</span>
       </div>
 
       {message ? <div className="users-message" role="status">{message}</div> : null}
 
-      {isLoading ? <UsersStatus message="Loading user profiles…" /> : null}
-      {!isLoading && hasError ? <UsersStatus message="User profiles could not be loaded." error /> : null}
+      {isLoading ? <UsersStatus message="Loading users…" /> : null}
+      {!isLoading && hasError ? <UsersStatus message="Users could not be loaded." error /> : null}
       {!isLoading && !hasError && visibleUsers.length === 0 ? (
-        <UsersStatus message={users.length === 0 ? 'No user profiles are available yet.' : 'No users match this search.'} />
+        <UsersStatus message={users.length === 0 ? 'No users yet.' : 'No users match this search.'} />
       ) : null}
 
       {!isLoading && !hasError && visibleUsers.length > 0 ? (
@@ -162,9 +155,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
         </div>
       ) : null}
 
-      <p className="users-note">
-        The current administrator account cannot change its own role or status from this screen, reducing the risk of accidental lockout.
-      </p>
+      <p className="users-note">Your current administrator account cannot change its own role or status here.</p>
     </section>
   );
 }
