@@ -18,13 +18,20 @@ service firebase.storage {
         && currentUserProfile().data.role in ['staff', 'admin'];
     }
 
+    function isAllowedImage() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
     match /inventory/{inventoryItemId}/item-image {
       allow read: if isStaffOrAdmin();
+      allow create, update: if isStaffOrAdmin() && isAllowedImage();
+      allow delete: if isStaffOrAdmin();
+    }
 
-      allow create, update: if isStaffOrAdmin()
-        && request.resource.size <= 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|png|webp)');
-
+    match /equipment/{equipmentItemId}/item-image {
+      allow read: if isStaffOrAdmin();
+      allow create, update: if isStaffOrAdmin() && isAllowedImage();
       allow delete: if isStaffOrAdmin();
     }
 
