@@ -4,6 +4,7 @@ import type { UserProfile } from '../features/auth/auth.types';
 import { AppLink } from './navigation';
 import '../styles/management-shell.css';
 import '../styles/management-ui.css';
+import '../styles/management-data.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
@@ -12,6 +13,7 @@ type ManagementShellProps = {
   profile: UserProfile;
   pathname: string;
   pageTitle: string;
+  pageDescription: string;
   children: ReactNode;
 };
 
@@ -26,6 +28,7 @@ export function ManagementShell({
   profile,
   pathname,
   pageTitle,
+  pageDescription,
   children,
 }: ManagementShellProps) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -106,7 +109,10 @@ export function ManagementShell({
             >
               <span aria-hidden="true">☰</span>
             </button>
-            <h1>{pageTitle}</h1>
+            <div className="management-topbar-copy">
+              <h1>{pageTitle}</h1>
+              <p>{pageDescription}</p>
+            </div>
           </div>
           <AuthMenu />
         </header>
