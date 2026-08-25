@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
+  ManagementLoadingState,
   ManagementSelect,
   ManagementTableFrame,
   ManagementToolbar,
@@ -14,9 +15,9 @@ import {
   subscribeToRecentInventoryMovements,
 } from './inventory.service';
 import type { InventoryItem, InventoryMovement } from './inventory.types';
+import { useProgressiveItems } from './useProgressiveItems';
 import './inventory.css';
 import './inventory-cards.css';
-import './inventory-image.css';
 
 export type InventoryView = 'items' | 'activity';
 type SortDirection = 'asc' | 'desc';
@@ -105,7 +106,7 @@ export function InventoryPanel({ staffId, staffName, view }: InventoryPanelProps
   );
 
   const resetKey = `${queryText}|${filterValue}|${sortBy}|${sortDirection}`;
-  const itemPage = useManagementPage(visibleItems, `items|${resetKey}`);
+  const itemScroll = useProgressiveItems(visibleItems, `items|${resetKey}`);
   const movementPage = useManagementPage(visibleMovements, `activity|${resetKey}`);
 
   function openNewItemDialog() {
@@ -179,23 +180,33 @@ export function InventoryPanel({ staffId, staffName, view }: InventoryPanelProps
         ? 'No inventory items match the current view.'
         : undefined;
 
+    if (isLoadingItems) {
+      return <ManagementLoadingState message="Loading pantry inventory…" />;
+    }
+
+    if (inventoryError) {
+      return <div className="management-empty-state management-empty-state-error" role="alert">Inventory items could not be loaded.</div>;
+    }
+
+    if (emptyMessage) {
+      return <div className="management-empty-state" role="status">{emptyMessage}</div>;
+    }
+
     return (
-      <ManagementTableFrame
-        loadingMessage={isLoadingItems ? 'Loading pantry inventory…' : undefined}
-        errorMessage={!isLoadingItems && inventoryError ? 'Inventory items could not be loaded.' : undefined}
-        emptyMessage={!isLoadingItems && !inventoryError ? emptyMessage : undefined}
-        pagination={!isLoadingItems && !inventoryError && visibleItems.length > 0 ? {
-          page: itemPage.page,
-          totalItems: visibleItems.length,
-          onPageChange: itemPage.setPage,
-        } : undefined}
-      >
+      <div className="resources-progressive-list">
         <InventoryItemGrid
-          items={itemPage.pageItems}
+          items={itemScroll.visibleItems}
           onEdit={openEditItemDialog}
           onUpdateStock={setStockItem}
         />
-      </ManagementTableFrame>
+        {itemScroll.hasMore ? (
+          <div ref={itemScroll.sentinelRef} className="resources-progressive-sentinel" aria-hidden="true" />
+        ) : null}
+        <p className="resources-progressive-status" role="status">
+          Showing {itemScroll.visibleCount.toLocaleString('en-PH')} of {visibleItems.length.toLocaleString('en-PH')} items
+          {itemScroll.hasMore ? ' · Scroll down to show more' : ''}
+        </p>
+      </div>
     );
   }
 
