@@ -19,6 +19,7 @@
 
 .management-filter-trigger {
   width: var(--management-control-height);
+  height: var(--management-control-height);
   padding: 0;
 }
 
@@ -229,6 +230,16 @@
 .management-filter-trigger,
 .management-select-trigger {
   flex: 0 0 auto;
+}
+
+.management-data-controls .management-search input,
+.management-data-controls .management-filter-trigger,
+.management-data-controls > .management-primary-button,
+.management-data-controls > .management-secondary-button {
+  box-sizing: border-box;
+  height: var(--management-control-height);
+  min-height: var(--management-control-height);
+  max-height: var(--management-control-height);
 }
 
 .management-table td .management-select {
