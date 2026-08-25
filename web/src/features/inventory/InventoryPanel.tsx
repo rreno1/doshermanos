@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
@@ -164,12 +165,23 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
   );
 
   function renderItems() {
-    if (isLoadingItems) return <StatusBox message="Loading inventory…" />;
-    if (inventoryError) return <StatusBox message="Inventory could not be loaded." error />;
-    if (visibleItems.length === 0) return <StatusBox message={items.length === 0 ? 'No inventory items yet.' : 'No inventory items match the current view.'} />;
+    const emptyMessage = items.length === 0
+      ? 'No inventory items yet.'
+      : visibleItems.length === 0
+        ? 'No inventory items match the current view.'
+        : undefined;
 
     return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoadingItems ? 'Loading inventory items…' : undefined}
+        errorMessage={!isLoadingItems && inventoryError ? 'Inventory items could not be loaded.' : undefined}
+        emptyMessage={!isLoadingItems && !inventoryError ? emptyMessage : undefined}
+        pagination={!isLoadingItems && !inventoryError && visibleItems.length > 0 ? {
+          page: itemPage.page,
+          totalItems: visibleItems.length,
+          onPageChange: itemPage.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
@@ -202,18 +214,28 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={itemPage.page} totalItems={visibleItems.length} onPageChange={itemPage.setPage} />
-      </>
+      </ManagementTableFrame>
     );
   }
 
   function renderActivity() {
-    if (isLoadingMovements) return <StatusBox message="Loading stock activity…" />;
-    if (movementError) return <StatusBox message="Stock activity could not be loaded." error />;
-    if (visibleMovements.length === 0) return <StatusBox message={movements.length === 0 ? 'No stock activity yet.' : 'No stock activity matches the current view.'} />;
+    const emptyMessage = movements.length === 0
+      ? 'No stock activity yet.'
+      : visibleMovements.length === 0
+        ? 'No stock activity matches the current view.'
+        : undefined;
 
     return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoadingMovements ? 'Loading stock activity…' : undefined}
+        errorMessage={!isLoadingMovements && movementError ? 'Stock activity could not be loaded.' : undefined}
+        emptyMessage={!isLoadingMovements && !movementError ? emptyMessage : undefined}
+        pagination={!isLoadingMovements && !movementError && visibleMovements.length > 0 ? {
+          page: movementPage.page,
+          totalItems: visibleMovements.length,
+          onPageChange: movementPage.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
@@ -240,8 +262,7 @@ export function InventoryPanel({ staffId, staffName }: InventoryPanelProps) {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={movementPage.page} totalItems={visibleMovements.length} onPageChange={movementPage.setPage} />
-      </>
+      </ManagementTableFrame>
     );
   }
 }
@@ -265,31 +286,59 @@ function InventoryFilters({
   onDirectionChange: (value: SortDirection) => void;
   onReset: () => void;
 }) {
+  const filterOptions = tab === 'items'
+    ? [
+      { value: 'all', label: 'All statuses' },
+      { value: 'active', label: 'Active' },
+      { value: 'inactive', label: 'Inactive' },
+      { value: 'low', label: 'Low stock' },
+    ]
+    : [
+      { value: 'all', label: 'All movement types' },
+      { value: 'stock_in', label: 'Stock in' },
+      { value: 'stock_out', label: 'Stock out' },
+      { value: 'correction', label: 'Correction' },
+    ];
+  const sortOptions = tab === 'items'
+    ? [
+      { value: 'name', label: 'Name' },
+      { value: 'quantity', label: 'Quantity' },
+      { value: 'threshold', label: 'Low-stock threshold' },
+    ]
+    : [
+      { value: 'date', label: 'Recorded date' },
+      { value: 'name', label: 'Item name' },
+      { value: 'type', label: 'Movement type' },
+    ];
+
   return (
     <>
       <ManagementFilterField label={tab === 'items' ? 'Status' : 'Movement type'}>
-        <select value={filterValue} onChange={(event) => onFilterChange(event.target.value)}>
-          <option value="all">All</option>
-          {tab === 'items' ? (
-            <><option value="active">Active</option><option value="inactive">Inactive</option><option value="low">Low stock</option></>
-          ) : (
-            <><option value="stock_in">Stock in</option><option value="stock_out">Stock out</option><option value="correction">Correction</option></>
-          )}
-        </select>
+        <ManagementSelect
+          value={filterValue}
+          options={filterOptions}
+          onChange={onFilterChange}
+          ariaLabel={tab === 'items' ? 'Filter inventory by status' : 'Filter stock activity by type'}
+        />
       </ManagementFilterField>
       <ManagementFilterField label="Sort by">
-        <select value={sortBy} onChange={(event) => onSortChange(event.target.value as InventorySort)}>
-          {tab === 'items' ? (
-            <><option value="name">Name</option><option value="quantity">Quantity</option><option value="threshold">Low-stock threshold</option></>
-          ) : (
-            <><option value="date">Recorded date</option><option value="name">Item name</option><option value="type">Movement type</option></>
-          )}
-        </select>
+        <ManagementSelect
+          value={sortBy}
+          options={sortOptions as { value: InventorySort; label: string }[]}
+          onChange={onSortChange}
+          ariaLabel="Sort inventory view by"
+        />
       </ManagementFilterField>
       <ManagementFilterField label="Direction">
-        <select value={sortDirection} onChange={(event) => onDirectionChange(event.target.value as SortDirection)}>
-          <option value="asc">Ascending</option><option value="desc">Descending</option>
-        </select>
+        <ManagementSelect
+          value={sortDirection}
+          options={[
+            { value: 'asc', label: 'Ascending' },
+            { value: 'desc', label: 'Descending' },
+          ]}
+          onChange={onDirectionChange}
+          ariaLabel="Sort direction"
+        />
       </ManagementFilterField>
       <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
     </>
@@ -337,10 +386,6 @@ function filterMovements(movements: InventoryMovement[], query: string, type: st
 function compare(left: string | number, right: string | number, direction: SortDirection) {
   const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
   return direction === 'asc' ? result : -result;
-}
-
-function StatusBox({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
 }
 
 function formatMovementTime(date: Date): string {
