@@ -1,11 +1,11 @@
 # Staging Smoke Checklist
 
-Use this checklist after the staging Firebase project is provisioned and before treating staging as a valid release candidate.
+Use this checklist before treating the current Firebase deployment as a valid staging release candidate.
 
 ## Repository and target safety
 
 - [ ] `node scripts/check-staging-readiness.mjs` passes.
-- [ ] `.firebaserc` has a `staging` alias that is different from `production`.
+- [ ] `.firebaserc` has a `staging` alias pointing to `dos-hermanos-hilongos`.
 - [ ] `web/.env.staging` points to the same project as the `staging` alias.
 - [ ] GitHub Pages is disabled for this repository so Firebase Hosting is the only web deployment surface.
 - [ ] Protect `main` and require the CI checks used by this repository before production promotion.
@@ -13,12 +13,12 @@ Use this checklist after the staging Firebase project is provisioned and before 
 
 ## Staging Firebase prerequisites
 
-- [ ] Enable Email/Password in Firebase Authentication for the staging project.
+- [ ] Enable Email/Password in Firebase Authentication for `dos-hermanos-hilongos`.
 - [ ] Configure the Firebase Authentication password policy to enforce at least the application's 10-character minimum.
-- [ ] Create dedicated staging customer, staff, and administrator identities. Do not reuse production accounts.
-- [ ] For each staging staff/administrator identity, create the matching `users/{uid}` Firestore profile with `displayName`, the intended `role`, `status: active`, and valid timestamp fields. Normal client registration intentionally creates customers only.
-- [ ] Add only approved staging package records needed for testing. No sample package or pricing data should be copied into the repository just to make the catalog non-empty.
-- [ ] Confirm the staging Authentication authorized-domain configuration includes the Firebase Hosting staging domain used for testing.
+- [ ] Create customer, staff, and administrator identities intended for staging verification.
+- [ ] For each staff/administrator identity, create the matching `users/{uid}` Firestore profile with `displayName`, the intended `role`, `status: active`, and valid timestamp fields. Normal client registration intentionally creates customers only.
+- [ ] Add only approved package records needed for testing. No sample package or pricing data should be copied into the repository just to make the catalog non-empty.
+- [ ] Confirm the Firebase Authentication authorized-domain configuration includes the Firebase Hosting domain used for testing.
 
 ## Deployment
 
@@ -74,6 +74,8 @@ Test at approximately 360 px, 768 px, and 1440 px viewport widths.
 - [ ] Loading, empty, error, disabled, and success states remain understandable without relying only on color.
 - [ ] Reduced-motion preference does not leave essential content hidden.
 
-## Release decision
+## Production promotion note
 
-Do not promote staging to production when any security, authorization, data-integrity, build, or core-flow check above fails. Business-rule-gated features may remain deliberately disabled only when the UI states that limitation accurately and no client can bypass the gate.
+The same Firebase project may later be treated as production after the intended domain is connected. Before that promotion, review and remove or reconcile staging-only accounts and test business data as appropriate.
+
+Do not promote the deployment to production when any security, authorization, data-integrity, build, or core-flow check above fails. Business-rule-gated features may remain deliberately disabled only when the UI states that limitation accurately and no client can bypass the gate.
