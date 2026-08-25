@@ -10,6 +10,7 @@ export type EquipmentItem = {
   isActive: boolean;
   isDeleted: boolean;
   lastTransactionId: string | null;
+  updatedAt: Date;
 };
 
 export type EquipmentAssignmentStatus =
