@@ -69,13 +69,13 @@ export function ManagementToolbar({
 
       <div className="management-data-controls">
         <label className="management-search">
-          <span className="sr-only">Search</span>
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <circle cx="8.5" cy="8.5" r="5.25" />
             <path d="m12.4 12.4 4.1 4.1" />
           </svg>
           <input
             type="search"
+            aria-label="Search"
             value={searchValue}
             placeholder={searchPlaceholder}
             onChange={(event) => onSearchChange(event.target.value)}
