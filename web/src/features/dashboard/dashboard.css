@@ -221,6 +221,10 @@
 }
 
 @media (max-width: 390px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .dashboard-metric {
     min-height: 128px;
     padding: 12px;
