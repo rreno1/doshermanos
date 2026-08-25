@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ManagementTabs } from '../../app/ManagementControls';
 import { EquipmentPanel } from './EquipmentPanel';
 import { InventoryPanel } from './InventoryPanel';
+import './resources.css';
 
 type ResourcesTab =
   | 'inventory-items'
