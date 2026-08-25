@@ -5,6 +5,8 @@ export type ReservationStatus =
   | 'cancelled'
   | 'completed';
 
+export type ReservationSource = 'customer_portal' | 'manual';
+
 export type ReservationCustomizationRequest = {
   menuRequest: string;
   foodQuantityRequest: string;
@@ -18,6 +20,16 @@ export type ReservationRequestInput = {
   guestCount: number;
   serviceRequirements: string;
   customization: ReservationCustomizationRequest;
+};
+
+export type ManualReservationCustomer = {
+  name: string;
+  contact: string;
+};
+
+export type ReservationEnteredBy = {
+  userId: string;
+  displayName: string;
 };
 
 export type ReservationEvent = {
@@ -38,6 +50,9 @@ export type ReservationRecord = {
   id: string;
   customerId: string;
   status: ReservationStatus;
+  source: ReservationSource;
+  manualCustomer: ManualReservationCustomer | null;
+  enteredBy: ReservationEnteredBy | null;
   event: ReservationEvent;
   package: ReservationPackageSnapshot;
   customization: ReservationCustomizationRequest;
