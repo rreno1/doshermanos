@@ -13,12 +13,13 @@ Use this checklist before treating the current Firebase deployment as a valid st
 
 ## Staging Firebase prerequisites
 
-- [ ] Enable Email/Password in Firebase Authentication for `dos-hermanos-hilongos`.
-- [ ] Configure the Firebase Authentication password policy to enforce at least the application's 10-character minimum.
-- [ ] Create customer, staff, and administrator identities intended for staging verification.
-- [ ] For each staff/administrator identity, create the matching `users/{uid}` Firestore profile with `displayName`, the intended `role`, `status: active`, and valid timestamp fields. Normal client registration intentionally creates customers only.
+- [ ] Enable Google in Firebase Authentication for `dos-hermanos-hilongos`.
+- [ ] Keep Email/Password disabled for the web release unless the requirements explicitly change.
+- [ ] Confirm the Firebase Hosting domain is listed under Firebase Authentication -> Settings -> Authorized domains.
+- [ ] Use dedicated Google identities for customer, staff, and administrator staging verification where practical.
+- [ ] A customer's first successful Google sign-in creates the matching `users/{uid}` profile automatically as `role: customer`, `status: active`.
+- [ ] For staff/administrator identities, create the matching `users/{uid}` Firestore profile with `displayName`, the intended `role`, `status: active`, and valid timestamp fields before testing privileged access. Google sign-in must preserve these existing roles.
 - [ ] Add only approved package records needed for testing. No sample package or pricing data should be copied into the repository just to make the catalog non-empty.
-- [ ] Confirm the Firebase Authentication authorized-domain configuration includes the Firebase Hosting domain used for testing.
 
 ## Deployment
 
@@ -26,12 +27,15 @@ Use this checklist before treating the current Firebase deployment as a valid st
 - [ ] Deploy Firestore rules/indexes with `firebase deploy --only firestore --project staging`.
 - [ ] Deploy Hosting with `firebase deploy --only hosting --project staging`.
 - [ ] Open the Firebase Hosting staging URL in a private/incognito browser session.
-- [ ] Confirm browser developer tools show no CSP, mixed-content, or Firebase project-configuration errors.
+- [ ] Confirm browser developer tools show no CSP, mixed-content, Firebase project-configuration, Firestore permission, or authentication-domain errors.
 
 ## Signed-out and customer flow
 
 - [ ] Package catalog loads without signing in.
-- [ ] Registration, sign-in, sign-out, and password reset behave correctly.
+- [ ] Google login opens the Google account chooser and there is no Email/Password registration or password-reset UI.
+- [ ] First Google login for a new customer creates an active customer profile.
+- [ ] Returning Google login reuses the existing profile and does not overwrite role/status data.
+- [ ] Sign-out behaves correctly.
 - [ ] Customer can submit a valid single-day reservation request.
 - [ ] Customer can submit a valid multi-day reservation request.
 - [ ] Invalid/past dates, invalid guest counts, and over-limit text are rejected by the form.
