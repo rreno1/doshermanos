@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getInventoryImageUrl } from './inventory-image.service';
 import type { InventoryItem } from './inventory.types';
+import './inventory-cards.css';
 
 type InventoryItemGridProps = {
   items: InventoryItem[];
