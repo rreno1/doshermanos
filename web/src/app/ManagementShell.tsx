@@ -82,6 +82,12 @@ export function ManagementShell({
           })}
         </nav>
 
+        <div className="management-public-navigation">
+          <AppLink className="management-navigation-link" to="/">
+            Public portal
+          </AppLink>
+        </div>
+
         <div className="management-sidebar-account">
           <strong>{profile.displayName}</strong>
           <span>{formatRole(role)}</span>
