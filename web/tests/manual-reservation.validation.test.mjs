@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateManualReservationCustomer } from '../src/features/reservations/manual-reservation.validation.ts';
+import { validateManualReservationCustomer } from '../src/features/operations/manual-reservation.validation.ts';
 
 test('manual reservation customer validation trims valid details', () => {
   const result = validateManualReservationCustomer({
