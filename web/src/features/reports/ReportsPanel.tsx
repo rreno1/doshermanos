@@ -83,17 +83,7 @@ export function ReportsPanel() {
   }
 
   return (
-    <section className="reports-section" id="reports" aria-labelledby="reports-title">
-      <div className="reports-heading">
-        <div>
-          <p className="reports-kicker">Business records</p>
-          <h2 id="reports-title">Reports and exports</h2>
-        </div>
-        <p>
-          Review authorized operational records, export an Excel-compatible CSV, or print the selected report.
-        </p>
-      </div>
-
+    <section className="reports-section" id="reports" aria-label="Reports">
       <div className="reports-controls" aria-label="Choose a report">
         {reportKinds.map((option) => (
           <button
@@ -111,7 +101,7 @@ export function ReportsPanel() {
       <div className="report-toolbar">
         <div>
           <h3>{report.title}</h3>
-          <p>{report.note}</p>
+          {report.note ? <p>{report.note}</p> : null}
         </div>
         <div className="report-actions">
           <button type="button" disabled={!reportReady} onClick={exportCurrentReport}>
@@ -124,14 +114,14 @@ export function ReportsPanel() {
       </div>
 
       {sourceState === undefined ? (
-        <div className="report-status" role="status">Loading report records…</div>
+        <div className="report-status" role="status">Loading records…</div>
       ) : sourceState === null ? (
         <div className="report-status report-status-error" role="alert">
-          This report could not be loaded. Refresh and try again.
+          Report could not be loaded.
         </div>
       ) : (
         <>
-          <p className="report-count">{report.rows.length.toLocaleString('en-PH')} records shown</p>
+          <p className="report-count">{report.rows.length.toLocaleString('en-PH')} records</p>
           <div className="report-table-wrap">
             <table className="report-table">
               <thead>
@@ -142,7 +132,7 @@ export function ReportsPanel() {
               <tbody>
                 {report.rows.length === 0 ? (
                   <tr>
-                    <td colSpan={report.headers.length}>No records are available for this report.</td>
+                    <td colSpan={report.headers.length}>No records.</td>
                   </tr>
                 ) : report.rows.map((row, rowIndex) => (
                   <tr key={`${reportKind}-${rowIndex}`}>
@@ -169,8 +159,8 @@ function buildReport(
 ): ReportDefinition {
   if (kind === 'reservations') {
     return {
-      title: 'Reservation report',
-      note: 'Shows up to the 250 most recent reservation records across all reservation statuses.',
+      title: 'Reservations',
+      note: 'Up to 250 most recent records.',
       filename: 'dos-hermanos-reservations.csv',
       headers: ['Reservation ID', 'Status', 'Event start', 'Event end', 'Location', 'Guests', 'Package', 'Submitted'],
       rows: (reservations ?? []).map((reservation) => [
@@ -192,8 +182,8 @@ function buildReport(
     );
 
     return {
-      title: 'Sales report',
-      note: 'Confirmed and completed reservations are shown as sales activity. Stored amounts are base-package snapshots only and are not treated as final revenue until authoritative customization pricing is approved.',
+      title: 'Sales',
+      note: 'Base-package snapshots only; not final customized revenue.',
       filename: 'dos-hermanos-sales.csv',
       headers: ['Reservation ID', 'Status', 'Package', 'Event date', 'Guests', 'Base package amount'],
       rows: saleReservations.map((reservation) => [
@@ -209,8 +199,8 @@ function buildReport(
 
   if (kind === 'payments') {
     return {
-      title: 'Payment report',
-      note: 'Shows up to the 250 most recent payment records created by authorized staff.',
+      title: 'Payments',
+      note: 'Up to 250 most recent records.',
       filename: 'dos-hermanos-payments.csv',
       headers: ['Payment ID', 'Reservation ID', 'Package', 'Event date', 'Amount', 'Method', 'Reference', 'Recorded by', 'Recorded at'],
       rows: (payments ?? []).map((payment) => [
@@ -229,8 +219,8 @@ function buildReport(
 
   if (kind === 'inventory') {
     return {
-      title: 'Inventory report',
-      note: 'Shows up to 100 inventory registry items, including current stock levels and low-stock warning thresholds.',
+      title: 'Inventory',
+      note: 'Up to 100 registry items.',
       filename: 'dos-hermanos-inventory.csv',
       headers: ['Item', 'Unit', 'Quantity', 'Low-stock threshold', 'Status', 'Stock warning'],
       rows: (inventory ?? []).map((item) => [
@@ -245,8 +235,8 @@ function buildReport(
   }
 
   return {
-    title: 'Equipment accountability report',
-    note: 'Shows up to 100 equipment registry items with current available, in-use, damaged, and missing quantities.',
+    title: 'Equipment',
+    note: 'Up to 100 registry items.',
     filename: 'dos-hermanos-equipment.csv',
     headers: ['Equipment', 'Unit', 'Total', 'Available', 'In use', 'Damaged', 'Missing', 'Status'],
     rows: (equipment ?? []).map((item) => [
