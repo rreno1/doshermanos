@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
+import { useToast } from '../../app/ToastProvider';
 import type { UserProfile, UserRole, UserStatus } from '../auth/auth.types';
 import { subscribeToUsers, updateUserAccess } from './users.service';
 import './users.css';
@@ -16,6 +18,7 @@ type SortDirection = 'asc' | 'desc';
 const tabs = [{ value: 'users', label: 'Users' }] as const;
 
 export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -25,7 +28,6 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
   const [sortBy, setSortBy] = useState<UserSort>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -57,16 +59,21 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
 
   async function saveUser(user: UserProfile) {
     setSavingUserId(user.id);
-    setMessage(null);
     try {
       await updateUserAccess(user.id, user.role, user.status);
-      setMessage(`${user.displayName}'s access was updated.`);
+      showToast({ message: `${user.displayName}'s access was updated.`, tone: 'success' });
     } catch {
-      setMessage('Access change could not be saved.');
+      showToast({ message: 'Access change could not be saved.', tone: 'error' });
     } finally {
       setSavingUserId(null);
     }
   }
+
+  const emptyMessage = users.length === 0
+    ? 'No users yet.'
+    : visibleUsers.length === 0
+      ? 'No users match the current view.'
+      : undefined;
 
   return (
     <section className="users-section" aria-label="Users and roles">
@@ -85,33 +92,53 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
         filterContent={(
           <>
             <ManagementFilterField label="Role">
-              <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
-                <option value="all">All roles</option>
-                <option value="admin">Administrator</option>
-                <option value="staff">Staff</option>
-                <option value="customer">Customer</option>
-              </select>
+              <ManagementSelect
+                value={roleFilter}
+                options={[
+                  { value: 'all', label: 'All roles' },
+                  { value: 'admin', label: 'Administrator' },
+                  { value: 'staff', label: 'Staff' },
+                  { value: 'customer', label: 'Customer' },
+                ]}
+                onChange={setRoleFilter}
+                ariaLabel="Filter users by role"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Status">
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                <option value="all">All statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
+              <ManagementSelect
+                value={statusFilter}
+                options={[
+                  { value: 'all', label: 'All statuses' },
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                  { value: 'suspended', label: 'Suspended' },
+                ]}
+                onChange={setStatusFilter}
+                ariaLabel="Filter users by status"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Sort by">
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as UserSort)}>
-                <option value="name">Name</option>
-                <option value="role">Role</option>
-                <option value="status">Status</option>
-              </select>
+              <ManagementSelect
+                value={sortBy}
+                options={[
+                  { value: 'name', label: 'Name' },
+                  { value: 'role', label: 'Role' },
+                  { value: 'status', label: 'Status' },
+                ]}
+                onChange={setSortBy}
+                ariaLabel="Sort users by"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Direction">
-              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
+              <ManagementSelect
+                value={sortDirection}
+                options={[
+                  { value: 'asc', label: 'Ascending' },
+                  { value: 'desc', label: 'Descending' },
+                ]}
+                onChange={setSortDirection}
+                ariaLabel="User sort direction"
+              />
             </ManagementFilterField>
             <button
               type="button"
@@ -129,21 +156,16 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
         )}
       />
 
-      {message ? <div className="users-message" role="status">{message}</div> : null}
-      {renderContent()}
-      <p className="users-note">Your current administrator account cannot change its own role or status here.</p>
-    </section>
-  );
-
-  function renderContent() {
-    if (isLoading) return <UsersStatus message="Loading users…" />;
-    if (hasError) return <UsersStatus message="Users could not be loaded." error />;
-    if (visibleUsers.length === 0) {
-      return <UsersStatus message={users.length === 0 ? 'No users yet.' : 'No users match the current view.'} />;
-    }
-
-    return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoading ? 'Loading user profiles…' : undefined}
+        errorMessage={!isLoading && hasError ? 'Users could not be loaded.' : undefined}
+        emptyMessage={!isLoading && !hasError ? emptyMessage : undefined}
+        pagination={!isLoading && !hasError && visibleUsers.length > 0 ? {
+          page: page.page,
+          totalItems: visibleUsers.length,
+          onPageChange: page.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
@@ -152,6 +174,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
             <tbody>
               {page.pageItems.map((user) => {
                 const isCurrentUser = user.id === currentUserId;
+                const disabled = isCurrentUser || savingUserId === user.id;
                 return (
                   <tr key={user.id}>
                     <td>
@@ -161,31 +184,37 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                       </div>
                     </td>
                     <td>
-                      <select
-                        aria-label={`Role for ${user.displayName}`}
+                      <ManagementSelect<UserRole>
                         value={user.role}
-                        disabled={isCurrentUser || savingUserId === user.id}
-                        onChange={(event) => updateDraft(user.id, { role: event.target.value as UserRole })}
-                      >
-                        <option value="customer">Customer</option><option value="staff">Staff</option><option value="admin">Administrator</option>
-                      </select>
+                        options={[
+                          { value: 'customer', label: 'Customer' },
+                          { value: 'staff', label: 'Staff' },
+                          { value: 'admin', label: 'Administrator' },
+                        ]}
+                        disabled={disabled}
+                        onChange={(role) => updateDraft(user.id, { role })}
+                        ariaLabel={`Role for ${user.displayName}`}
+                      />
                     </td>
                     <td>
-                      <select
-                        aria-label={`Status for ${user.displayName}`}
+                      <ManagementSelect<UserStatus>
                         value={user.status}
-                        disabled={isCurrentUser || savingUserId === user.id}
-                        onChange={(event) => updateDraft(user.id, { status: event.target.value as UserStatus })}
-                      >
-                        <option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option>
-                      </select>
+                        options={[
+                          { value: 'active', label: 'Active' },
+                          { value: 'inactive', label: 'Inactive' },
+                          { value: 'suspended', label: 'Suspended' },
+                        ]}
+                        disabled={disabled}
+                        onChange={(status) => updateDraft(user.id, { status })}
+                        ariaLabel={`Status for ${user.displayName}`}
+                      />
                     </td>
                     <td>
                       <div className="management-table-actions">
                         <button
                           className="management-primary-button"
                           type="button"
-                          disabled={isCurrentUser || savingUserId === user.id}
+                          disabled={disabled}
                           onClick={() => void saveUser(user)}
                         >
                           {savingUserId === user.id ? 'Saving…' : isCurrentUser ? 'Protected' : 'Save'}
@@ -198,10 +227,11 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={page.page} totalItems={visibleUsers.length} onPageChange={page.setPage} />
-      </>
-    );
-  }
+      </ManagementTableFrame>
+
+      <p className="users-note">Your current administrator account cannot change its own role or status here.</p>
+    </section>
+  );
 }
 
 function filterUsers(users: UserProfile[], query: string, role: string, status: string, sortBy: UserSort, direction: SortDirection) {
@@ -218,8 +248,6 @@ function filterUsers(users: UserProfile[], query: string, role: string, status: 
     });
 }
 
-function UsersStatus({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
+function shortId(value: string) {
+  return value.length <= 8 ? value : value.slice(0, 8);
 }
-
-function shortId(value: string) { return value.length <= 8 ? value : value.slice(0, 8); }
