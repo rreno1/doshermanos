@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -48,8 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const durationMs = input.durationMs ?? (tone === 'error' ? 6000 : 4200);
 
     setToasts((current) => {
-      const duplicate = current.some((toast) => toast.message === message && toast.tone === tone);
-      if (duplicate) {
+      if (current.some((toast) => toast.message === message && toast.tone === tone)) {
         return current;
       }
 
@@ -86,26 +86,24 @@ export function useToast() {
   return context;
 }
 
-function ToastItem({
-  toast,
-  onDismiss,
-}: {
-  toast: ToastRecord;
-  onDismiss: (id: number) => void;
-}) {
+function ToastItem({ toast, onDismiss }: { toast: ToastRecord; onDismiss: (id: number) => void }) {
   const timeoutRef = useRef<number | null>(null);
 
-  function scheduleDismiss() {
+  const scheduleDismiss = useCallback(() => {
     if (timeoutRef.current !== null) {
       window.clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = window.setTimeout(() => onDismiss(toast.id), toast.durationMs);
-  }
+  }, [onDismiss, toast.durationMs, toast.id]);
 
-  useState(() => {
+  useEffect(() => {
     scheduleDismiss();
-    return undefined;
-  });
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [scheduleDismiss]);
 
   return (
     <div
