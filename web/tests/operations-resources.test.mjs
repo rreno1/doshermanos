@@ -51,7 +51,7 @@ test('operations and resources keep the approved tab order', async () => {
   );
 });
 
-test('equipment registry uses cards and toolbar controls share one exact height', async () => {
+test('equipment registry shares inventory cards and toolbar controls share one exact height', async () => {
   const [panelSource, gridSource, cssSource] = await Promise.all([
     readFile(equipmentPanelPath, 'utf8'),
     readFile(equipmentGridPath, 'utf8'),
@@ -60,7 +60,8 @@ test('equipment registry uses cards and toolbar controls share one exact height'
 
   assert.match(panelSource, /<EquipmentRegistryGrid/);
   assert.doesNotMatch(panelSource, /EquipmentItemList/);
-  assert.match(gridSource, /<article className="equipment-card"/);
+  assert.match(gridSource, /<article className="inventory-card equipment-card"/);
+  assert.match(gridSource, /useResourceImageUrl\('equipment'/);
   assert.match(gridSource, /availableQuantity/);
   assert.match(cssSource, /\.management-data-controls \.management-search input,[\s\S]*height: var\(--management-control-height\)/);
   assert.match(cssSource, /\.management-data-controls > \.management-primary-button/);
