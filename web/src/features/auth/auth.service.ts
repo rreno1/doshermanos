@@ -1,11 +1,8 @@
 import { FirebaseError } from 'firebase/app';
 import {
-  createUserWithEmailAndPassword,
-  deleteUser,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
   signOut,
-  updateProfile,
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
@@ -14,6 +11,11 @@ import type { UserProfile, UserRole, UserStatus } from './auth.types';
 
 const validRoles: UserRole[] = ['customer', 'staff', 'admin'];
 const validStatuses: UserStatus[] = ['active', 'inactive', 'suspended'];
+const googleProvider = new GoogleAuthProvider();
+
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
 
 function parseUserProfile(userId: string, value: unknown): UserProfile {
   if (!value || typeof value !== 'object') {
@@ -42,11 +44,27 @@ function parseUserProfile(userId: string, value: unknown): UserProfile {
   };
 }
 
-async function createCustomerProfile(userId: string, displayName: string): Promise<void> {
-  const profileRef = doc(firestore, 'users', userId);
+function getGoogleDisplayName(user: User): string {
+  const displayName = user.displayName?.trim();
+
+  if (displayName) {
+    return displayName.slice(0, 100);
+  }
+
+  const emailName = user.email?.split('@')[0]?.trim();
+  return (emailName || 'Customer').slice(0, 100);
+}
+
+async function createCustomerProfile(user: User): Promise<void> {
+  const profileRef = doc(firestore, 'users', user.uid);
+  const profileSnapshot = await getDoc(profileRef);
+
+  if (profileSnapshot.exists()) {
+    return;
+  }
 
   await setDoc(profileRef, {
-    displayName,
+    displayName: getGoogleDisplayName(user),
     role: 'customer',
     status: 'active',
     createdAt: serverTimestamp(),
@@ -65,49 +83,13 @@ export async function loadUserProfile(user: User): Promise<UserProfile | null> {
   return parseUserProfile(user.uid, profileSnapshot.data());
 }
 
-export async function signInWithEmail(
-  email: string,
-  password: string,
-): Promise<void> {
-  await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
-}
-
-export async function registerCustomer(
-  displayName: string,
-  email: string,
-  password: string,
-): Promise<void> {
-  const cleanDisplayName = displayName.trim();
-  const credential = await createUserWithEmailAndPassword(
-    firebaseAuth,
-    email.trim(),
-    password,
-  );
+export async function signInWithGoogle(): Promise<void> {
+  const credential = await signInWithPopup(firebaseAuth, googleProvider);
 
   try {
-    await updateProfile(credential.user, {
-      displayName: cleanDisplayName,
-    });
-    await createCustomerProfile(credential.user.uid, cleanDisplayName);
+    await createCustomerProfile(credential.user);
   } catch (error) {
-    try {
-      await deleteUser(credential.user);
-    } catch {
-      await signOut(firebaseAuth);
-    }
-
-    throw error;
-  }
-}
-
-export async function resetPassword(email: string): Promise<void> {
-  try {
-    await sendPasswordResetEmail(firebaseAuth, email.trim());
-  } catch (error) {
-    if (error instanceof FirebaseError && error.code === 'auth/user-not-found') {
-      return;
-    }
-
+    await signOut(firebaseAuth);
     throw error;
   }
 }
@@ -122,23 +104,22 @@ export function getSafeAuthErrorMessage(error: unknown): string {
   }
 
   switch (error.code) {
-    case 'auth/invalid-credential':
-    case 'auth/wrong-password':
-    case 'auth/user-not-found':
-      return 'The email or password is incorrect.';
-    case 'auth/email-already-in-use':
-      return 'An account already uses this email address.';
-    case 'auth/invalid-email':
-      return 'Enter a valid email address.';
-    case 'auth/weak-password':
-      return 'Use a stronger password.';
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return 'Google sign-in was cancelled.';
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the Google sign-in window. Allow pop-ups and try again.';
+    case 'auth/unauthorized-domain':
+      return 'This site is not yet authorized for Google sign-in in Firebase Authentication.';
+    case 'auth/account-exists-with-different-credential':
+      return 'This email already uses a different sign-in method.';
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a while and try again.';
     case 'auth/network-request-failed':
       return 'Check your internet connection and try again.';
     case 'auth/operation-not-allowed':
-      return 'Authentication is not enabled yet. Enable Email/Password in Firebase Authentication.';
+      return 'Google sign-in is not enabled yet. Enable Google in Firebase Authentication.';
     default:
-      return 'We could not complete that account action. Please try again.';
+      return 'We could not complete Google sign-in. Please try again.';
   }
 }
