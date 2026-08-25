@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const panelPath = new URL('../src/features/inventory/InventoryPanel.tsx', import.meta.url);
-const gridPath = new URL('../src/features/inventory/InventoryItemGrid.tsx', import.meta.url);
-const imageServicePath = new URL('../src/features/inventory/inventory-image.service.ts', import.meta.url);
-const cardsCssPath = new URL('../src/features/inventory/inventory-cards.css', import.meta.url);
+const panelPath = new URL('../src/features/resources/InventoryPanel.tsx', import.meta.url);
+const gridPath = new URL('../src/features/resources/InventoryItemGrid.tsx', import.meta.url);
+const imageServicePath = new URL('../src/features/resources/inventory-image.service.ts', import.meta.url);
+const cardsCssPath = new URL('../src/features/resources/inventory-cards.css', import.meta.url);
 const storageRulesPath = new URL('../../firebase/storage.rules', import.meta.url);
 
 test('inventory items use the management card surface while activity stays tabular', async () => {
