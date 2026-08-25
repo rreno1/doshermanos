@@ -133,10 +133,41 @@ service cloud.firestore {
         );
     }
 
+    function validReservationAttribution() {
+      let hasSource = request.resource.data.keys().hasAll(['source']);
+      let hasManualCustomer = request.resource.data.keys().hasAll(['manualCustomer']);
+      let hasEnteredBy = request.resource.data.keys().hasAll(['enteredBy']);
+
+      return (
+          !hasSource && !hasManualCustomer && !hasEnteredBy
+        )
+        || (
+          hasSource && hasManualCustomer && hasEnteredBy
+          && request.resource.data.source == 'manual'
+          && request.resource.data.manualCustomer is map
+          && request.resource.data.manualCustomer.keys().hasOnly(['name', 'contact'])
+          && request.resource.data.manualCustomer.keys().hasAll(['name', 'contact'])
+          && request.resource.data.manualCustomer.name is string
+          && request.resource.data.manualCustomer.name.size() > 0
+          && request.resource.data.manualCustomer.name.size() <= 100
+          && request.resource.data.manualCustomer.contact is string
+          && request.resource.data.manualCustomer.contact.size() > 0
+          && request.resource.data.manualCustomer.contact.size() <= 200
+          && request.resource.data.enteredBy is map
+          && request.resource.data.enteredBy.keys().hasOnly(['userId', 'displayName'])
+          && request.resource.data.enteredBy.keys().hasAll(['userId', 'displayName'])
+          && request.resource.data.enteredBy.userId is string
+          && request.resource.data.enteredBy.userId.size() > 0
+          && request.resource.data.enteredBy.displayName is string
+          && request.resource.data.enteredBy.displayName.size() > 0
+          && request.resource.data.enteredBy.displayName.size() <= 100
+        );
+    }
+
     function validReservationDocument() {
       return request.resource.data.keys().hasOnly([
-          'customerId', 'status', 'event', 'package', 'customization',
-          'createdAt', 'updatedAt'
+          'customerId', 'status', 'source', 'manualCustomer', 'enteredBy',
+          'event', 'package', 'customization', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
           'customerId', 'status', 'event', 'package', 'createdAt', 'updatedAt'
@@ -149,6 +180,7 @@ service cloud.firestore {
         && validReservationEvent()
         && validReservationPackage()
         && validReservationCustomization()
+        && validReservationAttribution()
         && request.resource.data.createdAt is timestamp
         && request.resource.data.updatedAt is timestamp;
     }
@@ -886,7 +918,21 @@ service cloud.firestore {
 
       allow create: if isCustomer()
         && validReservationDocument()
+        && !request.resource.data.keys().hasAll(['source'])
+        && !request.resource.data.keys().hasAll(['manualCustomer'])
+        && !request.resource.data.keys().hasAll(['enteredBy'])
         && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.status == 'pending_review'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && reservationPackageMatchesActivePackage();
+
+      allow create: if isStaffOrAdmin()
+        && validReservationDocument()
+        && request.resource.data.source == 'manual'
+        && request.resource.data.customerId == 'manual:' + reservationId
+        && request.resource.data.enteredBy.userId == request.auth.uid
+        && request.resource.data.enteredBy.displayName == currentUserProfile().data.displayName
         && request.resource.data.status == 'pending_review'
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time
