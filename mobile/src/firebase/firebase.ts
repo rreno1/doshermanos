@@ -8,6 +8,8 @@ import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const productionProjectId = 'dos-hermanos-hilongos';
+const allowedAppEnvironments = ['development', 'staging', 'production'] as const;
+const appEnvironment = process.env.EXPO_PUBLIC_APP_ENV;
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -24,9 +26,19 @@ if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
 }
 
-if (__DEV__ && firebaseConfig.projectId === productionProjectId) {
+if (!allowedAppEnvironments.includes(appEnvironment as (typeof allowedAppEnvironments)[number])) {
+  throw new Error('EXPO_PUBLIC_APP_ENV must be development, staging, or production.');
+}
+
+if (appEnvironment === 'production' && firebaseConfig.projectId !== productionProjectId) {
   throw new Error(
-    'Development mode cannot connect to the production Firebase project. Configure the separate development project instead.',
+    'Production mode must connect to the approved production Firebase project.',
+  );
+}
+
+if (appEnvironment !== 'production' && firebaseConfig.projectId === productionProjectId) {
+  throw new Error(
+    'Non-production mode cannot connect to the production Firebase project. Configure a separate development or staging project instead.',
   );
 }
 

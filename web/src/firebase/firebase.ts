@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const productionProjectId = 'dos-hermanos-hilongos';
+const runtimeMode = import.meta.env.MODE;
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,9 +20,15 @@ if (missingConfigValue) {
   throw new Error('Firebase client configuration is incomplete.');
 }
 
-if (import.meta.env.DEV && firebaseConfig.projectId === productionProjectId) {
+if (runtimeMode === 'production' && firebaseConfig.projectId !== productionProjectId) {
   throw new Error(
-    'Development mode cannot connect to the production Firebase project. Configure the separate development project instead.',
+    'Production mode must connect to the approved production Firebase project.',
+  );
+}
+
+if (runtimeMode !== 'production' && firebaseConfig.projectId === productionProjectId) {
+  throw new Error(
+    'Non-production mode cannot connect to the production Firebase project. Configure a separate development or staging project instead.',
   );
 }
 

@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.staging.example
 !.env.production.example
 
 web/dist/
