@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { ManagementLoadingState, ManagementSelect } from '../../app/ManagementControls';
+import { useToast } from '../../app/ToastProvider';
 import {
   createEquipmentAssignment,
   loadAssignableReservations,
@@ -24,6 +26,7 @@ export function EquipmentAssignmentDialog({
   staff,
   onClose,
 }: Props) {
+  const { showToast } = useToast();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [reservations, setReservations] = useState<AssignableReservation[]>([]);
   const [reservationId, setReservationId] = useState('');
@@ -42,9 +45,7 @@ export function EquipmentAssignmentDialog({
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) {
-      return;
-    }
+    if (!dialog) return;
 
     if (isOpen && !dialog.open) {
       dialog.showModal();
@@ -54,9 +55,7 @@ export function EquipmentAssignmentDialog({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
+    if (!isOpen) return;
 
     setReservationId('');
     setEquipmentId('');
@@ -68,9 +67,7 @@ export function EquipmentAssignmentDialog({
     let isCurrent = true;
     void loadAssignableReservations()
       .then((nextReservations) => {
-        if (isCurrent) {
-          setReservations(nextReservations);
-        }
+        if (isCurrent) setReservations(nextReservations);
       })
       .catch(() => {
         if (isCurrent) {
@@ -79,9 +76,7 @@ export function EquipmentAssignmentDialog({
         }
       })
       .finally(() => {
-        if (isCurrent) {
-          setIsLoadingReservations(false);
-        }
+        if (isCurrent) setIsLoadingReservations(false);
       });
 
     return () => {
@@ -92,12 +87,7 @@ export function EquipmentAssignmentDialog({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const quantity = Number(assignedQuantity);
-    const input = {
-      reservationId,
-      equipmentId,
-      assignedQuantity: quantity,
-      note,
-    };
+    const input = { reservationId, equipmentId, assignedQuantity: quantity, note };
     const validationError = validateEquipmentAssignment(input);
 
     if (validationError) {
@@ -115,6 +105,7 @@ export function EquipmentAssignmentDialog({
 
     try {
       await createEquipmentAssignment(input, staff);
+      showToast({ message: 'Equipment assigned to event.', tone: 'success' });
       onClose();
     } catch {
       setErrorMessage('We could not create this equipment assignment. Please review the reservation and try again.');
@@ -139,91 +130,82 @@ export function EquipmentAssignmentDialog({
               Plan equipment for a reservation. Physical availability is checked again when staff actually releases the equipment.
             </p>
           </div>
-          <button
-            type="button"
-            className="equipment-close-button"
-            aria-label="Close equipment assignment form"
-            onClick={onClose}
-          >
-            ×
-          </button>
+          <button type="button" className="equipment-close-button" aria-label="Close equipment assignment form" onClick={onClose}>×</button>
         </div>
 
-        <label className="equipment-field">
-          Reservation
-          <select
-            value={reservationId}
-            disabled={isLoadingReservations}
-            onChange={(event) => setReservationId(event.target.value)}
-          >
-            <option value="">
-              {isLoadingReservations ? 'Loading reservations…' : 'Choose a reservation'}
-            </option>
-            {reservations.map((reservation) => (
-              <option key={reservation.id} value={reservation.id}>
-                {reservation.packageName} · {formatEventRange(reservation)}
-              </option>
-            ))}
-          </select>
-          <small>Pending-review and confirmed reservations can be prepared.</small>
-        </label>
+        {isLoadingReservations ? (
+          <ManagementLoadingState message="Loading reservations for assignment…" />
+        ) : (
+          <>
+            <div className="equipment-field">
+              <span>Reservation</span>
+              <ManagementSelect
+                value={reservationId}
+                options={[
+                  { value: '', label: 'Choose a reservation' },
+                  ...reservations.map((reservation) => ({
+                    value: reservation.id,
+                    label: `${reservation.packageName} · ${formatEventRange(reservation)}`,
+                  })),
+                ]}
+                onChange={setReservationId}
+                ariaLabel="Reservation for equipment assignment"
+              />
+              <small>Pending-review and confirmed reservations can be prepared.</small>
+            </div>
 
-        <label className="equipment-field">
-          Equipment
-          <select value={equipmentId} onChange={(event) => setEquipmentId(event.target.value)}>
-            <option value="">Choose equipment</option>
-            {activeEquipment.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name} · {item.availableQuantity} available / {item.totalQuantity} total
-              </option>
-            ))}
-          </select>
-        </label>
+            <div className="equipment-field">
+              <span>Equipment</span>
+              <ManagementSelect
+                value={equipmentId}
+                options={[
+                  { value: '', label: 'Choose equipment' },
+                  ...activeEquipment.map((item) => ({
+                    value: item.id,
+                    label: `${item.name} · ${item.availableQuantity} available / ${item.totalQuantity} total`,
+                  })),
+                ]}
+                onChange={setEquipmentId}
+                ariaLabel="Equipment to assign"
+              />
+            </div>
 
-        <label className="equipment-field">
-          Assigned quantity
-          <input
-            type="number"
-            min="1"
-            max={selectedEquipment?.totalQuantity ?? 1000000}
-            step="1"
-            inputMode="numeric"
-            value={assignedQuantity}
-            onChange={(event) => setAssignedQuantity(event.target.value)}
-          />
-          {selectedEquipment ? (
-            <small>
-              Registered as {selectedEquipment.totalQuantity} {selectedEquipment.unit}; currently {selectedEquipment.availableQuantity} available for release.
-            </small>
-          ) : null}
-        </label>
+            <label className="equipment-field">
+              Assigned quantity
+              <input
+                type="number"
+                min="1"
+                max={selectedEquipment?.totalQuantity ?? 1000000}
+                step="1"
+                inputMode="numeric"
+                value={assignedQuantity}
+                onChange={(event) => setAssignedQuantity(event.target.value)}
+              />
+              {selectedEquipment ? (
+                <small>
+                  Registered as {selectedEquipment.totalQuantity} {selectedEquipment.unit}; currently {selectedEquipment.availableQuantity} available for release.
+                </small>
+              ) : null}
+            </label>
 
-        <label className="equipment-field">
-          Assignment note <span className="equipment-optional">Optional</span>
-          <textarea
-            rows={3}
-            maxLength={500}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="Placement, handling, or event-specific instructions"
-          />
-        </label>
+            <label className="equipment-field">
+              Assignment note <span className="equipment-optional">Optional</span>
+              <textarea
+                rows={3}
+                maxLength={500}
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Placement, handling, or event-specific instructions"
+              />
+            </label>
+          </>
+        )}
 
-        {errorMessage ? (
-          <p className="equipment-message equipment-message-error" role="alert">
-            {errorMessage}
-          </p>
-        ) : null}
+        {errorMessage ? <p className="equipment-message equipment-message-error" role="alert">{errorMessage}</p> : null}
 
         <div className="equipment-dialog-actions">
-          <button type="button" className="equipment-secondary-button" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="equipment-primary-button"
-            disabled={isSaving || isLoadingReservations || activeEquipment.length === 0}
-          >
+          <button type="button" className="equipment-secondary-button" onClick={onClose}>Cancel</button>
+          <button type="submit" className="equipment-primary-button" disabled={isSaving || isLoadingReservations || activeEquipment.length === 0}>
             {isSaving ? 'Assigning…' : 'Assign equipment'}
           </button>
         </div>
@@ -241,6 +223,5 @@ function formatEventRange(reservation: AssignableReservation): string {
   });
   const start = formatter.format(reservation.eventStartDate);
   const end = formatter.format(reservation.eventEndDate);
-
   return start === end ? start : `${start} – ${end}`;
 }
