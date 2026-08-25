@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
+  ManagementLoadingState,
   ManagementSelect,
   ManagementTableFrame,
   ManagementToolbar,
@@ -25,7 +26,9 @@ import type {
   EquipmentItem,
   EquipmentTransactionRecord,
 } from './equipment.types';
+import { useProgressiveItems } from './useProgressiveItems';
 import './equipment.css';
+import './inventory-cards.css';
 import './equipment-cards.css';
 
 export type EquipmentView = 'registry' | 'assignments' | 'activity';
@@ -134,7 +137,7 @@ export function EquipmentPanel({
   );
 
   const resetKey = `${queryText}|${filterValue}|${sortBy}|${sortDirection}`;
-  const itemPage = useManagementPage(visibleItems, `registry|${resetKey}`);
+  const itemScroll = useProgressiveItems(visibleItems, `registry|${resetKey}`);
   const assignmentPage = useManagementPage(visibleAssignments, `assignments|${resetKey}`);
   const activityPage = useManagementPage(visibleTransactions, `activity|${resetKey}`);
 
@@ -216,15 +219,30 @@ export function EquipmentPanel({
         : visibleItems.length === 0
           ? 'No equipment matches the current view.'
           : undefined;
+
+      if (isLoadingItems) {
+        return <ManagementLoadingState message="Loading equipment registry…" />;
+      }
+
+      if (itemsError) {
+        return <div className="management-empty-state management-empty-state-error" role="alert">Equipment registry could not be loaded.</div>;
+      }
+
+      if (emptyMessage) {
+        return <div className="management-empty-state" role="status">{emptyMessage}</div>;
+      }
+
       return (
-        <ManagementTableFrame
-          loadingMessage={isLoadingItems ? 'Loading equipment registry…' : undefined}
-          errorMessage={!isLoadingItems && itemsError ? 'Equipment registry could not be loaded.' : undefined}
-          emptyMessage={!isLoadingItems && !itemsError ? emptyMessage : undefined}
-          pagination={!isLoadingItems && !itemsError && visibleItems.length > 0 ? { page: itemPage.page, totalItems: visibleItems.length, onPageChange: itemPage.setPage } : undefined}
-        >
-          <EquipmentRegistryGrid items={itemPage.pageItems} onEdit={openItem} />
-        </ManagementTableFrame>
+        <div className="resources-progressive-list">
+          <EquipmentRegistryGrid items={itemScroll.visibleItems} onEdit={openItem} />
+          {itemScroll.hasMore ? (
+            <div ref={itemScroll.sentinelRef} className="resources-progressive-sentinel" aria-hidden="true" />
+          ) : null}
+          <p className="resources-progressive-status" role="status">
+            Showing {itemScroll.visibleCount.toLocaleString('en-PH')} of {visibleItems.length.toLocaleString('en-PH')} equipment items
+            {itemScroll.hasMore ? ' · Scroll down to show more' : ''}
+          </p>
+        </div>
       );
     }
 
