@@ -437,10 +437,14 @@ service cloud.firestore {
         && payment.data.createdAt == request.time;
     }
 
+    function equipmentIsDeleted(data) {
+      return data.get('isDeleted', false) == true;
+    }
+
     function validEquipmentDocument() {
       return request.resource.data.keys().hasOnly([
           'name', 'unit', 'totalQuantity', 'availableQuantity', 'inUseQuantity',
-          'damagedQuantity', 'missingQuantity', 'isActive', 'lastTransactionId',
+          'damagedQuantity', 'missingQuantity', 'isActive', 'isDeleted', 'lastTransactionId',
           'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
@@ -471,6 +475,7 @@ service cloud.firestore {
             + request.resource.data.damagedQuantity
             + request.resource.data.missingQuantity
         && request.resource.data.isActive is bool
+        && request.resource.data.get('isDeleted', false) is bool
         && (
           request.resource.data.lastTransactionId == null
           || (
@@ -659,6 +664,7 @@ service cloud.firestore {
         && reservation.data.event.startDate == request.resource.data.eventStartDate
         && reservation.data.event.endDate == request.resource.data.eventEndDate
         && equipment.data.isActive == true
+        && !equipmentIsDeleted(equipment.data)
         && equipment.data.name == request.resource.data.equipmentName
         && equipment.data.unit == request.resource.data.unit
         && request.resource.data.assignedQuantity <= equipment.data.totalQuantity
@@ -729,6 +735,7 @@ service cloud.firestore {
         && equipmentTransaction.data.recordedBy == request.auth.uid
         && equipmentTransaction.data.createdAt == request.time
         && previousEquipment.data.isActive == true
+        && !equipmentIsDeleted(previousEquipment.data)
         && previousEquipment.data.availableQuantity >= request.resource.data.assignedQuantity
         && updatedEquipment.data.availableQuantity
           == previousEquipment.data.availableQuantity - request.resource.data.assignedQuantity
@@ -798,6 +805,7 @@ service cloud.firestore {
             && updatedAssignment.data.status == 'released'
             && updatedAssignment.data.releaseTransactionId == transactionId
             && previousEquipment.data.isActive == true
+            && !equipmentIsDeleted(previousEquipment.data)
             && previousEquipment.data.availableQuantity >= request.resource.data.quantity
             && updatedEquipment.data.availableQuantity
               == previousEquipment.data.availableQuantity - request.resource.data.quantity
@@ -992,6 +1000,7 @@ service cloud.firestore {
 
       allow create: if isStaffOrAdmin()
         && validEquipmentDocument()
+        && !equipmentIsDeleted(request.resource.data)
         && request.resource.data.availableQuantity == request.resource.data.totalQuantity
         && request.resource.data.inUseQuantity == 0
         && request.resource.data.damagedQuantity == 0
@@ -1004,23 +1013,50 @@ service cloud.firestore {
         && validEquipmentDocument()
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
-        && request.resource.data.totalQuantity == resource.data.totalQuantity
-        && request.resource.data.unit == resource.data.unit
         && (
           (
-            request.resource.data.availableQuantity == resource.data.availableQuantity
+            !equipmentIsDeleted(request.resource.data)
+            && request.resource.data.inUseQuantity == resource.data.inUseQuantity
+            && request.resource.data.damagedQuantity == resource.data.damagedQuantity
+            && request.resource.data.missingQuantity == resource.data.missingQuantity
+            && request.resource.data.lastTransactionId == resource.data.lastTransactionId
+            && request.resource.data.availableQuantity
+              == request.resource.data.totalQuantity
+                - resource.data.inUseQuantity
+                - resource.data.damagedQuantity
+                - resource.data.missingQuantity
+            && request.resource.data.totalQuantity
+              >= resource.data.inUseQuantity + resource.data.damagedQuantity + resource.data.missingQuantity
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'name', 'unit', 'totalQuantity', 'availableQuantity',
+              'isActive', 'isDeleted', 'updatedAt'
+            ])
+            && (request.resource.data.isActive == true || resource.data.inUseQuantity == 0)
+          )
+          || (
+            !equipmentIsDeleted(resource.data)
+            && equipmentIsDeleted(request.resource.data)
+            && resource.data.inUseQuantity == 0
+            && request.resource.data.isActive == false
+            && request.resource.data.name == resource.data.name
+            && request.resource.data.unit == resource.data.unit
+            && request.resource.data.totalQuantity == resource.data.totalQuantity
+            && request.resource.data.availableQuantity == resource.data.availableQuantity
             && request.resource.data.inUseQuantity == resource.data.inUseQuantity
             && request.resource.data.damagedQuantity == resource.data.damagedQuantity
             && request.resource.data.missingQuantity == resource.data.missingQuantity
             && request.resource.data.lastTransactionId == resource.data.lastTransactionId
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'name', 'isActive', 'updatedAt'
+              'isActive', 'isDeleted', 'updatedAt'
             ])
-            && (request.resource.data.isActive == true || resource.data.inUseQuantity == 0)
           )
           || (
             request.resource.data.name == resource.data.name
+            && request.resource.data.unit == resource.data.unit
+            && request.resource.data.totalQuantity == resource.data.totalQuantity
             && request.resource.data.isActive == resource.data.isActive
+            && equipmentIsDeleted(request.resource.data) == equipmentIsDeleted(resource.data)
+            && !equipmentIsDeleted(resource.data)
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'availableQuantity', 'inUseQuantity', 'damagedQuantity',
               'missingQuantity', 'lastTransactionId', 'updatedAt'
