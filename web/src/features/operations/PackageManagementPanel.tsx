@@ -3,7 +3,6 @@ import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
-  ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
@@ -15,8 +14,6 @@ import './package-management.css';
 
 type PackageSort = 'name' | 'price' | 'order';
 type SortDirection = 'asc' | 'desc';
-
-const tabs = [{ value: 'packages', label: 'Packages' }] as const;
 
 export function PackageManagementPanel() {
   const { showToast } = useToast();
@@ -93,9 +90,7 @@ export function PackageManagementPanel() {
       : undefined;
 
   return (
-    <section className="package-management-section" aria-label="Packages">
-      <ManagementTabs value="packages" options={[...tabs]} onChange={() => undefined} label="Package views" />
-
+    <div className="package-management-section" aria-label="Manage packages">
       <ManagementToolbar
         summary={[
           { label: 'packages', value: packages.length },
@@ -228,7 +223,7 @@ export function PackageManagementPanel() {
           void refreshPackages();
         }}
       />
-    </section>
+    </div>
   );
 }
 
