@@ -5,6 +5,7 @@ import { AppLink } from './navigation';
 import '../styles/management-shell.css';
 import '../styles/management-ui.css';
 import '../styles/management-data.css';
+import '../styles/management-spacing.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
