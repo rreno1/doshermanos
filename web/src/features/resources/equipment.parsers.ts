@@ -27,6 +27,7 @@ export function parseEquipmentItem(snapshot: DocumentSnapshot): EquipmentItem {
       data.lastTransactionId === null
         ? null
         : requireString(data.lastTransactionId, 'Equipment history link is invalid.'),
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
   };
 }
 
