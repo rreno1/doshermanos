@@ -36,22 +36,27 @@ export function ReportsPanel() {
   const [payments, setPayments] = useState<ReportPayment[] | null>();
   const [inventory, setInventory] = useState<InventoryItem[] | null>();
   const [equipment, setEquipment] = useState<EquipmentItem[] | null>();
+  const sourceKind = reportKind === 'sales' ? 'reservations' : reportKind;
 
   useEffect(() => {
-    return subscribeToReportReservations(setReservations, () => setReservations(null));
-  }, []);
+    if (sourceKind === 'reservations') {
+      setReservations(undefined);
+      return subscribeToReportReservations(setReservations, () => setReservations(null));
+    }
 
-  useEffect(() => {
-    return subscribeToReportPayments(setPayments, () => setPayments(null));
-  }, []);
+    if (sourceKind === 'payments') {
+      setPayments(undefined);
+      return subscribeToReportPayments(setPayments, () => setPayments(null));
+    }
 
-  useEffect(() => {
-    return subscribeToInventory(setInventory, () => setInventory(null));
-  }, []);
+    if (sourceKind === 'inventory') {
+      setInventory(undefined);
+      return subscribeToInventory(setInventory, () => setInventory(null));
+    }
 
-  useEffect(() => {
+    setEquipment(undefined);
     return subscribeToEquipment(setEquipment, () => setEquipment(null));
-  }, []);
+  }, [sourceKind]);
 
   const report = useMemo(
     () => buildReport(reportKind, reservations, payments, inventory, equipment),
