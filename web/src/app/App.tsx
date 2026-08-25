@@ -162,7 +162,7 @@ function renderManagementPage(
 ) {
   switch (page) {
     case 'dashboard':
-      return <DashboardPanel workspaceBasePath={basePath} />;
+      return <DashboardPanel workspaceBasePath={basePath} role={role} />;
     case 'reservations':
       return <ReservationReviewPanel staffId={profile.id} staffName={profile.displayName} />;
     case 'packages':
