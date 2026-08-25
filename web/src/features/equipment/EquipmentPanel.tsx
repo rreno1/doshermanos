@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
+import { useToast } from '../../app/ToastProvider';
 import { EquipmentActivityList } from './EquipmentActivityList';
 import { EquipmentAssignmentDialog } from './EquipmentAssignmentDialog';
 import { EquipmentAssignmentList } from './EquipmentAssignmentList';
@@ -28,16 +30,7 @@ import './equipment.css';
 
 type EquipmentTab = 'registry' | 'assignments' | 'activity';
 type SortDirection = 'asc' | 'desc';
-
-type EquipmentSort =
-  | 'name'
-  | 'available'
-  | 'total'
-  | 'event'
-  | 'equipment'
-  | 'status'
-  | 'date'
-  | 'type';
+type EquipmentSort = 'name' | 'available' | 'total' | 'event' | 'equipment' | 'status' | 'date' | 'type';
 
 const tabs = [
   { value: 'registry', label: 'Registry' },
@@ -46,6 +39,7 @@ const tabs = [
 ] satisfies { value: EquipmentTab; label: string }[];
 
 export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffName: string }) {
+  const { showToast } = useToast();
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [assignments, setAssignments] = useState<EquipmentAssignment[]>([]);
   const [transactions, setTransactions] = useState<EquipmentTransactionRecord[]>([]);
@@ -55,7 +49,6 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   const [itemsError, setItemsError] = useState(false);
   const [assignmentsError, setAssignmentsError] = useState(false);
   const [transactionsError, setTransactionsError] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<EquipmentItem | null>(null);
@@ -156,17 +149,15 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   }
 
   async function handleCancelAssignment(assignment: EquipmentAssignment) {
-    const shouldCancel = window.confirm(
-      `Cancel the ${assignment.equipmentName} assignment for ${assignment.packageName}?`,
-    );
+    const shouldCancel = window.confirm(`Cancel the ${assignment.equipmentName} assignment for ${assignment.packageName}?`);
     if (!shouldCancel) return;
 
     setCancellingId(assignment.id);
-    setActionError(null);
     try {
       await cancelEquipmentAssignment(assignment.id);
+      showToast({ message: 'Equipment assignment cancelled.', tone: 'success' });
     } catch {
-      setActionError('Assignment could not be cancelled. It may have already changed.');
+      showToast({ message: 'Assignment could not be cancelled. It may have already changed.', tone: 'error' });
     } finally {
       setCancellingId(null);
     }
@@ -203,31 +194,18 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
           />
         )}
         primaryAction={tab === 'registry' ? (
-          <button type="button" className="management-primary-button" onClick={openNewItem}>
-            Add equipment
-          </button>
+          <button type="button" className="management-primary-button" onClick={openNewItem}>Add equipment</button>
         ) : tab === 'assignments' ? (
-          <button
-            type="button"
-            className="management-primary-button"
-            disabled={activeItems.length === 0}
-            onClick={() => setAssignmentDialogOpen(true)}
-          >
+          <button type="button" className="management-primary-button" disabled={activeItems.length === 0} onClick={() => setAssignmentDialogOpen(true)}>
             Assign to event
           </button>
         ) : undefined}
       />
 
-      {actionError ? <p className="equipment-action-error" role="alert">{actionError}</p> : null}
       {renderActiveView()}
 
       <EquipmentItemDialog isOpen={itemDialogOpen} item={editingItem} onClose={() => setItemDialogOpen(false)} />
-      <EquipmentAssignmentDialog
-        isOpen={assignmentDialogOpen}
-        equipment={items}
-        staff={staff}
-        onClose={() => setAssignmentDialogOpen(false)}
-      />
+      <EquipmentAssignmentDialog isOpen={assignmentDialogOpen} equipment={items} staff={staff} onClose={() => setAssignmentDialogOpen(false)} />
       <EquipmentReleaseDialog assignment={releaseAssignment} staff={staff} onClose={() => setReleaseAssignment(null)} />
       <EquipmentReturnDialog assignment={returnAssignment} staff={staff} onClose={() => setReturnAssignment(null)} />
     </section>
@@ -235,21 +213,36 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
 
   function renderActiveView() {
     if (tab === 'registry') {
-      if (isLoadingItems) return <StatusBox>Loading equipment…</StatusBox>;
-      if (itemsError) return <StatusBox error>Equipment could not be loaded.</StatusBox>;
+      const emptyMessage = items.length === 0
+        ? 'No equipment has been registered yet.'
+        : visibleItems.length === 0
+          ? 'No equipment matches the current view.'
+          : undefined;
       return (
-        <>
+        <ManagementTableFrame
+          loadingMessage={isLoadingItems ? 'Loading equipment registry…' : undefined}
+          errorMessage={!isLoadingItems && itemsError ? 'Equipment registry could not be loaded.' : undefined}
+          emptyMessage={!isLoadingItems && !itemsError ? emptyMessage : undefined}
+          pagination={!isLoadingItems && !itemsError && visibleItems.length > 0 ? { page: itemPage.page, totalItems: visibleItems.length, onPageChange: itemPage.setPage } : undefined}
+        >
           <EquipmentItemList items={itemPage.pageItems} onEdit={openItem} />
-          {visibleItems.length > 0 ? <ManagementPagination page={itemPage.page} totalItems={visibleItems.length} onPageChange={itemPage.setPage} /> : null}
-        </>
+        </ManagementTableFrame>
       );
     }
 
     if (tab === 'assignments') {
-      if (isLoadingAssignments) return <StatusBox>Loading assignments…</StatusBox>;
-      if (assignmentsError) return <StatusBox error>Assignments could not be loaded.</StatusBox>;
+      const emptyMessage = assignments.length === 0
+        ? 'No equipment assignments yet.'
+        : visibleAssignments.length === 0
+          ? 'No assignments match the current view.'
+          : undefined;
       return (
-        <>
+        <ManagementTableFrame
+          loadingMessage={isLoadingAssignments ? 'Loading equipment assignments…' : undefined}
+          errorMessage={!isLoadingAssignments && assignmentsError ? 'Equipment assignments could not be loaded.' : undefined}
+          emptyMessage={!isLoadingAssignments && !assignmentsError ? emptyMessage : undefined}
+          pagination={!isLoadingAssignments && !assignmentsError && visibleAssignments.length > 0 ? { page: assignmentPage.page, totalItems: visibleAssignments.length, onPageChange: assignmentPage.setPage } : undefined}
+        >
           <EquipmentAssignmentList
             assignments={assignmentPage.pageItems}
             cancellingId={cancellingId}
@@ -257,32 +250,29 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
             onReturn={setReturnAssignment}
             onCancel={(assignment) => void handleCancelAssignment(assignment)}
           />
-          {visibleAssignments.length > 0 ? <ManagementPagination page={assignmentPage.page} totalItems={visibleAssignments.length} onPageChange={assignmentPage.setPage} /> : null}
-        </>
+        </ManagementTableFrame>
       );
     }
 
+    const emptyMessage = transactions.length === 0
+      ? 'No equipment release or return activity yet.'
+      : visibleTransactions.length === 0
+        ? 'No equipment activity matches the current view.'
+        : undefined;
     return (
-      <>
-        <EquipmentActivityList transactions={activityPage.pageItems} isLoading={isLoadingTransactions} hasError={transactionsError} />
-        {!isLoadingTransactions && !transactionsError && visibleTransactions.length > 0 ? (
-          <ManagementPagination page={activityPage.page} totalItems={visibleTransactions.length} onPageChange={activityPage.setPage} />
-        ) : null}
-      </>
+      <ManagementTableFrame
+        loadingMessage={isLoadingTransactions ? 'Loading equipment activity…' : undefined}
+        errorMessage={!isLoadingTransactions && transactionsError ? 'Equipment activity could not be loaded.' : undefined}
+        emptyMessage={!isLoadingTransactions && !transactionsError ? emptyMessage : undefined}
+        pagination={!isLoadingTransactions && !transactionsError && visibleTransactions.length > 0 ? { page: activityPage.page, totalItems: visibleTransactions.length, onPageChange: activityPage.setPage } : undefined}
+      >
+        <EquipmentActivityList transactions={activityPage.pageItems} isLoading={false} hasError={false} />
+      </ManagementTableFrame>
     );
   }
 }
 
-function EquipmentFilters({
-  tab,
-  filterValue,
-  sortBy,
-  sortDirection,
-  onFilterChange,
-  onSortChange,
-  onDirectionChange,
-  onReset,
-}: {
+function EquipmentFilters({ tab, filterValue, sortBy, sortDirection, onFilterChange, onSortChange, onDirectionChange, onReset }: {
   tab: EquipmentTab;
   filterValue: string;
   sortBy: EquipmentSort;
@@ -293,33 +283,26 @@ function EquipmentFilters({
   onReset: () => void;
 }) {
   const filterOptions = tab === 'registry'
-    ? [['all', 'All statuses'], ['active', 'Active'], ['inactive', 'Inactive']]
+    ? [{ value: 'all', label: 'All statuses' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]
     : tab === 'assignments'
-      ? [['all', 'All statuses'], ['assigned', 'Assigned'], ['released', 'Released'], ['closed', 'Closed'], ['cancelled', 'Cancelled']]
-      : [['all', 'All activity'], ['release', 'Released'], ['return', 'Returned']];
+      ? [{ value: 'all', label: 'All statuses' }, { value: 'assigned', label: 'Assigned' }, { value: 'released', label: 'Released' }, { value: 'closed', label: 'Closed' }, { value: 'cancelled', label: 'Cancelled' }]
+      : [{ value: 'all', label: 'All activity' }, { value: 'release', label: 'Released' }, { value: 'return', label: 'Returned' }];
   const sortOptions = tab === 'registry'
-    ? [['name', 'Name'], ['available', 'Available quantity'], ['total', 'Total quantity']]
+    ? [{ value: 'name', label: 'Name' }, { value: 'available', label: 'Available quantity' }, { value: 'total', label: 'Total quantity' }]
     : tab === 'assignments'
-      ? [['event', 'Event date'], ['equipment', 'Equipment'], ['status', 'Status']]
-      : [['date', 'Recorded date'], ['equipment', 'Equipment'], ['type', 'Activity type']];
+      ? [{ value: 'event', label: 'Event date' }, { value: 'equipment', label: 'Equipment' }, { value: 'status', label: 'Status' }]
+      : [{ value: 'date', label: 'Recorded date' }, { value: 'equipment', label: 'Equipment' }, { value: 'type', label: 'Activity type' }];
 
   return (
     <>
       <ManagementFilterField label={tab === 'activity' ? 'Activity type' : 'Status'}>
-        <select value={filterValue} onChange={(event) => onFilterChange(event.target.value)}>
-          {filterOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        <ManagementSelect value={filterValue} options={filterOptions} onChange={onFilterChange} ariaLabel="Filter equipment view" />
       </ManagementFilterField>
       <ManagementFilterField label="Sort by">
-        <select value={sortBy} onChange={(event) => onSortChange(event.target.value as EquipmentSort)}>
-          {sortOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        <ManagementSelect value={sortBy} options={sortOptions as { value: EquipmentSort; label: string }[]} onChange={onSortChange} ariaLabel="Sort equipment view by" />
       </ManagementFilterField>
       <ManagementFilterField label="Direction">
-        <select value={sortDirection} onChange={(event) => onDirectionChange(event.target.value as SortDirection)}>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
+        <ManagementSelect value={sortDirection} options={[{ value: 'asc', label: 'Ascending' }, { value: 'desc', label: 'Descending' }]} onChange={onDirectionChange} ariaLabel="Equipment sort direction" />
       </ManagementFilterField>
       <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
     </>
@@ -329,13 +312,9 @@ function EquipmentFilters({
 function filterEquipmentItems(items: EquipmentItem[], query: string, status: string, sortBy: EquipmentSort, direction: SortDirection) {
   const text = query.trim().toLocaleLowerCase();
   return [...items]
-    .filter((item) => (status === 'all' || (status === 'active' ? item.isActive : !item.isActive)))
+    .filter((item) => status === 'all' || (status === 'active' ? item.isActive : !item.isActive))
     .filter((item) => !text || `${item.name} ${item.unit}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      sortBy === 'available' ? left.availableQuantity : sortBy === 'total' ? left.totalQuantity : left.name,
-      sortBy === 'available' ? right.availableQuantity : sortBy === 'total' ? right.totalQuantity : right.name,
-      direction,
-    ));
+    .sort((left, right) => compareValues(sortBy === 'available' ? left.availableQuantity : sortBy === 'total' ? left.totalQuantity : left.name, sortBy === 'available' ? right.availableQuantity : sortBy === 'total' ? right.totalQuantity : right.name, direction));
 }
 
 function filterAssignments(assignments: EquipmentAssignment[], query: string, status: string, sortBy: EquipmentSort, direction: SortDirection) {
@@ -343,11 +322,7 @@ function filterAssignments(assignments: EquipmentAssignment[], query: string, st
   return [...assignments]
     .filter((assignment) => status === 'all' || assignment.status === status)
     .filter((assignment) => !text || `${assignment.equipmentName} ${assignment.packageName} ${assignment.note} ${assignment.status}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      sortBy === 'equipment' ? left.equipmentName : sortBy === 'status' ? left.status : left.eventStartDate.getTime(),
-      sortBy === 'equipment' ? right.equipmentName : sortBy === 'status' ? right.status : right.eventStartDate.getTime(),
-      direction,
-    ));
+    .sort((left, right) => compareValues(sortBy === 'equipment' ? left.equipmentName : sortBy === 'status' ? left.status : left.eventStartDate.getTime(), sortBy === 'equipment' ? right.equipmentName : sortBy === 'status' ? right.status : right.eventStartDate.getTime(), direction));
 }
 
 function filterTransactions(transactions: EquipmentTransactionRecord[], query: string, type: string, sortBy: EquipmentSort, direction: SortDirection) {
@@ -355,17 +330,11 @@ function filterTransactions(transactions: EquipmentTransactionRecord[], query: s
   return [...transactions]
     .filter((transaction) => type === 'all' || transaction.type === type)
     .filter((transaction) => !text || `${transaction.equipmentName} ${transaction.recordedByName} ${transaction.note} ${transaction.type}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      sortBy === 'equipment' ? left.equipmentName : sortBy === 'type' ? left.type : left.createdAt.getTime(),
-      sortBy === 'equipment' ? right.equipmentName : sortBy === 'type' ? right.type : right.createdAt.getTime(),
-      direction,
-    ));
+    .sort((left, right) => compareValues(sortBy === 'equipment' ? left.equipmentName : sortBy === 'type' ? left.type : left.createdAt.getTime(), sortBy === 'equipment' ? right.equipmentName : sortBy === 'type' ? right.type : right.createdAt.getTime(), direction));
 }
 
 function compareValues(left: string | number, right: string | number, direction: SortDirection) {
-  const result = typeof left === 'number' && typeof right === 'number'
-    ? left - right
-    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
   return direction === 'asc' ? result : -result;
 }
 
@@ -373,8 +342,4 @@ function getSearchPlaceholder(tab: EquipmentTab) {
   if (tab === 'registry') return 'Search equipment';
   if (tab === 'assignments') return 'Search assignments';
   return 'Search activity';
-}
-
-function StatusBox({ children, error = false }: { children: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{children}</div>;
 }
