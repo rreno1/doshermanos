@@ -5,6 +5,7 @@ import { PackageCatalog } from '../operations/PackageCatalog';
 import { LandingPage } from './LandingPage';
 import { PortalHomePage } from './PortalHomePage';
 import { PortalShell } from './PortalShell';
+import './portal-access.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
