@@ -3,7 +3,6 @@ import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
-  ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
@@ -12,7 +11,7 @@ import { EquipmentActivityList } from './EquipmentActivityList';
 import { EquipmentAssignmentDialog } from './EquipmentAssignmentDialog';
 import { EquipmentAssignmentList } from './EquipmentAssignmentList';
 import { EquipmentItemDialog } from './EquipmentItemDialog';
-import { EquipmentItemList } from './EquipmentItemList';
+import { EquipmentRegistryGrid } from './EquipmentRegistryGrid';
 import { EquipmentReleaseDialog } from './EquipmentReleaseDialog';
 import { EquipmentReturnDialog } from './EquipmentReturnDialog';
 import {
@@ -27,18 +26,21 @@ import type {
   EquipmentTransactionRecord,
 } from './equipment.types';
 import './equipment.css';
+import './equipment-cards.css';
 
-type EquipmentTab = 'registry' | 'assignments' | 'activity';
+export type EquipmentView = 'registry' | 'assignments' | 'activity';
 type SortDirection = 'asc' | 'desc';
 type EquipmentSort = 'name' | 'available' | 'total' | 'event' | 'equipment' | 'status' | 'date' | 'type';
 
-const tabs = [
-  { value: 'registry', label: 'Registry' },
-  { value: 'assignments', label: 'Assignments' },
-  { value: 'activity', label: 'Activity' },
-] satisfies { value: EquipmentTab; label: string }[];
-
-export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffName: string }) {
+export function EquipmentPanel({
+  staffId,
+  staffName,
+  view,
+}: {
+  staffId: string;
+  staffName: string;
+  view: EquipmentView;
+}) {
   const { showToast } = useToast();
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [assignments, setAssignments] = useState<EquipmentAssignment[]>([]);
@@ -55,7 +57,6 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   const [releaseAssignment, setReleaseAssignment] = useState<EquipmentAssignment | null>(null);
   const [returnAssignment, setReturnAssignment] = useState<EquipmentAssignment | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [tab, setTab] = useState<EquipmentTab>('registry');
   const [queryText, setQueryText] = useState('');
   const [filterValue, setFilterValue] = useState('all');
   const [sortBy, setSortBy] = useState<EquipmentSort>('name');
@@ -102,6 +103,13 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
     },
   ), []);
 
+  useEffect(() => {
+    setQueryText('');
+    setFilterValue('all');
+    setSortDirection(view === 'registry' ? 'asc' : 'desc');
+    setSortBy(view === 'registry' ? 'name' : view === 'assignments' ? 'event' : 'date');
+  }, [view]);
+
   const activeItems = useMemo(() => items.filter((item) => item.isActive), [items]);
   const totals = useMemo(() => activeItems.reduce(
     (summary, item) => ({
@@ -130,14 +138,6 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   const assignmentPage = useManagementPage(visibleAssignments, `assignments|${resetKey}`);
   const activityPage = useManagementPage(visibleTransactions, `activity|${resetKey}`);
 
-  function changeTab(nextTab: EquipmentTab) {
-    setTab(nextTab);
-    setQueryText('');
-    setFilterValue('all');
-    setSortDirection(nextTab === 'registry' ? 'asc' : 'desc');
-    setSortBy(nextTab === 'registry' ? 'name' : nextTab === 'assignments' ? 'event' : 'date');
-  }
-
   function openNewItem() {
     setEditingItem(null);
     setItemDialogOpen(true);
@@ -164,9 +164,7 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   }
 
   return (
-    <section className="equipment-section" id="equipment" aria-label="Equipment">
-      <ManagementTabs value={tab} options={tabs} onChange={changeTab} label="Equipment views" />
-
+    <div className="equipment-section" id="equipment" aria-label={getViewLabel(view)}>
       <ManagementToolbar
         summary={[
           { label: 'active items', value: activeItems.length },
@@ -175,11 +173,11 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
           { label: 'issues', value: totals.issues, warn: totals.issues > 0 },
         ]}
         searchValue={queryText}
-        searchPlaceholder={getSearchPlaceholder(tab)}
+        searchPlaceholder={getSearchPlaceholder(view)}
         onSearchChange={setQueryText}
         filterContent={(
           <EquipmentFilters
-            tab={tab}
+            view={view}
             filterValue={filterValue}
             sortBy={sortBy}
             sortDirection={sortDirection}
@@ -188,14 +186,14 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
             onDirectionChange={setSortDirection}
             onReset={() => {
               setFilterValue('all');
-              setSortDirection(tab === 'registry' ? 'asc' : 'desc');
-              setSortBy(tab === 'registry' ? 'name' : tab === 'assignments' ? 'event' : 'date');
+              setSortDirection(view === 'registry' ? 'asc' : 'desc');
+              setSortBy(view === 'registry' ? 'name' : view === 'assignments' ? 'event' : 'date');
             }}
           />
         )}
-        primaryAction={tab === 'registry' ? (
+        primaryAction={view === 'registry' ? (
           <button type="button" className="management-primary-button" onClick={openNewItem}>Add equipment</button>
-        ) : tab === 'assignments' ? (
+        ) : view === 'assignments' ? (
           <button type="button" className="management-primary-button" disabled={activeItems.length === 0} onClick={() => setAssignmentDialogOpen(true)}>
             Assign to event
           </button>
@@ -208,11 +206,11 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
       <EquipmentAssignmentDialog isOpen={assignmentDialogOpen} equipment={items} staff={staff} onClose={() => setAssignmentDialogOpen(false)} />
       <EquipmentReleaseDialog assignment={releaseAssignment} staff={staff} onClose={() => setReleaseAssignment(null)} />
       <EquipmentReturnDialog assignment={returnAssignment} staff={staff} onClose={() => setReturnAssignment(null)} />
-    </section>
+    </div>
   );
 
   function renderActiveView() {
-    if (tab === 'registry') {
+    if (view === 'registry') {
       const emptyMessage = items.length === 0
         ? 'No equipment has been registered yet.'
         : visibleItems.length === 0
@@ -225,12 +223,12 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
           emptyMessage={!isLoadingItems && !itemsError ? emptyMessage : undefined}
           pagination={!isLoadingItems && !itemsError && visibleItems.length > 0 ? { page: itemPage.page, totalItems: visibleItems.length, onPageChange: itemPage.setPage } : undefined}
         >
-          <EquipmentItemList items={itemPage.pageItems} onEdit={openItem} />
+          <EquipmentRegistryGrid items={itemPage.pageItems} onEdit={openItem} />
         </ManagementTableFrame>
       );
     }
 
-    if (tab === 'assignments') {
+    if (view === 'assignments') {
       const emptyMessage = assignments.length === 0
         ? 'No equipment assignments yet.'
         : visibleAssignments.length === 0
@@ -272,8 +270,8 @@ export function EquipmentPanel({ staffId, staffName }: { staffId: string; staffN
   }
 }
 
-function EquipmentFilters({ tab, filterValue, sortBy, sortDirection, onFilterChange, onSortChange, onDirectionChange, onReset }: {
-  tab: EquipmentTab;
+function EquipmentFilters({ view, filterValue, sortBy, sortDirection, onFilterChange, onSortChange, onDirectionChange, onReset }: {
+  view: EquipmentView;
   filterValue: string;
   sortBy: EquipmentSort;
   sortDirection: SortDirection;
@@ -282,20 +280,20 @@ function EquipmentFilters({ tab, filterValue, sortBy, sortDirection, onFilterCha
   onDirectionChange: (value: SortDirection) => void;
   onReset: () => void;
 }) {
-  const filterOptions = tab === 'registry'
+  const filterOptions = view === 'registry'
     ? [{ value: 'all', label: 'All statuses' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]
-    : tab === 'assignments'
+    : view === 'assignments'
       ? [{ value: 'all', label: 'All statuses' }, { value: 'assigned', label: 'Assigned' }, { value: 'released', label: 'Released' }, { value: 'closed', label: 'Closed' }, { value: 'cancelled', label: 'Cancelled' }]
       : [{ value: 'all', label: 'All activity' }, { value: 'release', label: 'Released' }, { value: 'return', label: 'Returned' }];
-  const sortOptions = tab === 'registry'
+  const sortOptions = view === 'registry'
     ? [{ value: 'name', label: 'Name' }, { value: 'available', label: 'Available quantity' }, { value: 'total', label: 'Total quantity' }]
-    : tab === 'assignments'
+    : view === 'assignments'
       ? [{ value: 'event', label: 'Event date' }, { value: 'equipment', label: 'Equipment' }, { value: 'status', label: 'Status' }]
       : [{ value: 'date', label: 'Recorded date' }, { value: 'equipment', label: 'Equipment' }, { value: 'type', label: 'Activity type' }];
 
   return (
     <>
-      <ManagementFilterField label={tab === 'activity' ? 'Activity type' : 'Status'}>
+      <ManagementFilterField label={view === 'activity' ? 'Activity type' : 'Status'}>
         <ManagementSelect value={filterValue} options={filterOptions} onChange={onFilterChange} ariaLabel="Filter equipment view" />
       </ManagementFilterField>
       <ManagementFilterField label="Sort by">
@@ -338,8 +336,14 @@ function compareValues(left: string | number, right: string | number, direction:
   return direction === 'asc' ? result : -result;
 }
 
-function getSearchPlaceholder(tab: EquipmentTab) {
-  if (tab === 'registry') return 'Search equipment';
-  if (tab === 'assignments') return 'Search assignments';
+function getSearchPlaceholder(view: EquipmentView) {
+  if (view === 'registry') return 'Search equipment';
+  if (view === 'assignments') return 'Search assignments';
   return 'Search activity';
+}
+
+function getViewLabel(view: EquipmentView) {
+  if (view === 'registry') return 'Equipment registry';
+  if (view === 'assignments') return 'Equipment assignments';
+  return 'Equipment activity';
 }
