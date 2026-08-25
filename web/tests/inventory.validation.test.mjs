@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   validateInventoryItemDetails,
   validateInventoryMovement,
-} from '../src/features/inventory/inventory.validation.ts';
+} from '../src/features/resources/inventory.validation.ts';
 
 test('inventory item validation normalizes valid details', () => {
   const result = validateInventoryItemDetails('  Rice  ', ' gram ', ' 250 ', true);
