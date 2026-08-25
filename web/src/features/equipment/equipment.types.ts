@@ -8,6 +8,7 @@ export type EquipmentItem = {
   damagedQuantity: number;
   missingQuantity: number;
   isActive: boolean;
+  isDeleted: boolean;
   lastTransactionId: string | null;
 };
 
@@ -69,10 +70,7 @@ export type EquipmentItemInput = {
   isActive: boolean;
 };
 
-export type EquipmentItemEditInput = {
-  name: string;
-  isActive: boolean;
-};
+export type EquipmentItemEditInput = EquipmentItemInput;
 
 export type EquipmentAssignmentInput = {
   reservationId: string;
