@@ -37,7 +37,7 @@ export function AuthMenu() {
   const buttonLabel =
     authState.status === 'active' && authState.profile
       ? authState.profile.displayName
-      : 'Sign in';
+      : 'Google login';
 
   const panelTitle = getPanelTitle(authState.status);
 
@@ -119,5 +119,5 @@ function getPanelTitle(status: string) {
     return 'Account setup issue';
   }
 
-  return 'Sign in';
+  return 'Continue with Google';
 }
