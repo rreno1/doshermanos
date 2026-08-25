@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import type { CateringPackage } from '../packages/package.types';
+import type { CateringPackage } from './package.types';
 import type { ReservationRequestInput } from './reservation.types';
 import {
   validateReservationForm,
