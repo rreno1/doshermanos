@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
@@ -98,6 +99,12 @@ export function ReportsPanel() {
     if (reportReady) downloadCsv(report.filename, createCsv(report.headers, report.rows));
   }
 
+  const emptyMessage = report.rows.length === 0
+    ? 'No records.'
+    : visibleRows.length === 0
+      ? 'No records match the current search.'
+      : undefined;
+
   return (
     <section className="reports-section" id="reports" aria-label="Reports">
       <ManagementTabs value={reportKind} options={reportKinds} onChange={changeReport} label="Report types" />
@@ -110,14 +117,23 @@ export function ReportsPanel() {
         filterContent={(
           <>
             <ManagementFilterField label="Sort by">
-              <select value={sortColumn} onChange={(event) => setSortColumn(Number(event.target.value))}>
-                {report.headers.map((header, index) => <option key={header} value={index}>{header}</option>)}
-              </select>
+              <ManagementSelect
+                value={String(sortColumn)}
+                options={report.headers.map((header, index) => ({ value: String(index), label: header }))}
+                onChange={(value) => setSortColumn(Number(value))}
+                ariaLabel={`Sort ${report.title.toLocaleLowerCase()} report by`}
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Direction">
-              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
-                <option value="asc">Ascending</option><option value="desc">Descending</option>
-              </select>
+              <ManagementSelect
+                value={sortDirection}
+                options={[
+                  { value: 'asc', label: 'Ascending' },
+                  { value: 'desc', label: 'Descending' },
+                ]}
+                onChange={setSortDirection}
+                ariaLabel="Report sort direction"
+              />
             </ManagementFilterField>
             <button type="button" className="management-secondary-button" disabled={!reportReady} onClick={() => window.print()}>Print</button>
             <button type="button" className="management-secondary-button" onClick={() => { setSortColumn(0); setSortDirection('asc'); }}>Reset sort</button>
@@ -131,17 +147,17 @@ export function ReportsPanel() {
       />
 
       {report.note ? <p className="management-info-note">{report.note}</p> : null}
-      {renderReport()}
-    </section>
-  );
 
-  function renderReport() {
-    if (sourceState === undefined) return <div className="management-empty-state" role="status">Loading records…</div>;
-    if (sourceState === null) return <div className="management-empty-state management-empty-state-error" role="alert">Report could not be loaded.</div>;
-    if (visibleRows.length === 0) return <div className="management-empty-state">{report.rows.length === 0 ? 'No records.' : 'No records match the current search.'}</div>;
-
-    return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={sourceState === undefined ? `Loading ${report.title.toLocaleLowerCase()} report…` : undefined}
+        errorMessage={sourceState === null ? `${report.title} report could not be loaded.` : undefined}
+        emptyMessage={reportReady ? emptyMessage : undefined}
+        pagination={reportReady && visibleRows.length > 0 ? {
+          page: page.page,
+          totalItems: visibleRows.length,
+          onPageChange: page.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead><tr>{report.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead>
@@ -154,10 +170,9 @@ export function ReportsPanel() {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={page.page} totalItems={visibleRows.length} onPageChange={page.setPage} />
-      </>
-    );
-  }
+      </ManagementTableFrame>
+    </section>
+  );
 }
 
 function filterRows(rows: string[][], query: string, sortColumn: number, direction: SortDirection) {
