@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '../../app/ManagementControls';
+import { useToast } from '../../app/ToastProvider';
 import {
   rejectReservation,
   subscribeToPendingReservations,
@@ -24,11 +26,11 @@ type ReservationReviewPanelProps = {
 };
 
 export function ReservationReviewPanel({ staffId, staffName }: ReservationReviewPanelProps) {
+  const { showToast } = useToast();
   const [reservations, setReservations] = useState<ReservationRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [busyReservationId, setBusyReservationId] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [queryText, setQueryText] = useState('');
   const [sortBy, setSortBy] = useState<ReservationSort>('submitted');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -57,6 +59,11 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
     visibleReservations,
     `${queryText}|${sortBy}|${sortDirection}`,
   );
+  const emptyMessage = reservations.length === 0
+    ? 'No pending reservation requests.'
+    : visibleReservations.length === 0
+      ? 'No pending requests match the current search.'
+      : undefined;
 
   return (
     <section className="reservation-review-section" id="reservation-review" aria-label="Reservations">
@@ -70,17 +77,28 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
         filterContent={(
           <>
             <ManagementFilterField label="Sort by">
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as ReservationSort)}>
-                <option value="submitted">Submitted date</option>
-                <option value="event">Event date</option>
-                <option value="package">Package</option>
-                <option value="guests">Guest count</option>
-              </select>
+              <ManagementSelect
+                value={sortBy}
+                options={[
+                  { value: 'submitted', label: 'Submitted date' },
+                  { value: 'event', label: 'Event date' },
+                  { value: 'package', label: 'Package' },
+                  { value: 'guests', label: 'Guest count' },
+                ]}
+                onChange={setSortBy}
+                ariaLabel="Sort reservation requests by"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Direction">
-              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
-                <option value="asc">Ascending</option><option value="desc">Descending</option>
-              </select>
+              <ManagementSelect
+                value={sortDirection}
+                options={[
+                  { value: 'asc', label: 'Ascending' },
+                  { value: 'desc', label: 'Descending' },
+                ]}
+                onChange={setSortDirection}
+                ariaLabel="Reservation sort direction"
+              />
             </ManagementFilterField>
             <button type="button" className="management-secondary-button" onClick={() => { setSortBy('submitted'); setSortDirection('desc'); }}>
               Reset sort
@@ -93,20 +111,16 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
         Confirmation stays disabled until approved event-capacity and customization-pricing rules are available.
       </div>
 
-      {actionError ? <div className="reservation-review-error" role="alert">{actionError}</div> : null}
-      {renderContent()}
-    </section>
-  );
-
-  function renderContent() {
-    if (isLoading) return <ReservationReviewStatus message="Loading pending requests…" />;
-    if (hasError) return <ReservationReviewStatus message="Pending requests could not be loaded." error />;
-    if (visibleReservations.length === 0) {
-      return <ReservationReviewStatus message={reservations.length === 0 ? 'No pending reservation requests.' : 'No pending requests match the current search.'} />;
-    }
-
-    return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoading ? 'Loading pending reservation requests…' : undefined}
+        errorMessage={!isLoading && hasError ? 'Pending requests could not be loaded.' : undefined}
+        emptyMessage={!isLoading && !hasError ? emptyMessage : undefined}
+        pagination={!isLoading && !hasError && visibleReservations.length > 0 ? {
+          page: page.page,
+          totalItems: visibleReservations.length,
+          onPageChange: page.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
@@ -147,21 +161,20 @@ export function ReservationReviewPanel({ staffId, staffName }: ReservationReview
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={page.page} totalItems={visibleReservations.length} onPageChange={page.setPage} />
-      </>
-    );
-  }
+      </ManagementTableFrame>
+    </section>
+  );
 
   async function handleReject(reservation: ReservationRecord) {
     const shouldReject = window.confirm(`Reject the ${reservation.package.packageName} request for ${formatEventRange(reservation.event.startDate, reservation.event.endDate)}?`);
     if (!shouldReject) return;
 
     setBusyReservationId(reservation.id);
-    setActionError(null);
     try {
       await rejectReservation(reservation.id, staffId, staffName);
+      showToast({ message: 'Reservation request rejected.', tone: 'success' });
     } catch {
-      setActionError('The reservation could not be rejected. Refresh the list and try again.');
+      showToast({ message: 'The reservation could not be rejected. Refresh the list and try again.', tone: 'error' });
     } finally {
       setBusyReservationId(null);
     }
@@ -195,10 +208,6 @@ function formatRequests(reservation: ReservationRecord) {
     reservation.event.serviceRequirements ? `Service: ${reservation.event.serviceRequirements}` : '',
   ].filter(Boolean);
   return requests.length > 0 ? requests.join(' · ') : 'No special requests';
-}
-
-function ReservationReviewStatus({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
 }
 
 function formatEventRange(startDate: Date, endDate: Date) {
