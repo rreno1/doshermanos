@@ -148,6 +148,7 @@ function ManagementWorkspace({
       profile={profile}
       pathname={pathname}
       pageTitle={getPageTitle(page)}
+      pageDescription={getPageDescription(page)}
     >
       {renderManagementPage(page, profile, basePath, role)}
     </ManagementShell>
@@ -261,5 +262,28 @@ function getPageTitle(page: ManagementPage) {
       return 'Users & roles';
     case 'audit':
       return 'Audit trail';
+  }
+}
+
+function getPageDescription(page: ManagementPage) {
+  switch (page) {
+    case 'dashboard':
+      return 'Monitor current operations and open the management area that needs attention.';
+    case 'reservations':
+      return 'Review incoming catering requests and their event details.';
+    case 'packages':
+      return 'Manage the catering packages and base prices shown to customers.';
+    case 'inventory':
+      return 'Track supplies, stock levels, and recorded stock movements.';
+    case 'payments':
+      return 'Record cash payments and review recent payment activity.';
+    case 'equipment':
+      return 'Manage equipment availability, event assignments, and release activity.';
+    case 'reports':
+      return 'Review operational records and export the current report when needed.';
+    case 'users':
+      return 'Manage account roles and access status for registered users.';
+    case 'audit':
+      return 'Review recorded management activity and accountability events.';
   }
 }
