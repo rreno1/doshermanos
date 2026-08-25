@@ -2,7 +2,6 @@ import {
   collection,
   getDocs,
   limit,
-  orderBy,
   query,
   where,
   type DocumentData,
@@ -45,11 +44,12 @@ export async function loadActivePackages(): Promise<CateringPackage[]> {
   const packagesQuery = query(
     collection(firestore, 'packages'),
     where('isActive', '==', true),
-    orderBy('sortOrder', 'asc'),
     limit(PACKAGE_LIMIT),
   );
 
   const packageSnapshot = await getDocs(packagesQuery);
 
-  return packageSnapshot.docs.map(parsePackageDocument);
+  return packageSnapshot.docs
+    .map(parsePackageDocument)
+    .sort((leftPackage, rightPackage) => leftPackage.sortOrder - rightPackage.sortOrder);
 }
