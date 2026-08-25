@@ -1,0 +1,216 @@
+:root {
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+}
+
+body {
+  font-weight: var(--font-weight-regular);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+  font-weight: var(--font-weight-semibold);
+}
+
+p,
+li,
+dt,
+dd {
+  font-weight: var(--font-weight-regular);
+}
+
+input,
+textarea,
+select {
+  font-weight: var(--font-weight-regular);
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+button {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Sidebar and top-level management hierarchy */
+.management-navigation-link,
+.management-navigation-link-active {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-sidebar-account strong {
+  font-weight: var(--font-weight-medium);
+}
+
+.management-sidebar-account > span,
+.management-brand-label,
+.management-topbar-copy p {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-brand-name,
+.management-topbar-copy h1,
+.management-topbar-heading h1 {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+/* Tabs, summaries, filters, and controls */
+.management-tab {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.management-summary-item,
+.management-page .users-summary span,
+.management-page .package-management-summary span,
+.management-page .inventory-summary-value span,
+.management-page .equipment-summary-value span {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-summary-item strong,
+.management-page .inventory-summary-value strong,
+.management-page .equipment-summary-value strong {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.management-filter-field > span,
+.management-page label,
+.management-page label > span {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.management-select-trigger,
+.management-select-option,
+.management-search input,
+.management-page input,
+.management-page textarea,
+.management-page select {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-primary-button,
+.management-secondary-button,
+.management-danger-button,
+.management-row-button,
+.management-pagination button,
+.management-pagination-actions button,
+.management-page .inventory-primary-button,
+.management-page .equipment-primary-button,
+.management-page .package-management-primary,
+.management-page .users-save-button,
+.management-page .inventory-secondary-button,
+.management-page .equipment-secondary-button,
+.management-page .payment-secondary-button,
+.management-page .inventory-text-button,
+.management-page .report-actions button,
+.management-page .package-management-actions button,
+.management-page .package-management-editor-heading button,
+.management-page .reservation-reject-button,
+.management-page .reports-controls button {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+/* Tables and status text */
+.management-table th,
+.management-page .package-management-table th,
+.management-page .users-table th,
+.management-page .report-table th {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.management-table td,
+.management-page .package-management-table td,
+.management-page .users-table td,
+.management-page .report-table td,
+.management-table-muted,
+.management-table-primary span {
+  font-weight: var(--font-weight-regular);
+}
+
+.management-table-primary strong {
+  font-weight: var(--font-weight-medium);
+}
+
+.management-status-badge {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.management-pagination > span,
+.management-pagination-actions > span,
+.management-info-note {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-page .inventory-subheading h3,
+.management-page .payments-subheading h3,
+.management-page .equipment-subheading h3,
+.management-page .equipment-activity-header h3,
+.management-page .report-toolbar h3 {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+/* Dashboard follows the same hierarchy instead of making labels bold. */
+.management-page .dashboard-metric-label,
+.management-page .dashboard-module-description,
+.management-page .dashboard-metric-detail {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.management-page .dashboard-metric strong,
+.management-page .dashboard-module-heading h3 {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.management-page .dashboard-module-link-heading strong {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+/* Public and authentication controls use emphasis only where it carries hierarchy. */
+.auth-field span,
+.auth-account-label,
+.auth-mode-actions button,
+.auth-account-role,
+.auth-primary-button,
+.auth-secondary-button,
+.auth-google-button {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.auth-provider-note,
+.auth-message,
+.auth-trigger {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.reservation-form label {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.reservation-form label em,
+.reservation-form-note,
+.reservation-submit-message {
+  font-weight: var(--font-weight-regular) !important;
+}
+
+.primary-button,
+.package-action,
+.quiet-button,
+.primary-link,
+.package-menu span {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.eyebrow,
+.package-label,
+.package-price {
+  font-weight: var(--font-weight-semibold) !important;
+}
