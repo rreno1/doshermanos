@@ -6,7 +6,7 @@ A web and mobile catering management system for Dos Hermanos in Hilongos, Leyte.
 
 - Web: React + TypeScript + Vite
 - Mobile: Expo React Native
-- Authentication: Firebase Authentication with Email/Password
+- Authentication: Firebase Authentication; Google-only on the web
 - Database: Cloud Firestore
 - Web hosting: Firebase Hosting
 
@@ -18,7 +18,7 @@ The current slices provide:
 
 - explicit Firebase development and deployment-stage configuration boundaries;
 - default-deny Firestore authorization with automated Security Rules tests;
-- customer Email/Password registration, sign-in, sign-out, and password reset;
+- web Google sign-in with automatic customer profile creation on first approved sign-in;
 - public active-package catalogs on web and mobile;
 - protected customer reservation requests with package and customization snapshots;
 - customer-owned reservation tracking with bounded queries;
@@ -108,6 +108,8 @@ npm run start
 
 `mobile/.env.staging.example` and `mobile/.env.production.example` use the same Firebase project but different release-stage markers.
 
+The current Google-only authentication change applies to the web deployment. Native Google authentication for Android/iOS requires the corresponding OAuth client configuration and must be completed before the mobile app is released.
+
 ## Production promotion
 
 When the current Firebase deployment is ready to be treated as production, the same project may remain in use.
@@ -128,7 +130,7 @@ Before production promotion, review and clean staging-only accounts and test bus
 
 ## Authentication setup
 
-When configuring the Firebase project, enable **Email/Password** under Firebase Console -> Authentication -> Sign-in method. See `docs/authentication.md`.
+For the web app, enable **Google** under Firebase Console -> Authentication -> Sign-in method and keep Email/Password disabled. Add the Firebase Hosting domain and the future custom domain to Authentication -> Settings -> Authorized domains as needed. See `docs/authentication.md`.
 
 ## Firestore rule tests
 
