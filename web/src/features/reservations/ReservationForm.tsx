@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import type { CateringPackage } from '../packages/package.types';
-import { createReservationRequest } from './reservation.service';
+import type { ReservationRequestInput } from './reservation.types';
 import {
   validateReservationForm,
   type ReservationFormValues,
@@ -18,15 +18,25 @@ const emptyForm: ReservationFormValues = {
 };
 
 type ReservationFormProps = {
-  customerId: string;
   cateringPackage: CateringPackage;
+  onSubmitRequest: (input: ReservationRequestInput) => Promise<void>;
   onSubmitted: () => void;
+  leadingFields?: ReactNode;
+  beforeSubmit?: () => boolean;
+  submitLabel?: string;
+  submittingLabel?: string;
+  failureMessage?: string;
 };
 
 export function ReservationForm({
-  customerId,
   cateringPackage,
+  onSubmitRequest,
   onSubmitted,
+  leadingFields,
+  beforeSubmit,
+  submitLabel = 'Send reservation request',
+  submittingLabel = 'Sending request…',
+  failureMessage = 'We could not send your reservation request. Please try again.',
 }: ReservationFormProps) {
   const [form, setForm] = useState<ReservationFormValues>(emptyForm);
   const [errors, setErrors] = useState<
@@ -53,8 +63,9 @@ export function ReservationForm({
 
     const validation = validateReservationForm(form);
     setErrors(validation.errors);
+    const leadingFieldsValid = beforeSubmit ? beforeSubmit() : true;
 
-    if (!validation.value) {
+    if (!validation.value || !leadingFieldsValid) {
       setSubmitMessage('Check the highlighted fields and try again.');
       return;
     }
@@ -63,10 +74,10 @@ export function ReservationForm({
     setSubmitMessage(null);
 
     try {
-      await createReservationRequest(customerId, cateringPackage, validation.value);
+      await onSubmitRequest(validation.value);
       onSubmitted();
     } catch {
-      setSubmitMessage('We could not send your reservation request. Please try again.');
+      setSubmitMessage(failureMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -74,6 +85,8 @@ export function ReservationForm({
 
   return (
     <form className="reservation-form" onSubmit={handleSubmit} noValidate>
+      {leadingFields}
+
       <div className="reservation-form-grid">
         <label>
           <span>Start date</span>
@@ -200,7 +213,7 @@ export function ReservationForm({
       ) : null}
 
       <button className="primary-button" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Sending request…' : 'Send reservation request'}
+        {isSubmitting ? submittingLabel : submitLabel}
       </button>
     </form>
   );
