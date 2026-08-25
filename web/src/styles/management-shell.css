@@ -27,7 +27,7 @@
 
 .management-brand-name {
   font-size: 1.08rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.035em;
 }
 
@@ -71,10 +71,16 @@
   outline-color: rgba(255, 255, 255, 0.76);
 }
 
+.management-public-navigation {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .management-sidebar-account {
   display: grid;
   gap: 3px;
-  margin-top: auto;
+  margin-top: 12px;
   padding: 16px 10px 4px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
