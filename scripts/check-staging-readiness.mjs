@@ -1,15 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 
-const productionProjectId = 'dos-hermanos-hilongos';
+const deploymentProjectId = 'dos-hermanos-hilongos';
 const firebaseAliases = JSON.parse(await readFile('.firebaserc', 'utf8'));
 const projects = firebaseAliases.projects ?? {};
 const errors = [];
 
 if (!projects.staging) {
-  errors.push('Add a staging Firebase project alias to .firebaserc before staging deployment.');
-} else if (projects.staging === productionProjectId) {
-  errors.push('The staging Firebase alias must not point to the production project.');
+  errors.push('Add the staging Firebase project alias to .firebaserc before staging deployment.');
+} else if (projects.staging !== deploymentProjectId) {
+  errors.push(`The staging Firebase alias must point to ${deploymentProjectId}.`);
 }
 
 if (projects.default) {
@@ -32,8 +32,9 @@ if (stagingEnvironment) {
   }
 
   const stagingProjectId = stagingEnvironment.get('VITE_FIREBASE_PROJECT_ID');
-  if (stagingProjectId === productionProjectId) {
-    errors.push('web/.env.staging must not contain the production Firebase project ID.');
+
+  if (stagingProjectId && stagingProjectId !== deploymentProjectId) {
+    errors.push(`web/.env.staging must point to ${deploymentProjectId}.`);
   }
 
   if (projects.staging && stagingProjectId && stagingProjectId !== projects.staging) {
