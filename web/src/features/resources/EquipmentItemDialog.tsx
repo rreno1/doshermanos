@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useToast } from '../../app/ToastProvider';
 import {
+  ResourceImagePicker,
+  useResourceImageDraft,
+} from './ResourceImagePicker';
+import {
+  getResourceImageErrorMessage,
+  removeResourceImage,
+  uploadResourceImage,
+} from './resource-image.service';
+import {
   createEquipmentItem,
   deleteEquipmentItem,
+  touchEquipmentItem,
   updateEquipmentItem,
-} from './equipment.service';
+} from './equipment.registry.service';
 import type { EquipmentItem } from './equipment.types';
 import { validateEquipmentItem } from './equipment.validation';
 import './equipment-dialog.css';
@@ -25,6 +35,7 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const imageDraft = useResourceImageDraft('equipment', item?.id ?? null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -62,12 +73,37 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
 
     setIsSaving(true);
     setErrorMessage(null);
+    let equipmentId = item?.id ?? null;
+
     try {
       if (item) {
         await updateEquipmentItem(item.id, input);
       } else {
-        await createEquipmentItem(input);
+        equipmentId = await createEquipmentItem(input);
       }
+
+      if (!equipmentId) {
+        throw new Error('Equipment identifier is unavailable.');
+      }
+
+      if (imageDraft.file) {
+        try {
+          await uploadResourceImage('equipment', equipmentId, imageDraft.file);
+          await touchEquipmentItem(equipmentId);
+        } catch (error) {
+          setErrorMessage(getResourceImageErrorMessage(error));
+          return;
+        }
+      } else if (imageDraft.removeExisting) {
+        try {
+          await removeResourceImage('equipment', equipmentId);
+          await touchEquipmentItem(equipmentId);
+        } catch (error) {
+          setErrorMessage(getResourceImageErrorMessage(error));
+          return;
+        }
+      }
+
       showToast({ message: item ? 'Equipment updated.' : 'Equipment added.', tone: 'success' });
       onClose();
     } catch (error) {
@@ -127,6 +163,12 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
           </div>
           <button type="button" className="equipment-close-button" aria-label="Close equipment form" onClick={onClose} disabled={isBusy}>×</button>
         </div>
+
+        <ResourceImagePicker
+          draft={imageDraft}
+          label="Equipment image"
+          onError={setErrorMessage}
+        />
 
         <label className="equipment-field">
           Equipment name
