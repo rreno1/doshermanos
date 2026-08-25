@@ -121,17 +121,20 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
     }
 
     setIsSaving(true);
+    let inventoryItemId = item?.id ?? null;
     let detailsSaved = false;
 
     try {
-      const inventoryItemId = item
-        ? item.id
-        : await createInventoryItem(validation.value);
-
-      detailsSaved = true;
-
       if (item) {
         await updateInventoryItemDetails(item.id, validation.value);
+        detailsSaved = true;
+      } else {
+        inventoryItemId = await createInventoryItem(validation.value);
+        detailsSaved = true;
+      }
+
+      if (!inventoryItemId) {
+        throw new Error('Inventory item identifier is unavailable.');
       }
 
       const imageChanged = imageFile !== null || removeImage;
