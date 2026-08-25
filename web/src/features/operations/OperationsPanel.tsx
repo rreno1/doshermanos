@@ -3,6 +3,7 @@ import { ManagementTabs } from '../../app/ManagementControls';
 import { ManualReservationPanel } from './ManualReservationPanel';
 import { PackageManagementPanel } from './PackageManagementPanel';
 import { ReservationReviewPanel } from './ReservationReviewPanel';
+import './operations-layout.css';
 
 type OperationsTab = 'manual' | 'pending' | 'packages';
 
