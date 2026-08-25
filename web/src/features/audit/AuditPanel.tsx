@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ManagementFilterField,
-  ManagementPagination,
+  ManagementSelect,
+  ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
@@ -47,6 +48,11 @@ export function AuditPanel() {
     visibleActivities,
     `${queryText}|${kindFilter}|${sortBy}|${sortDirection}`,
   );
+  const emptyMessage = activities.length === 0
+    ? 'No audit activity yet.'
+    : visibleActivities.length === 0
+      ? 'No audit activity matches the current view.'
+      : undefined;
 
   return (
     <section className="audit-section" id="audit" aria-label="Audit trail">
@@ -60,42 +66,57 @@ export function AuditPanel() {
         filterContent={(
           <>
             <ManagementFilterField label="Activity type">
-              <select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)}>
-                <option value="all">All activity</option>
-                <option value="inventory">Inventory</option>
-                <option value="payment">Payments</option>
-                <option value="reservation">Reservations</option>
-                <option value="equipment">Equipment</option>
-              </select>
+              <ManagementSelect
+                value={kindFilter}
+                options={[
+                  { value: 'all', label: 'All activity' },
+                  { value: 'inventory', label: 'Inventory' },
+                  { value: 'payment', label: 'Payments' },
+                  { value: 'reservation', label: 'Reservations' },
+                  { value: 'equipment', label: 'Equipment' },
+                ]}
+                onChange={setKindFilter}
+                ariaLabel="Filter audit activity by category"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Sort by">
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value as AuditSort)}>
-                <option value="date">Recorded date</option>
-                <option value="activity">Activity</option>
-                <option value="actor">Actor</option>
-              </select>
+              <ManagementSelect
+                value={sortBy}
+                options={[
+                  { value: 'date', label: 'Recorded date' },
+                  { value: 'activity', label: 'Activity' },
+                  { value: 'actor', label: 'Actor' },
+                ]}
+                onChange={setSortBy}
+                ariaLabel="Sort audit activity by"
+              />
             </ManagementFilterField>
             <ManagementFilterField label="Direction">
-              <select value={sortDirection} onChange={(event) => setSortDirection(event.target.value as SortDirection)}>
-                <option value="asc">Ascending</option><option value="desc">Descending</option>
-              </select>
+              <ManagementSelect
+                value={sortDirection}
+                options={[
+                  { value: 'asc', label: 'Ascending' },
+                  { value: 'desc', label: 'Descending' },
+                ]}
+                onChange={setSortDirection}
+                ariaLabel="Audit sort direction"
+              />
             </ManagementFilterField>
             <button type="button" className="management-secondary-button" onClick={() => { setKindFilter('all'); setSortBy('date'); setSortDirection('desc'); }}>Reset filters</button>
           </>
         )}
       />
 
-      {renderContent()}
-    </section>
-  );
-
-  function renderContent() {
-    if (isLoading) return <AuditStatus message="Loading audit activity…" />;
-    if (hasError) return <AuditStatus message="Audit activity could not be loaded." error />;
-    if (visibleActivities.length === 0) return <AuditStatus message={activities.length === 0 ? 'No audit activity yet.' : 'No audit activity matches the current view.'} />;
-
-    return (
-      <>
+      <ManagementTableFrame
+        loadingMessage={isLoading ? 'Loading audit activity…' : undefined}
+        errorMessage={!isLoading && hasError ? 'Audit activity could not be loaded.' : undefined}
+        emptyMessage={!isLoading && !hasError ? emptyMessage : undefined}
+        pagination={!isLoading && !hasError && visibleActivities.length > 0 ? {
+          page: page.page,
+          totalItems: visibleActivities.length,
+          onPageChange: page.setPage,
+        } : undefined}
+      >
         <div className="management-table-wrap">
           <table className="management-table">
             <thead><tr><th>Activity</th><th>Category</th><th>Actor</th><th>Recorded at</th></tr></thead>
@@ -111,10 +132,9 @@ export function AuditPanel() {
             </tbody>
           </table>
         </div>
-        <ManagementPagination page={page.page} totalItems={visibleActivities.length} onPageChange={page.setPage} />
-      </>
-    );
-  }
+      </ManagementTableFrame>
+    </section>
+  );
 }
 
 function filterActivities(activities: AuditActivity[], query: string, category: string, sortBy: AuditSort, direction: SortDirection) {
@@ -137,8 +157,6 @@ function formatCategory(kind: AuditActivity['kind']) {
   return 'Equipment';
 }
 
-function AuditStatus({ message, error = false }: { message: string; error?: boolean }) {
-  return <div className={error ? 'management-empty-state management-empty-state-error' : 'management-empty-state'} role={error ? 'alert' : 'status'}>{message}</div>;
+function formatAuditTime(date: Date) {
+  return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
-
-function formatAuditTime(date: Date) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date); }
