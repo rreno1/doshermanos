@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
-import type { CateringPackage } from '../packages/package.types';
+import type { CateringPackage } from './package.types';
 import { ReservationForm } from './ReservationForm';
 import { createReservationRequest } from './reservation.service';
 import './reservations.css';
