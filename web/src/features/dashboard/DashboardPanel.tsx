@@ -60,35 +60,35 @@ export function DashboardPanel() {
           <h2 id="dashboard-title">Dashboard</h2>
         </div>
         <p>
-          See the current workload and the operational areas that may need attention before opening the detailed workspace.
+          See the current bounded workspace view and move directly to the operational area that needs attention.
         </p>
       </div>
 
       <div className="dashboard-grid" aria-label="Operational summary">
         <DashboardMetric
           href="#reservation-review"
-          label="Pending reservations"
+          label="Pending requests shown"
           value={pendingReservations}
-          detail="Requests awaiting review"
+          detail="Up to 50 most recent requests awaiting review"
         />
         <DashboardMetric
           href="#inventory"
-          label="Low-stock items"
+          label="Low-stock items shown"
           value={lowStockItems}
-          detail="Active inventory at or below its warning level"
+          detail="Within the current 100-item inventory view"
           warn={lowStockItems !== null && lowStockItems > 0}
         />
         <DashboardMetric
           href="#payments"
           label="Recent payments"
           value={recentPayments}
-          detail="Latest payment records currently loaded"
+          detail="Up to 50 latest payment records"
         />
         <DashboardMetric
           href="#equipment"
-          label="Equipment issues"
+          label="Equipment issues shown"
           value={equipmentIssues}
-          detail="Damaged or missing active equipment units"
+          detail="Damaged or missing units within the current 100-item equipment view"
           warn={equipmentIssues !== null && equipmentIssues > 0}
         />
       </div>

@@ -21,7 +21,11 @@ export function App() {
     authState.status === 'active' && authState.profile?.role === 'admin';
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" id="top">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Dos Hermanos Catering home">
           <span className="brand-name">Dos Hermanos</span>
@@ -30,7 +34,7 @@ export function App() {
         <AuthMenu />
       </header>
 
-      <main id="top">
+      <main id="main-content" tabIndex={-1}>
         {isStaffWorkspace && authState.profile ? (
           <>
             <section className="hero staff-hero" aria-labelledby="hero-title">
@@ -60,16 +64,15 @@ export function App() {
               </div>
               <nav className="staff-navigation-links" aria-label="Staff workspace">
                 <a href="#dashboard">Dashboard</a>
-                <a href="#reports">Reports</a>
                 <a href="#reservation-review">Reservations</a>
                 <a href="#inventory">Inventory</a>
                 <a href="#payments">Payments</a>
                 <a href="#equipment">Equipment</a>
+                <a href="#reports">Reports</a>
                 {isAdminWorkspace ? <a href="#audit">Audit trail</a> : null}
               </nav>
             </section>
 
-            <ReportsPanel />
             <ReservationReviewPanel
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
@@ -86,6 +89,7 @@ export function App() {
               staffId={authState.profile.id}
               staffName={authState.profile.displayName}
             />
+            <ReportsPanel />
             {isAdminWorkspace ? <AuditPanel /> : null}
           </>
         ) : (

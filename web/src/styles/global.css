@@ -46,8 +46,37 @@ a {
   color: inherit;
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(23, 107, 91, 0.28);
+  outline-offset: 3px;
+}
+
 .app-shell {
   min-height: 100vh;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface-strong);
+  color: var(--accent-dark);
+  font-weight: 760;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transform: translateY(calc(-100% - 24px));
+  transition: transform 140ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 .site-header,
@@ -145,7 +174,6 @@ a {
 
 .primary-link:focus-visible,
 .brand:focus-visible {
-  outline: 3px solid rgba(23, 107, 91, 0.28);
   outline-offset: 4px;
 }
 
