@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { getInventoryImageUrl } from './inventory-image.service';
+import { useResourceImageUrl } from './ResourceImagePicker';
 import type { InventoryItem } from './inventory.types';
 import './inventory-cards.css';
 
@@ -37,31 +36,7 @@ function InventoryItemCard({
   onEdit: () => void;
   onUpdateStock: () => void;
 }) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(true);
-
-  useEffect(() => {
-    let isCurrent = true;
-    setIsLoadingImage(true);
-
-    getInventoryImageUrl(item.id)
-      .then((url) => {
-        if (isCurrent) {
-          setImageUrl(url ? addImageRevision(url, item.updatedAt) : null);
-        }
-      })
-      .catch(() => {
-        if (isCurrent) setImageUrl(null);
-      })
-      .finally(() => {
-        if (isCurrent) setIsLoadingImage(false);
-      });
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [item.id, item.updatedAt]);
-
+  const imageUrl = useResourceImageUrl('inventory', item.id, item.updatedAt.getTime());
   const status = getInventoryStatus(item);
 
   return (
@@ -71,11 +46,7 @@ function InventoryItemCard({
           <img className="inventory-card-image" src={imageUrl} alt="" loading="lazy" />
         ) : (
           <div className="inventory-card-placeholder" aria-hidden="true">
-            {isLoadingImage ? (
-              <span className="management-spinner inventory-image-spinner" />
-            ) : (
-              <InventoryPlaceholderIcon />
-            )}
+            <InventoryPlaceholderIcon />
           </div>
         )}
       </div>
@@ -142,11 +113,6 @@ function getInventoryStatus(item: InventoryItem) {
     label: 'In stock',
     className: 'management-status-badge management-status-badge-active',
   };
-}
-
-function addImageRevision(url: string, updatedAt: Date) {
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}v=${updatedAt.getTime()}`;
 }
 
 function InventoryPlaceholderIcon() {
