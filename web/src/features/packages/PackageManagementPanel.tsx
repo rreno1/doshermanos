@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   createManagedPackage,
   loadManagedPackages,
@@ -27,6 +27,7 @@ const emptyForm: PackageFormState = {
 };
 
 export function PackageManagementPanel() {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [packages, setPackages] = useState<ManagedCateringPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -41,6 +42,19 @@ export function PackageManagementPanel() {
   useEffect(() => {
     void refreshPackages();
   }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) {
+      return;
+    }
+
+    if (isEditorOpen && !dialog.open) {
+      dialog.showModal();
+    } else if (!isEditorOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [isEditorOpen]);
 
   const activeCount = useMemo(
     () => packages.filter((cateringPackage) => cateringPackage.isActive).length,
@@ -158,11 +172,40 @@ export function PackageManagementPanel() {
 
       {message ? <div className="package-management-message" role="status">{message}</div> : null}
 
-      {isEditorOpen ? (
+      <dialog
+        ref={dialogRef}
+        className="package-management-dialog"
+        aria-labelledby="package-management-dialog-title"
+        onCancel={(event) => {
+          if (isSaving) {
+            event.preventDefault();
+            return;
+          }
+          closeEditor();
+        }}
+        onClose={() => {
+          if (isEditorOpen) {
+            closeEditor();
+          }
+        }}
+      >
         <form className="package-management-editor" onSubmit={(event) => void handleSubmit(event)}>
           <div className="package-management-editor-heading">
-            <strong>{editingPackageId ? 'Edit package' : 'New package'}</strong>
-            <button type="button" onClick={closeEditor} disabled={isSaving}>Cancel</button>
+            <div>
+              <h3 id="package-management-dialog-title">
+                {editingPackageId ? 'Edit package' : 'Add package'}
+              </h3>
+              <p>Set the customer-facing package details and catalog visibility.</p>
+            </div>
+            <button
+              className="package-management-close"
+              type="button"
+              aria-label="Close package form"
+              onClick={closeEditor}
+              disabled={isSaving}
+            >
+              ×
+            </button>
           </div>
 
           <div className="package-management-form-grid">
@@ -172,6 +215,7 @@ export function PackageManagementPanel() {
                 value={form.name}
                 maxLength={120}
                 required
+                autoFocus
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
               />
             </label>
@@ -233,11 +277,16 @@ export function PackageManagementPanel() {
 
           {formError ? <div className="package-management-error" role="alert">{formError}</div> : null}
 
-          <button className="package-management-primary" type="submit" disabled={isSaving}>
-            {isSaving ? 'Saving…' : editingPackageId ? 'Save changes' : 'Create package'}
-          </button>
+          <div className="package-management-editor-actions">
+            <button type="button" onClick={closeEditor} disabled={isSaving}>
+              Cancel
+            </button>
+            <button className="package-management-primary" type="submit" disabled={isSaving}>
+              {isSaving ? 'Saving…' : editingPackageId ? 'Save changes' : 'Add package'}
+            </button>
+          </div>
         </form>
-      ) : null}
+      </dialog>
 
       {isLoading ? <ManagementStatus message="Loading packages…" /> : null}
       {!isLoading && hasError ? <ManagementStatus message="Packages could not be loaded." error /> : null}
