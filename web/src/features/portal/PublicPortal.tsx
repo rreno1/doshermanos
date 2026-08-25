@@ -17,16 +17,23 @@ type PublicPortalProps = {
 
 export function PublicPortal({ pathname, profile, status, workspaceRole }: PublicPortalProps) {
   const activeProfile = status === 'active' ? profile : null;
-  const landing = !activeProfile;
+
+  if (!activeProfile) {
+    return (
+      <PortalShell pathname={pathname} profile={null} workspaceRole={null} landing>
+        <LandingPage />
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
       pathname={pathname}
       profile={activeProfile}
-      workspaceRole={activeProfile ? workspaceRole : null}
-      landing={landing}
+      workspaceRole={workspaceRole}
+      landing={false}
     >
-      {landing ? <LandingPage /> : renderPortalPage(pathname, activeProfile, workspaceRole)}
+      {renderPortalPage(pathname, activeProfile, workspaceRole)}
     </PortalShell>
   );
 }
