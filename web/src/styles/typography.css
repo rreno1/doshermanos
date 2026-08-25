@@ -214,3 +214,15 @@ button {
 .package-price {
   font-weight: var(--font-weight-semibold) !important;
 }
+
+/* Loading indicators must visibly rotate instead of being frozen by the global motion reset. */
+.management-spinner {
+  animation: management-spinner-rotate 720ms linear infinite !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-spinner {
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
