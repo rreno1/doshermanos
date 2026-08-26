@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
 import { getSafeAuthErrorMessage, signOutCurrentUser } from './auth.service';
 import type { UserProfile } from './auth.types';
 
@@ -72,14 +73,18 @@ function SignOutButton({
   isSubmitting: boolean;
   onClick: () => void;
 }) {
+  const label = isSubmitting ? 'Signing out…' : 'Sign out';
+
   return (
     <button
-      className="auth-secondary-button"
+      className="auth-secondary-button responsive-action-button"
       type="button"
+      aria-label={label}
+      title={label}
       onClick={onClick}
       disabled={isSubmitting}
     >
-      {isSubmitting ? 'Signing out…' : 'Sign out'}
+      <ResponsiveButtonContent icon="signout" label={label} />
     </button>
   );
 }
