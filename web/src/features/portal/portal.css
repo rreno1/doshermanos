@@ -95,22 +95,33 @@
   width: 42px;
   height: 42px;
   place-items: center;
-  gap: 5px;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
+  color: #20342e;
   background: #ffffff;
   cursor: pointer;
 }
 
-.portal-menu-button span {
-  width: 18px;
-  height: 1.5px;
-  background: #20342e;
+.portal-menu-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .portal-mobile-navigation {
   display: none;
+}
+
+.portal-mobile-account {
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.portal-mobile-account .auth-trigger {
+  width: 100%;
+  min-height: 44px;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .portal-main {
@@ -442,21 +453,18 @@
   width: 100%;
   margin-inline: 0;
   padding: 0;
-}
-
-.portal-page .catalog-section,
-.portal-page .my-reservations,
-.portal-page .customer-payments-section {
   scroll-margin-top: 0;
 }
 
 @media (max-width: 900px) {
-  .portal-header {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+  .portal-header,
+  .portal-shell-landing .portal-header {
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 14px;
   }
 
-  .portal-navigation {
+  .portal-navigation,
+  .portal-header-actions {
     display: none;
   }
 
@@ -516,13 +524,8 @@
     gap: 10px;
   }
 
-  .portal-brand-label,
-  .portal-header-actions .portal-workspace-link {
+  .portal-brand-label {
     display: none;
-  }
-
-  .portal-header-actions {
-    gap: 6px;
   }
 
   .landing-hero {
