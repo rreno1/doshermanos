@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { AppLink } from '../../app/navigation';
+import { TwoLineMenuIcon } from '../../app/TwoLineMenuIcon';
 import { AuthMenu } from '../auth/AuthMenu';
 import type { UserProfile } from '../auth/auth.types';
-import { AppLink } from '../../app/navigation';
 import './portal.css';
 
 type WorkspaceRole = 'staff' | 'admin';
@@ -52,32 +53,29 @@ export function PortalShell({
         </AppLink>
 
         {!landing ? (
-          <>
-            <nav className="portal-navigation" aria-label="Customer portal">
-              {navigation.map((item) => (
-                <AppLink
-                  className={isActivePath(pathname, item.path) ? 'portal-nav-link portal-nav-link-active' : 'portal-nav-link'}
-                  key={item.path}
-                  to={item.path}
-                  aria-current={isActivePath(pathname, item.path) ? 'page' : undefined}
-                >
-                  {item.label}
-                </AppLink>
-              ))}
-            </nav>
-
-            <button
-              type="button"
-              className="portal-menu-button"
-              aria-label="Open portal navigation"
-              aria-expanded={isNavigationOpen}
-              onClick={() => setIsNavigationOpen((open) => !open)}
-            >
-              <span aria-hidden="true" />
-              <span aria-hidden="true" />
-            </button>
-          </>
+          <nav className="portal-navigation" aria-label="Customer portal">
+            {navigation.map((item) => (
+              <AppLink
+                className={isActivePath(pathname, item.path) ? 'portal-nav-link portal-nav-link-active' : 'portal-nav-link'}
+                key={item.path}
+                to={item.path}
+                aria-current={isActivePath(pathname, item.path) ? 'page' : undefined}
+              >
+                {item.label}
+              </AppLink>
+            ))}
+          </nav>
         ) : null}
+
+        <button
+          type="button"
+          className="portal-menu-button"
+          aria-label="Open portal menu"
+          aria-expanded={isNavigationOpen}
+          onClick={() => setIsNavigationOpen((open) => !open)}
+        >
+          <TwoLineMenuIcon />
+        </button>
 
         <div className="portal-header-actions">
           {workspaceRole ? (
@@ -92,9 +90,9 @@ export function PortalShell({
         </div>
       </header>
 
-      {!landing && isNavigationOpen ? (
-        <nav className="portal-mobile-navigation" aria-label="Customer portal mobile navigation">
-          {navigation.map((item) => (
+      {isNavigationOpen ? (
+        <nav className="portal-mobile-navigation" aria-label="Portal mobile navigation">
+          {!landing ? navigation.map((item) => (
             <AppLink
               className={isActivePath(pathname, item.path) ? 'portal-mobile-link portal-mobile-link-active' : 'portal-mobile-link'}
               key={item.path}
@@ -102,12 +100,15 @@ export function PortalShell({
             >
               {item.label}
             </AppLink>
-          ))}
+          )) : null}
           {workspaceRole ? (
             <AppLink className="portal-mobile-workspace" to={workspaceRole === 'admin' ? '/admin' : '/staff'}>
               Workspace
             </AppLink>
           ) : null}
+          <div className="portal-mobile-account">
+            <AuthMenu />
+          </div>
         </nav>
       ) : null}
 
