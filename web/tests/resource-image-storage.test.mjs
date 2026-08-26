@@ -6,6 +6,14 @@ const imageServiceSource = await readFile(
   new URL('../src/features/resources/resource-image.service.ts', import.meta.url),
   'utf8',
 );
+const inventoryDialogSource = await readFile(
+  new URL('../src/features/resources/InventoryItemDialog.tsx', import.meta.url),
+  'utf8',
+);
+const equipmentDialogSource = await readFile(
+  new URL('../src/features/resources/EquipmentItemDialog.tsx', import.meta.url),
+  'utf8',
+);
 const firebaseSource = await readFile(
   new URL('../src/firebase/firebase.ts', import.meta.url),
   'utf8',
@@ -35,6 +43,15 @@ test('image upload completes after upload rather than waiting for another downlo
   assert.match(uploadFunction, /await uploadBytes/);
   assert.doesNotMatch(uploadFunction, /getDownloadURL/);
   assert.match(uploadFunction, /markImagePresent/);
+});
+
+test('failed image upload retries reuse the resource that was already created', () => {
+  assert.match(inventoryDialogSource, /createdItemId/);
+  assert.match(inventoryDialogSource, /else if \(createdItemId\)/);
+  assert.match(inventoryDialogSource, /Retry image save/);
+  assert.match(equipmentDialogSource, /createdEquipmentId/);
+  assert.match(equipmentDialogSource, /else if \(createdEquipmentId\)/);
+  assert.match(equipmentDialogSource, /Retry image save/);
 });
 
 test('Firebase Storage retries are bounded so failures cannot spin for minutes', () => {
