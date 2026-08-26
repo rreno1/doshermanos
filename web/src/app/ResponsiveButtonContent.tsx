@@ -6,6 +6,7 @@ export type ActionIconName =
   | 'previous'
   | 'next'
   | 'cash'
+  | 'signout'
   | 'action';
 
 export function ResponsiveButtonContent({
@@ -66,6 +67,14 @@ function ActionIcon({ name }: { name: ActionIconName }) {
         <rect x="3.5" y="5" width="13" height="10" rx="2" />
         <circle cx="10" cy="10" r="2" />
         <path d="M6 7.5h.01M14 12.5h.01" />
+      </svg>
+    );
+  }
+
+  if (name === 'signout') {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+        <path d="M8 4H5.5A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8M11 6l4 4-4 4M7 10h8" />
       </svg>
     );
   }
