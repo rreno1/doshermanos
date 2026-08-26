@@ -1,11 +1,16 @@
 import {
+  cloneElement,
+  isValidElement,
   useEffect,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from 'react';
-import { ResponsiveButtonContent } from './ResponsiveButtonContent';
+import {
+  ResponsiveButtonContent,
+  type ActionIconName,
+} from './ResponsiveButtonContent';
 import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 
 export { ManagementSelect } from './ManagementSelect';
@@ -27,6 +32,13 @@ type PaginationProps = {
   page: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+};
+
+type ResponsiveActionProps = {
+  className?: string;
+  children?: ReactNode;
+  'aria-label'?: string;
+  title?: string;
 };
 
 export function ManagementTabs<T extends string>({
@@ -102,7 +114,7 @@ export function ManagementToolbar({
         </label>
 
         {filterContent ? <ManagementFilterMenu>{filterContent}</ManagementFilterMenu> : null}
-        {primaryAction}
+        {makeResponsivePrimaryAction(primaryAction)}
       </div>
     </div>
   );
@@ -251,6 +263,48 @@ export function useManagementPage<T>(items: T[], resetKey: string) {
     setPage,
     pageItems: items.slice(startIndex, startIndex + MANAGEMENT_PAGE_SIZE),
   };
+}
+
+function makeResponsivePrimaryAction(primaryAction: ReactNode) {
+  if (!isValidElement<ResponsiveActionProps>(primaryAction)) {
+    return primaryAction;
+  }
+
+  const label = getActionLabel(primaryAction.props.children);
+  if (!label) {
+    return primaryAction;
+  }
+
+  const className = `${primaryAction.props.className ?? ''} responsive-action-button`.trim();
+
+  return cloneElement(
+    primaryAction,
+    {
+      className,
+      'aria-label': primaryAction.props['aria-label'] ?? label,
+      title: primaryAction.props.title ?? label,
+    },
+    <ResponsiveButtonContent icon={getActionIcon(label)} label={label} />,
+  );
+}
+
+function getActionLabel(children: ReactNode) {
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children).trim();
+  }
+
+  return '';
+}
+
+function getActionIcon(label: string): ActionIconName {
+  const normalized = label.toLocaleLowerCase();
+
+  if (normalized.startsWith('add')) return 'add';
+  if (normalized.includes('assign')) return 'assign';
+  if (normalized.includes('export') || normalized.includes('download')) return 'download';
+  if (normalized.includes('cash') || normalized.includes('payment')) return 'cash';
+
+  return 'action';
 }
 
 function useDismissibleLayer(
