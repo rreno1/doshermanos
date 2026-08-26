@@ -17,8 +17,9 @@
 
 @media (max-width: 620px) {
   .responsive-action-button {
-    width: var(--management-control-height, 42px);
-    min-width: var(--management-control-height, 42px);
+    width: var(--management-control-height, 42px) !important;
+    min-width: var(--management-control-height, 42px) !important;
+    max-width: var(--management-control-height, 42px) !important;
     height: var(--management-control-height, 42px);
     min-height: var(--management-control-height, 42px);
     display: inline-flex;
