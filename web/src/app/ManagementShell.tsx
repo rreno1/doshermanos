@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AuthMenu } from '../features/auth/AuthMenu';
 import type { UserProfile } from '../features/auth/auth.types';
 import { AppLink } from './navigation';
+import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 import '../styles/management-shell.css';
 import '../styles/management-ui.css';
 import '../styles/management-data.css';
@@ -106,7 +107,7 @@ export function ManagementShell({
               aria-expanded={isNavigationOpen}
               onClick={() => setIsNavigationOpen((isOpen) => !isOpen)}
             >
-              <span aria-hidden="true">☰</span>
+              <TwoLineMenuIcon />
             </button>
             <div className="management-topbar-copy">
               <h1>{pageTitle}</h1>
