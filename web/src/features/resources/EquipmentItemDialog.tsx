@@ -35,6 +35,7 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [createdEquipmentId, setCreatedEquipmentId] = useState<string | null>(null);
   const imageDraft = useResourceImageDraft('equipment', item?.id ?? null);
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
     setIsActive(item?.isActive ?? true);
     setErrorMessage(null);
     setIsDeleting(false);
+    setCreatedEquipmentId(null);
   }, [isOpen, item]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,13 +75,18 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
 
     setIsSaving(true);
     setErrorMessage(null);
-    let equipmentId = item?.id ?? null;
+    let equipmentId = item?.id ?? createdEquipmentId;
+    let createdDuringSave = false;
 
     try {
       if (item) {
         await updateEquipmentItem(item.id, input);
+      } else if (createdEquipmentId) {
+        await updateEquipmentItem(createdEquipmentId, input);
       } else {
         equipmentId = await createEquipmentItem(input);
+        setCreatedEquipmentId(equipmentId);
+        createdDuringSave = true;
       }
 
       if (!equipmentId) {
@@ -91,7 +98,12 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
           await uploadResourceImage('equipment', equipmentId, imageDraft.file);
           await touchEquipmentItem(equipmentId);
         } catch (error) {
-          setErrorMessage(getResourceImageErrorMessage(error));
+          const imageMessage = getResourceImageErrorMessage(error);
+          setErrorMessage(
+            createdDuringSave || createdEquipmentId
+              ? `The equipment details were saved, but the image was not uploaded. ${imageMessage}`
+              : imageMessage,
+          );
           return;
         }
       } else if (imageDraft.removeExisting) {
@@ -216,7 +228,9 @@ export function EquipmentItemDialog({ isOpen, item, onClose }: Props) {
           ) : null}
           <div className="equipment-dialog-actions-main">
             <button type="button" className="equipment-secondary-button" onClick={onClose} disabled={isBusy}>Cancel</button>
-            <button type="submit" className="equipment-primary-button" disabled={isBusy}>{isSaving ? 'Saving…' : item ? 'Save changes' : 'Add equipment'}</button>
+            <button type="submit" className="equipment-primary-button" disabled={isBusy}>
+              {isSaving ? 'Saving…' : item ? 'Save changes' : createdEquipmentId ? 'Retry image save' : 'Add equipment'}
+            </button>
           </div>
         </div>
       </form>
