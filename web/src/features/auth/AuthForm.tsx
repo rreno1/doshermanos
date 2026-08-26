@@ -51,6 +51,8 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
     }
   }
 
+  const actionLabel = isSubmitting ? 'Opening Google…' : 'Continue with Google';
+
   return (
     <div className="auth-form">
       <p className="auth-message">
@@ -66,11 +68,13 @@ export function AuthForm({ onAuthenticated }: AuthFormProps) {
       <button
         className="auth-google-button"
         type="button"
+        aria-label={actionLabel}
+        title={actionLabel}
         disabled={isSubmitting}
         onClick={() => void handleGoogleSignIn()}
       >
         <GoogleLogo />
-        <span>{isSubmitting ? 'Opening Google…' : 'Continue with Google'}</span>
+        <span>{actionLabel}</span>
       </button>
 
       <p className="auth-provider-note">
