@@ -10,6 +10,7 @@ import {
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { firebaseAuth } from '../../firebase/firebase';
 import { loadUserProfile } from './auth.service';
+import { useSessionInactivity } from './session-inactivity';
 import type { UserProfile } from './auth.types';
 
 type AuthStatus =
@@ -105,6 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribe();
     };
   }, [resolveUser]);
+
+  useSessionInactivity(
+    authState.status === 'active'
+      || authState.status === 'inactive'
+      || authState.status === 'suspended'
+      || authState.status === 'error',
+  );
 
   return (
     <AuthContext.Provider value={{ authState, loadingMessage, refreshAuthState }}>
