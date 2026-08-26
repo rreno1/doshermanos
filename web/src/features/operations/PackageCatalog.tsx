@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
 import { useAuth } from '../auth/AuthProvider';
 import { ReservationRequestDialog } from './ReservationRequestDialog';
 import { loadActivePackages } from './package.service';
@@ -111,11 +112,13 @@ export function PackageCatalog() {
               {canRequest ? (
                 <div className="package-card-action">
                   <button
-                    className="primary-button"
+                    className="primary-button responsive-action-button"
                     type="button"
+                    aria-label={`Request ${cateringPackage.name}`}
+                    title={`Request ${cateringPackage.name}`}
                     onClick={() => setSelectedPackage(cateringPackage)}
                   >
-                    Request this package
+                    <ResponsiveButtonContent icon="add" label="Request this package" />
                   </button>
                 </div>
               ) : null}
