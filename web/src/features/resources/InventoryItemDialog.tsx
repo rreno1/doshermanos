@@ -59,6 +59,7 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
   const [isActive, setIsActive] = useState(item?.isActive ?? true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [createdItemId, setCreatedItemId] = useState<string | null>(null);
   const imageDraft = useResourceImageDraft('inventory', item?.id ?? null);
   const isEditing = item !== null;
 
@@ -73,13 +74,18 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
     }
 
     setIsSaving(true);
-    let inventoryItemId = item?.id ?? null;
+    let inventoryItemId = item?.id ?? createdItemId;
+    let createdDuringSave = false;
 
     try {
       if (item) {
         await updateInventoryItemDetails(item.id, validation.value);
+      } else if (createdItemId) {
+        await updateInventoryItemDetails(createdItemId, validation.value);
       } else {
         inventoryItemId = await createInventoryItem(validation.value);
+        setCreatedItemId(inventoryItemId);
+        createdDuringSave = true;
       }
 
       if (!inventoryItemId) {
@@ -91,7 +97,12 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
           await uploadResourceImage('inventory', inventoryItemId, imageDraft.file);
           await touchInventoryItem(inventoryItemId);
         } catch (error) {
-          setMessage(getResourceImageErrorMessage(error));
+          const imageMessage = getResourceImageErrorMessage(error);
+          setMessage(
+            createdDuringSave || createdItemId
+              ? `The item details were saved, but the image was not uploaded. ${imageMessage}`
+              : imageMessage,
+          );
           return;
         }
       } else if (imageDraft.removeExisting) {
@@ -163,7 +174,7 @@ function InventoryItemForm({ item, onClose }: { item: InventoryItem | null; onCl
       <div className="inventory-dialog-actions">
         <button type="button" className="inventory-secondary-button" onClick={onClose}>Cancel</button>
         <button type="submit" className="inventory-primary-button" disabled={isSaving}>
-          {isSaving ? 'Saving item…' : isEditing ? 'Save item' : 'Create item'}
+          {isSaving ? 'Saving item…' : isEditing ? 'Save item' : createdItemId ? 'Retry image save' : 'Create item'}
         </button>
       </div>
     </form>
