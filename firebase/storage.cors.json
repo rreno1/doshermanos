@@ -1,0 +1,26 @@
+[
+  {
+    "origin": [
+      "https://dos-hermanos-hilongos.web.app",
+      "https://dos-hermanos-hilongos.firebaseapp.com"
+    ],
+    "method": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Content-Length",
+      "ETag",
+      "x-goog-generation",
+      "x-goog-metageneration",
+      "x-goog-storage-class",
+      "x-goog-hash",
+      "x-goog-resumable"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
