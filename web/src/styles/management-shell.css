@@ -164,7 +164,11 @@
   color: #20342e;
   background: #ffffff;
   cursor: pointer;
-  font-size: 1.1rem;
+}
+
+.management-menu-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 .management-content {
