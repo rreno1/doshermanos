@@ -1,3 +1,4 @@
+import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
 import { useResourceImageUrl } from './ResourceImagePicker';
 import type { EquipmentItem } from './equipment.types';
 
@@ -19,11 +20,7 @@ export function EquipmentRegistryGrid({ items, onEdit }: Props) {
 function EquipmentCard({ item, onEdit }: { item: EquipmentItem; onEdit: () => void }) {
   const imageUrl = useResourceImageUrl('equipment', item.id, item.updatedAt.getTime());
   const issueCount = item.damagedQuantity + item.missingQuantity;
-  const availabilityLabel = item.availableQuantity === 0 && item.isActive
-    ? 'Unavailable'
-    : item.isActive
-      ? 'Available'
-      : 'Inactive';
+  const availabilityLabel = item.availableQuantity === 0 && item.isActive ? 'Unavailable' : item.isActive ? 'Available' : 'Inactive';
   const statusClass = !item.isActive
     ? 'management-status-badge management-status-badge-muted'
     : item.availableQuantity === 0
@@ -36,9 +33,7 @@ function EquipmentCard({ item, onEdit }: { item: EquipmentItem; onEdit: () => vo
         {imageUrl ? (
           <img className="inventory-card-image" src={imageUrl} alt="" loading="lazy" />
         ) : (
-          <div className="inventory-card-placeholder" aria-hidden="true">
-            <EquipmentPlaceholderIcon />
-          </div>
+          <div className="inventory-card-placeholder" aria-hidden="true"><EquipmentPlaceholderIcon /></div>
         )}
       </div>
 
@@ -52,12 +47,8 @@ function EquipmentCard({ item, onEdit }: { item: EquipmentItem; onEdit: () => vo
         </div>
 
         <div className="inventory-card-stock">
-          <span className="inventory-card-stock-value">
-            {item.availableQuantity.toLocaleString('en-PH')} {item.unit} available
-          </span>
-          <span className="inventory-card-threshold">
-            {item.totalQuantity.toLocaleString('en-PH')} {item.unit} total
-          </span>
+          <span className="inventory-card-stock-value">{item.availableQuantity.toLocaleString('en-PH')} {item.unit} available</span>
+          <span className="inventory-card-threshold">{item.totalQuantity.toLocaleString('en-PH')} {item.unit} total</span>
         </div>
 
         <div className="equipment-card-stats" aria-label={`${item.name} equipment quantities`}>
@@ -68,12 +59,16 @@ function EquipmentCard({ item, onEdit }: { item: EquipmentItem; onEdit: () => vo
 
         <div className="equipment-card-footer">
           <span className={issueCount > 0 ? 'equipment-card-issue' : 'equipment-card-clear'}>
-            {issueCount > 0
-              ? `${issueCount.toLocaleString('en-PH')} issue${issueCount === 1 ? '' : 's'}`
-              : 'No recorded issues'}
+            {issueCount > 0 ? `${issueCount.toLocaleString('en-PH')} issue${issueCount === 1 ? '' : 's'}` : 'No recorded issues'}
           </span>
-          <button type="button" className="management-row-button" onClick={onEdit}>
-            Edit
+          <button
+            type="button"
+            className="management-row-button responsive-action-button"
+            aria-label={`Edit ${item.name}`}
+            title={`Edit ${item.name}`}
+            onClick={onEdit}
+          >
+            <ResponsiveButtonContent icon="edit" label="Edit" />
           </button>
         </div>
       </div>
