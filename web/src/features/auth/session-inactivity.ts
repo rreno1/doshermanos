@@ -64,7 +64,10 @@ export function useSessionInactivity(enabled: boolean) {
     }
 
     function readActivity() {
-      return readLastSessionActivity() ?? lastMemoryActivity.current;
+      const stored = readLastSessionActivity();
+      return stored === null
+        ? lastMemoryActivity.current
+        : Math.max(stored, lastMemoryActivity.current);
     }
 
     function clearTimer() {
@@ -133,7 +136,7 @@ export function useSessionInactivity(enabled: boolean) {
     function handleStorage(event: StorageEvent) {
       if (event.key !== activityStorageKey) return;
       const nextActivity = readLastSessionActivity();
-      if (nextActivity !== null) {
+      if (nextActivity !== null && nextActivity > lastMemoryActivity.current) {
         lastMemoryActivity.current = nextActivity;
         scheduleExpiration(nextActivity);
       }
