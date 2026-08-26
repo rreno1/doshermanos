@@ -1,6 +1,7 @@
 import {
   deleteObject,
   getDownloadURL,
+  listAll,
   ref,
   uploadBytes,
 } from 'firebase/storage';
@@ -14,7 +15,10 @@ const supportedImageTypes = new Set([
   'image/png',
   'image/webp',
 ]);
-const imageLookupTimeoutMs = 4000;
+
+const imageIndexCache = new Map<ResourceImageKind, Set<string>>();
+const imageIndexRequests = new Map<ResourceImageKind, Promise<Set<string>>>();
+const imageUrlCache = new Map<string, string | null>();
 
 export function validateResourceImage(file: File): string | null {
   if (!supportedImageTypes.has(file.type)) {
@@ -32,7 +36,7 @@ export async function uploadResourceImage(
   kind: ResourceImageKind,
   resourceId: string,
   file: File,
-): Promise<string> {
+): Promise<void> {
   const imageRef = getResourceImageReference(kind, resourceId);
 
   await uploadBytes(imageRef, file, {
@@ -40,24 +44,34 @@ export async function uploadResourceImage(
     cacheControl: 'private,max-age=3600',
   });
 
-  return getDownloadURL(imageRef);
+  markImagePresent(kind, resourceId);
 }
 
 export async function getResourceImageUrl(
   kind: ResourceImageKind,
   resourceId: string,
 ): Promise<string | null> {
+  const cacheKey = getImageCacheKey(kind, resourceId);
+  if (imageUrlCache.has(cacheKey)) {
+    return imageUrlCache.get(cacheKey) ?? null;
+  }
+
   try {
-    return await withTimeout(
-      getDownloadURL(getResourceImageReference(kind, resourceId)),
-      imageLookupTimeoutMs,
-    );
-  } catch (error) {
-    if (isMissingObjectError(error) || isLookupTimeout(error)) {
+    const imageIds = await getResourceImageIndex(kind);
+    if (!imageIds.has(resourceId)) {
+      imageUrlCache.set(cacheKey, null);
       return null;
     }
 
-    // A card should degrade to its placeholder instead of remaining in a loading state.
+    const url = await getDownloadURL(getResourceImageReference(kind, resourceId));
+    imageUrlCache.set(cacheKey, url);
+    return url;
+  } catch (error) {
+    if (isMissingObjectError(error)) {
+      markImageAbsent(kind, resourceId);
+    }
+
+    // Registry cards should fall back to their placeholder instead of spinning or retrying.
     return null;
   }
 }
@@ -73,32 +87,81 @@ export async function removeResourceImage(
       throw error;
     }
   }
+
+  markImageAbsent(kind, resourceId);
 }
 
 export function getResourceImageErrorMessage(error: unknown): string {
   const code = readStorageCode(error);
 
-  if (code === 'storage/unauthorized') {
-    return 'The image could not be uploaded because Firebase Storage denied access. Deploy the current Storage rules and try again.';
+  if (code === 'storage/unauthenticated') {
+    return 'Your session is no longer authenticated. Sign in again before uploading an image.';
   }
 
-  if (code === 'storage/bucket-not-found') {
+  if (code === 'storage/unauthorized') {
+    return 'Firebase Storage denied this image operation. Deploy the current Storage rules and confirm this account is active staff or admin.';
+  }
+
+  if (code === 'storage/bucket-not-found' || code === 'storage/no-default-bucket') {
     return 'The Firebase Storage bucket is not available for this project.';
   }
 
+  if (code === 'storage/project-not-found') {
+    return 'The Firebase project for image storage could not be found.';
+  }
+
+  if (code === 'storage/quota-exceeded') {
+    return 'Firebase Storage is unavailable because its project quota or billing requirement has been reached.';
+  }
+
   if (code === 'storage/retry-limit-exceeded') {
-    return 'The image upload timed out. Check the connection and try again.';
+    return 'Firebase Storage did not respond in time. Check the Storage bucket, billing, CORS configuration, and connection before trying again.';
   }
 
   if (code === 'storage/canceled') {
     return 'The image upload was cancelled.';
   }
 
-  return 'The image could not be uploaded. Check Firebase Storage and try again.';
+  return 'The image could not be saved. Verify Firebase Storage is initialized and reachable, then try again.';
+}
+
+async function getResourceImageIndex(kind: ResourceImageKind): Promise<Set<string>> {
+  const cached = imageIndexCache.get(kind);
+  if (cached) return cached;
+
+  const existingRequest = imageIndexRequests.get(kind);
+  if (existingRequest) return existingRequest;
+
+  const request = listAll(ref(firebaseStorage, kind))
+    .then((result) => {
+      const imageIds = new Set(result.prefixes.map((prefix) => prefix.name));
+      imageIndexCache.set(kind, imageIds);
+      return imageIds;
+    })
+    .finally(() => {
+      imageIndexRequests.delete(kind);
+    });
+
+  imageIndexRequests.set(kind, request);
+  return request;
 }
 
 function getResourceImageReference(kind: ResourceImageKind, resourceId: string) {
   return ref(firebaseStorage, `${kind}/${resourceId}/item-image`);
+}
+
+function getImageCacheKey(kind: ResourceImageKind, resourceId: string) {
+  return `${kind}:${resourceId}`;
+}
+
+function markImagePresent(kind: ResourceImageKind, resourceId: string) {
+  imageIndexCache.get(kind)?.add(resourceId);
+  imageUrlCache.delete(getImageCacheKey(kind, resourceId));
+}
+
+function markImageAbsent(kind: ResourceImageKind, resourceId: string) {
+  imageIndexCache.get(kind)?.delete(resourceId);
+  imageUrlCache.set(getImageCacheKey(kind, resourceId), null);
 }
 
 function readStorageCode(error: unknown): string | null {
@@ -112,28 +175,4 @@ function readStorageCode(error: unknown): string | null {
 
 function isMissingObjectError(error: unknown): boolean {
   return readStorageCode(error) === 'storage/object-not-found';
-}
-
-function isLookupTimeout(error: unknown): boolean {
-  return error instanceof Error && error.message === 'resource-image-lookup-timeout';
-}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(
-      () => reject(new Error('resource-image-lookup-timeout')),
-      timeoutMs,
-    );
-
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      },
-    );
-  });
 }
