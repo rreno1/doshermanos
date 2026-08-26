@@ -23,14 +23,22 @@ service firebase.storage {
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
 
+    match /inventory/{allPaths=**} {
+      allow list: if isStaffOrAdmin();
+    }
+
     match /inventory/{inventoryItemId}/item-image {
-      allow read: if isStaffOrAdmin();
+      allow get: if isStaffOrAdmin();
       allow create, update: if isStaffOrAdmin() && isAllowedImage();
       allow delete: if isStaffOrAdmin();
     }
 
+    match /equipment/{allPaths=**} {
+      allow list: if isStaffOrAdmin();
+    }
+
     match /equipment/{equipmentItemId}/item-image {
-      allow read: if isStaffOrAdmin();
+      allow get: if isStaffOrAdmin();
       allow create, update: if isStaffOrAdmin() && isAllowedImage();
       allow delete: if isStaffOrAdmin();
     }
