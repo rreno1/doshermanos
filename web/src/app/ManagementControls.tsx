@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 
 export { ManagementSelect } from './ManagementSelect';
 
@@ -123,9 +124,7 @@ function ManagementFilterMenu({ children }: { children: ReactNode }) {
         title="Filters and sorting"
         onClick={() => setIsOpen((open) => !open)}
       >
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M4 7h12M4 13h12" />
-        </svg>
+        <TwoLineMenuIcon />
       </button>
       {isOpen ? <div className="management-filter-panel">{children}</div> : null}
     </div>
