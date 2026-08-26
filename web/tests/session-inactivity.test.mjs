@@ -17,7 +17,8 @@ const authServiceSource = await readFile(
 
 test('session inactivity uses elapsed wall-clock time instead of timer progress alone', () => {
   assert.match(inactivitySource, /SESSION_IDLE_TIMEOUT_MS = 30 \* 60 \* 1000/);
-  assert.match(inactivitySource, /Date\.now\(\) - lastActivity >= timeoutMs/);
+  assert.match(inactivitySource, /return now - lastActivity >= timeoutMs/);
+  assert.match(inactivitySource, /Date\.now\(\) - lastActivity/);
   assert.match(inactivitySource, /localStorage\.setItem/);
   assert.match(inactivitySource, /localStorage\.getItem/);
 });
