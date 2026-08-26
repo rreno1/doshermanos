@@ -7,6 +7,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../../firebase/firebase';
+import { clearSessionActivity, markSessionActivity } from './session-inactivity';
 import type { UserProfile, UserRole, UserStatus } from './auth.types';
 
 const validRoles: UserRole[] = ['customer', 'staff', 'admin'];
@@ -88,13 +89,16 @@ export async function signInWithGoogle(): Promise<void> {
 
   try {
     await createCustomerProfile(credential.user);
+    markSessionActivity();
   } catch (error) {
+    clearSessionActivity();
     await signOut(firebaseAuth);
     throw error;
   }
 }
 
 export async function signOutCurrentUser(): Promise<void> {
+  clearSessionActivity();
   await signOut(firebaseAuth);
 }
 
