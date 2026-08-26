@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type ActionIconName =
   | 'account'
   | 'add'
@@ -47,7 +49,7 @@ function ActionIcon({ name }: { name: ActionIconName }) {
   return <Icon><path d={name === 'previous' ? 'M12.5 4.5 7 10l5.5 5.5' : 'M7.5 4.5 13 10l-5.5 5.5'} /></Icon>;
 }
 
-function Icon({ children }: { children: React.ReactNode }) {
+function Icon({ children }: { children: ReactNode }) {
   return (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
       {children}
