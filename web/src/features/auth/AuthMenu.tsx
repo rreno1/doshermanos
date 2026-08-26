@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
 import { AccountPanel } from './AccountPanel';
 import { AuthForm } from './AuthForm';
 import { useAuth } from './AuthProvider';
@@ -38,18 +39,20 @@ export function AuthMenu() {
     authState.status === 'active' && authState.profile
       ? authState.profile.displayName
       : 'Google login';
-
+  const visibleLabel = authState.status === 'loading' ? 'Account' : buttonLabel;
   const panelTitle = getPanelTitle(authState.status);
 
   return (
     <>
       <button
-        className="auth-trigger"
+        className="auth-trigger responsive-action-button"
         type="button"
+        aria-label={visibleLabel}
+        title={visibleLabel}
         onClick={() => setIsOpen(true)}
         disabled={authState.status === 'loading'}
       >
-        {authState.status === 'loading' ? 'Account' : buttonLabel}
+        <ResponsiveButtonContent icon="account" label={visibleLabel} />
       </button>
 
       <dialog
