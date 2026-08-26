@@ -19,6 +19,11 @@
   .responsive-action-button {
     width: var(--management-control-height, 42px);
     min-width: var(--management-control-height, 42px);
+    height: var(--management-control-height, 42px);
+    min-height: var(--management-control-height, 42px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding-inline: 0 !important;
     flex: 0 0 var(--management-control-height, 42px) !important;
   }
