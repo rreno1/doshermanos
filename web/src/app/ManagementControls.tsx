@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { ResponsiveButtonContent } from './ResponsiveButtonContent';
 import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 
 export { ManagementSelect } from './ManagementSelect';
@@ -205,12 +206,26 @@ export function ManagementPagination({
     <div className="management-pagination" aria-label="Table pagination">
       <span>Showing {start}–{end} of {totalItems}</span>
       <div className="management-pagination-actions">
-        <button type="button" disabled={safePage === 1} onClick={() => onPageChange(safePage - 1)}>
-          Previous
+        <button
+          type="button"
+          className="responsive-action-button"
+          aria-label="Previous page"
+          title="Previous page"
+          disabled={safePage === 1}
+          onClick={() => onPageChange(safePage - 1)}
+        >
+          <ResponsiveButtonContent icon="previous" label="Previous" />
         </button>
         <span>Page {safePage} of {totalPages}</span>
-        <button type="button" disabled={safePage === totalPages} onClick={() => onPageChange(safePage + 1)}>
-          Next
+        <button
+          type="button"
+          className="responsive-action-button"
+          aria-label="Next page"
+          title="Next page"
+          disabled={safePage === totalPages}
+          onClick={() => onPageChange(safePage + 1)}
+        >
+          <ResponsiveButtonContent icon="next" label="Next" />
         </button>
       </div>
     </div>
