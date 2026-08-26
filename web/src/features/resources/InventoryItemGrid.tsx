@@ -1,3 +1,4 @@
+import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
 import { useResourceImageUrl } from './ResourceImagePicker';
 import type { InventoryItem } from './inventory.types';
 import './inventory-cards.css';
@@ -8,11 +9,7 @@ type InventoryItemGridProps = {
   onUpdateStock: (item: InventoryItem) => void;
 };
 
-export function InventoryItemGrid({
-  items,
-  onEdit,
-  onUpdateStock,
-}: InventoryItemGridProps) {
+export function InventoryItemGrid({ items, onEdit, onUpdateStock }: InventoryItemGridProps) {
   return (
     <div className="inventory-card-grid" aria-label="Inventory items">
       {items.map((item) => (
@@ -27,11 +24,7 @@ export function InventoryItemGrid({
   );
 }
 
-function InventoryItemCard({
-  item,
-  onEdit,
-  onUpdateStock,
-}: {
+function InventoryItemCard({ item, onEdit, onUpdateStock }: {
   item: InventoryItem;
   onEdit: () => void;
   onUpdateStock: () => void;
@@ -45,9 +38,7 @@ function InventoryItemCard({
         {imageUrl ? (
           <img className="inventory-card-image" src={imageUrl} alt="" loading="lazy" />
         ) : (
-          <div className="inventory-card-placeholder" aria-hidden="true">
-            <InventoryPlaceholderIcon />
-          </div>
+          <div className="inventory-card-placeholder" aria-hidden="true"><InventoryPlaceholderIcon /></div>
         )}
       </div>
 
@@ -61,25 +52,29 @@ function InventoryItemCard({
         </div>
 
         <div className="inventory-card-stock">
-          <span className="inventory-card-stock-value">
-            {item.quantity.toLocaleString('en-PH')} {item.unit}
-          </span>
-          <span className="inventory-card-threshold">
-            Low stock at {item.lowStockThreshold.toLocaleString('en-PH')} {item.unit}
-          </span>
+          <span className="inventory-card-stock-value">{item.quantity.toLocaleString('en-PH')} {item.unit}</span>
+          <span className="inventory-card-threshold">Low stock at {item.lowStockThreshold.toLocaleString('en-PH')} {item.unit}</span>
         </div>
 
         <div className="inventory-card-actions">
-          <button type="button" className="management-row-button" onClick={onEdit}>
-            Edit
+          <button
+            type="button"
+            className="management-row-button responsive-action-button"
+            aria-label={`Edit ${item.name}`}
+            title={`Edit ${item.name}`}
+            onClick={onEdit}
+          >
+            <ResponsiveButtonContent icon="edit" label="Edit" />
           </button>
           <button
             type="button"
-            className="management-primary-button"
+            className="management-primary-button responsive-action-button"
+            aria-label={`Update stock for ${item.name}`}
+            title={`Update stock for ${item.name}`}
             disabled={!item.isActive}
             onClick={onUpdateStock}
           >
-            Update stock
+            <ResponsiveButtonContent icon="stock" label="Update stock" />
           </button>
         </div>
       </div>
@@ -88,31 +83,10 @@ function InventoryItemCard({
 }
 
 function getInventoryStatus(item: InventoryItem) {
-  if (!item.isActive) {
-    return {
-      label: 'Inactive',
-      className: 'management-status-badge management-status-badge-muted',
-    };
-  }
-
-  if (item.quantity === 0) {
-    return {
-      label: 'Out of stock',
-      className: 'management-status-badge management-status-badge-danger',
-    };
-  }
-
-  if (item.quantity <= item.lowStockThreshold) {
-    return {
-      label: 'Low stock',
-      className: 'management-status-badge management-status-badge-warn',
-    };
-  }
-
-  return {
-    label: 'In stock',
-    className: 'management-status-badge management-status-badge-active',
-  };
+  if (!item.isActive) return { label: 'Inactive', className: 'management-status-badge management-status-badge-muted' };
+  if (item.quantity === 0) return { label: 'Out of stock', className: 'management-status-badge management-status-badge-danger' };
+  if (item.quantity <= item.lowStockThreshold) return { label: 'Low stock', className: 'management-status-badge management-status-badge-warn' };
+  return { label: 'In stock', className: 'management-status-badge management-status-badge-active' };
 }
 
 function InventoryPlaceholderIcon() {
