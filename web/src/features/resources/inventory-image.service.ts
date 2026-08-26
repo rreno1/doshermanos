@@ -11,7 +11,7 @@ export const validateInventoryImage = validateResourceImage;
 export function uploadInventoryImage(
   inventoryItemId: string,
   file: File,
-): Promise<string> {
+): Promise<void> {
   return uploadResourceImage('inventory', inventoryItemId, file);
 }
 
