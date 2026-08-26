@@ -1,11 +1,12 @@
-type ActionIconName =
+export type ActionIconName =
   | 'account'
   | 'add'
   | 'assign'
   | 'download'
   | 'previous'
   | 'next'
-  | 'cash';
+  | 'cash'
+  | 'action';
 
 export function ResponsiveButtonContent({
   icon,
@@ -65,6 +66,14 @@ function ActionIcon({ name }: { name: ActionIconName }) {
         <rect x="3.5" y="5" width="13" height="10" rx="2" />
         <circle cx="10" cy="10" r="2" />
         <path d="M6 7.5h.01M14 12.5h.01" />
+      </svg>
+    );
+  }
+
+  if (name === 'action') {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+        <path d="M4 10h11M11 6l4 4-4 4" />
       </svg>
     );
   }
