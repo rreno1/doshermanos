@@ -41,3 +41,7 @@ const storageBucket = `gs://${firebaseConfig.projectId}.firebasestorage.app`;
 export const firebaseAuth = getAuth(firebaseApp);
 export const firestore = getFirestore(firebaseApp);
 export const firebaseStorage = getStorage(firebaseApp, storageBucket);
+
+// Do not let an unavailable Storage backend leave image controls retrying for minutes.
+firebaseStorage.maxOperationRetryTime = 5_000;
+firebaseStorage.maxUploadRetryTime = 30_000;
