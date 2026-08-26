@@ -8,6 +8,7 @@ import './styles/global.css';
 import './app/app-loading.css';
 import './app/management-interactions.css';
 import './app/toast.css';
+import './app/responsive-actions.css';
 import './styles/typography.css';
 
 const rootElement = document.getElementById('root');
