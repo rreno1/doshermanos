@@ -64,7 +64,7 @@
   gap: 5px;
   padding: 8px 11px;
   border: 1px solid var(--management-border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--management-surface);
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -120,62 +120,6 @@
   flex: 0 0 auto;
 }
 
-.management-filter-menu > summary {
-  width: var(--management-control-height);
-  height: var(--management-control-height);
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--management-border-strong);
-  border-radius: 10px;
-  background: var(--management-surface);
-  color: #31423d;
-  cursor: pointer;
-  list-style: none;
-}
-
-.management-filter-menu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.management-filter-menu > summary svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-}
-
-.management-filter-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 25;
-  width: min(300px, calc(100vw - 32px));
-  display: grid;
-  gap: 13px;
-  padding: 16px;
-  border: 1px solid var(--management-border);
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 18px 48px rgba(23, 33, 31, 0.14);
-}
-
-.management-filter-field {
-  display: grid;
-  gap: 6px;
-}
-
-.management-filter-field > span {
-  color: #53625e;
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.management-filter-field select {
-  width: 100%;
-}
-
 .management-primary-button,
 .management-secondary-button,
 .management-danger-button,
@@ -185,7 +129,7 @@
   align-items: center;
   justify-content: center;
   padding: 9px 13px;
-  border-radius: 10px;
+  border-radius: var(--ui-control-radius);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -285,7 +229,7 @@
   align-items: center;
   min-height: 26px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   color: #44534e;
   background: #eef2ef;
   font-size: 0.74rem;
@@ -334,7 +278,7 @@
   min-height: 34px;
   padding: 7px 10px;
   border: 1px solid var(--management-border-strong);
-  border-radius: 9px;
+  border-radius: var(--radius-md);
   background: #ffffff;
   color: #31423d;
   font: inherit;
@@ -364,7 +308,7 @@
   margin: 0;
   padding: 11px 13px;
   border: 1px solid rgba(23, 107, 91, 0.12);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   color: #53625e;
   background: #f4f8f6;
   font-size: 0.8rem;
