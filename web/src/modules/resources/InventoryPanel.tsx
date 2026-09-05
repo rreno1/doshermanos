@@ -6,7 +6,7 @@ import {
   ManagementTableFrame,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
+} from '@shared/ui/ManagementControls';
 import { InventoryItemDialog } from './InventoryItemDialog';
 import { InventoryItemGrid } from './InventoryItemGrid';
 import { InventoryMovementDialog } from './InventoryMovementDialog';
