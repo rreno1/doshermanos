@@ -27,7 +27,12 @@ test('public content CSS no longer carries the replaced custom header and mobile
   assert.doesNotMatch(portalCss, /border-radius:\s*(?:18|22)px/);
 });
 
-test('public header geometry follows the GSU public portal contract', () => {
+test('public portal foundation follows the current GSU contract', () => {
+  assert.match(publicContract, /--portal-ink:\s*#153a31/);
+  assert.match(publicContract, /--portal-green:\s*#1f6b57/);
+  assert.match(publicContract, /--portal-hero-space:\s*clamp\(56px, 4\.5vw, 68px\)/);
+  assert.match(publicContract, /background:\s*#f4f7f5/);
+  assert.match(publicContract, /padding-block:\s*var\(--portal-hero-space\)/);
   assert.match(publicContract, /--app-header-height:\s*76px/);
   assert.match(publicContract, /border-top:\s*3px solid var\(--portal-green\)/);
   assert.match(publicContract, /backdrop-filter:\s*saturate\(1\.1\) blur\(18px\)/);
