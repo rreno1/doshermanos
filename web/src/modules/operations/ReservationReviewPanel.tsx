@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useToast } from '@core/app/ToastProvider';
 import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
-import { useToast } from '../../app/ToastProvider';
+} from '@shared/ui/ManagementControls';
 import {
   rejectReservation,
   subscribeToPendingReservations,
