@@ -3,11 +3,11 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 const reviewPanelPath = new URL(
-  '../src/features/operations/ReservationReviewPanel.tsx',
+  '../src/modules/operations/ReservationReviewPanel.tsx',
   import.meta.url,
 );
 const operationsPanelPath = new URL(
-  '../src/features/operations/OperationsPanel.tsx',
+  '../src/modules/operations/OperationsPanel.tsx',
   import.meta.url,
 );
 
