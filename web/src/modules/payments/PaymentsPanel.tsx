@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ManagementFilterField,
-  ManagementSelect,
   ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '@shared/ui/ManagementControls';
+import { PaymentFilters } from './PaymentFilters';
 import { StaffPaymentLinkCard } from './PaymentLinkCards';
 import { PaymentRecordDialog } from './PaymentRecordDialog';
 import {
@@ -14,11 +13,17 @@ import {
   subscribeToRecentPayments,
 } from './payment.service';
 import type { PaymentRecord, PaymentReservation } from './payment.types';
+import {
+  filterPayments,
+  filterReservations,
+  getPaymentEmptyMessage,
+  getPaymentViewDefaults,
+  getReservationStatusPresentation,
+  type PaymentSort,
+  type PaymentsTab,
+  type SortDirection,
+} from './payment-view';
 import './payments.css';
-
-type PaymentsTab = 'reservations' | 'records';
-type SortDirection = 'asc' | 'desc';
-type PaymentSort = 'event' | 'package' | 'status' | 'date' | 'amount' | 'recorder';
 
 const tabs = [
   { value: 'reservations', label: 'Reservations' },
@@ -86,63 +91,21 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
   const reservationPage = useManagementPage(visibleReservations, `reservations|${resetKey}`);
   const paymentPage = useManagementPage(visiblePayments, `records|${resetKey}`);
 
+  function resetViewControls(nextTab = tab) {
+    const defaults = getPaymentViewDefaults(nextTab);
+    setFilterValue('all');
+    setSortBy(defaults.sortBy);
+    setSortDirection(defaults.direction);
+  }
+
   function changeTab(nextTab: PaymentsTab) {
     setTab(nextTab);
     setQueryText('');
-    setFilterValue('all');
-    setSortBy(nextTab === 'reservations' ? 'event' : 'date');
-    setSortDirection(nextTab === 'reservations' ? 'asc' : 'desc');
+    resetViewControls(nextTab);
   }
 
-  return (
-    <section className="payments-section" id="payments" aria-label="Payments">
-      <ManagementTabs value={tab} options={tabs} onChange={changeTab} label="Payment views" />
-
-      <ManagementToolbar
-        summary={[
-          { label: 'payable reservations', value: reservations.length },
-          { label: 'payment records', value: payments.length },
-        ]}
-        searchValue={queryText}
-        searchPlaceholder={tab === 'reservations' ? 'Search payable reservations' : 'Search payment records'}
-        onSearchChange={setQueryText}
-        filterContent={(
-          <PaymentFilters
-            tab={tab}
-            filterValue={filterValue}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onFilterChange={setFilterValue}
-            onSortChange={setSortBy}
-            onDirectionChange={setSortDirection}
-            onReset={() => {
-              setFilterValue('all');
-              setSortBy(tab === 'reservations' ? 'event' : 'date');
-              setSortDirection(tab === 'reservations' ? 'asc' : 'desc');
-            }}
-          />
-        )}
-      />
-
-      <StaffPaymentLinkCard />
-      {tab === 'reservations' ? renderReservations() : renderPaymentRecords()}
-
-      <PaymentRecordDialog
-        reservation={selectedReservation}
-        recordedBy={staffId}
-        recordedByName={staffName}
-        onClose={() => setSelectedReservation(null)}
-      />
-    </section>
-  );
-
   function renderReservations() {
-    const emptyMessage = reservations.length === 0
-      ? 'No reservations are ready for payment recording.'
-      : visibleReservations.length === 0
-        ? 'No reservations match the current view.'
-        : undefined;
-
+    const emptyMessage = getPaymentEmptyMessage(reservations.length, visibleReservations.length, 'reservations');
     return (
       <ManagementTableFrame
         loadingMessage={isLoadingReservations ? 'Loading payable reservations…' : undefined}
@@ -175,12 +138,7 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
   }
 
   function renderPaymentRecords() {
-    const emptyMessage = payments.length === 0
-      ? 'No payments recorded yet.'
-      : visiblePayments.length === 0
-        ? 'No payment records match the current view.'
-        : undefined;
-
+    const emptyMessage = getPaymentEmptyMessage(payments.length, visiblePayments.length, 'records');
     return (
       <ManagementTableFrame
         loadingMessage={isLoadingPayments ? 'Loading payment records…' : undefined}
@@ -212,108 +170,68 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
       </ManagementTableFrame>
     );
   }
-}
-
-function PaymentFilters({
-  tab,
-  filterValue,
-  sortBy,
-  sortDirection,
-  onFilterChange,
-  onSortChange,
-  onDirectionChange,
-  onReset,
-}: {
-  tab: PaymentsTab;
-  filterValue: string;
-  sortBy: PaymentSort;
-  sortDirection: SortDirection;
-  onFilterChange: (value: string) => void;
-  onSortChange: (value: PaymentSort) => void;
-  onDirectionChange: (value: SortDirection) => void;
-  onReset: () => void;
-}) {
-  const sortOptions = tab === 'reservations'
-    ? [
-      { value: 'event', label: 'Event date' },
-      { value: 'package', label: 'Package' },
-      { value: 'status', label: 'Status' },
-    ]
-    : [
-      { value: 'date', label: 'Recorded date' },
-      { value: 'amount', label: 'Amount' },
-      { value: 'package', label: 'Package' },
-      { value: 'recorder', label: 'Recorded by' },
-    ];
 
   return (
-    <>
-      {tab === 'reservations' ? (
-        <ManagementFilterField label="Status">
-          <ManagementSelect
-            value={filterValue}
-            options={[
-              { value: 'all', label: 'All statuses' },
-              { value: 'pending_review', label: 'Pending review' },
-              { value: 'confirmed', label: 'Confirmed' },
-              { value: 'completed', label: 'Completed' },
-            ]}
-            onChange={onFilterChange}
-            ariaLabel="Filter payable reservations by status"
+    <section className="payments-section" id="payments" aria-label="Payments">
+      <ManagementTabs value={tab} options={tabs} onChange={changeTab} label="Payment views" />
+
+      <ManagementToolbar
+        summary={[
+          { label: 'payable reservations', value: reservations.length },
+          { label: 'payment records', value: payments.length },
+        ]}
+        searchValue={queryText}
+        searchPlaceholder={tab === 'reservations' ? 'Search payable reservations' : 'Search payment records'}
+        onSearchChange={setQueryText}
+        filterContent={(
+          <PaymentFilters
+            tab={tab}
+            filterValue={filterValue}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onFilterChange={setFilterValue}
+            onSortChange={setSortBy}
+            onDirectionChange={setSortDirection}
+            onReset={() => resetViewControls()}
           />
-        </ManagementFilterField>
-      ) : null}
-      <ManagementFilterField label="Sort by">
-        <ManagementSelect
-          value={sortBy}
-          options={sortOptions as { value: PaymentSort; label: string }[]}
-          onChange={onSortChange}
-          ariaLabel="Sort payment view by"
-        />
-      </ManagementFilterField>
-      <ManagementFilterField label="Direction">
-        <ManagementSelect
-          value={sortDirection}
-          options={[
-            { value: 'asc', label: 'Ascending' },
-            { value: 'desc', label: 'Descending' },
-          ]}
-          onChange={onDirectionChange}
-          ariaLabel="Payment sort direction"
-        />
-      </ManagementFilterField>
-      <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
-    </>
+        )}
+      />
+
+      <StaffPaymentLinkCard />
+      {tab === 'reservations' ? renderReservations() : renderPaymentRecords()}
+
+      <PaymentRecordDialog
+        reservation={selectedReservation}
+        recordedBy={staffId}
+        recordedByName={staffName}
+        onClose={() => setSelectedReservation(null)}
+      />
+    </section>
   );
 }
 
 function ReservationStatus({ status }: { status: PaymentReservation['status'] }) {
-  const label = status === 'pending_review' ? 'Pending review' : status === 'confirmed' ? 'Confirmed' : 'Completed';
-  const className = status === 'pending_review' ? 'management-status-badge management-status-badge-warn' : 'management-status-badge management-status-badge-active';
-  return <span className={className}>{label}</span>;
+  const presentation = getReservationStatusPresentation(status);
+  return <span className={presentation.className}>{presentation.label}</span>;
 }
 
-function filterReservations(reservations: PaymentReservation[], query: string, status: string, sortBy: PaymentSort, direction: SortDirection) {
-  const text = query.trim().toLocaleLowerCase();
-  return [...reservations]
-    .filter((reservation) => status === 'all' || reservation.status === status)
-    .filter((reservation) => !text || `${reservation.packageName} ${reservation.status} ${reservation.id}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compare(sortBy === 'package' ? left.packageName : sortBy === 'status' ? left.status : left.eventStartDate.getTime(), sortBy === 'package' ? right.packageName : sortBy === 'status' ? right.status : right.eventStartDate.getTime(), direction));
+function formatMoney(amountInCentavos: number) {
+  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amountInCentavos / 100);
 }
 
-function filterPayments(payments: PaymentRecord[], query: string, sortBy: PaymentSort, direction: SortDirection) {
-  const text = query.trim().toLocaleLowerCase();
-  return [...payments]
-    .filter((payment) => !text || `${payment.packageName} ${payment.reference} ${payment.note} ${payment.recordedByName}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compare(sortBy === 'amount' ? left.amountInCentavos : sortBy === 'package' ? left.packageName : sortBy === 'recorder' ? left.recordedByName : left.createdAt.getTime(), sortBy === 'amount' ? right.amountInCentavos : sortBy === 'package' ? right.packageName : sortBy === 'recorder' ? right.recordedByName : right.createdAt.getTime(), direction));
+function formatEventDate(date: Date) {
+  return new Intl.DateTimeFormat('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
 }
 
-function compare(left: string | number, right: string | number, direction: SortDirection) {
-  const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
-  return direction === 'asc' ? result : -result;
+function formatPaymentTime(date: Date) {
+  return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
-function formatMoney(amountInCentavos: number) { return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amountInCentavos / 100); }
-function formatEventDate(date: Date) { return new Intl.DateTimeFormat('en-PH', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date); }
-function formatPaymentTime(date: Date) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date); }
-function shortId(value: string) { return value.length <= 8 ? value : value.slice(0, 8); }
+function shortId(value: string) {
+  return value.length <= 8 ? value : value.slice(0, 8);
+}
