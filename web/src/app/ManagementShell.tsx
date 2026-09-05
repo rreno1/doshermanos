@@ -1,1 +1,0 @@
-../core/app/ManagementShell.tsx
