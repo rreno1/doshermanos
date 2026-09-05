@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { AppLink, navigate } from '../../app/navigation';
-import { Header } from '../../app/gsu-ui/Header';
-import type { PrimaryNavigationItem } from '../../app/gsu-ui/PrimaryNavigation';
-import { AuthMenu } from '../auth/AuthMenu';
-import type { UserProfile } from '../auth/auth.types';
+import { AppLink, navigate } from '@core/app/navigation';
+import { AuthMenu } from '@modules/auth/AuthMenu';
+import type { UserProfile } from '@modules/auth/auth.types';
+import { Header } from '@shared/ui/Header';
+import type { PrimaryNavigationItem } from '@shared/ui/PrimaryNavigation';
 import './portal.css';
 import './public-portal-contract.css';
 

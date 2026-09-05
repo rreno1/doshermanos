@@ -1,9 +1,9 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
-import { TwoLineMenuIcon } from '../TwoLineMenuIcon';
 import { AppBrand } from './AppBrand';
 import { type AccountMenuUser } from './AccountMenu';
 import { NavigationOverlay } from './NavigationOverlay';
 import { PrimaryNavigation, type PrimaryNavigationItem } from './PrimaryNavigation';
+import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 
 export type HeaderNavItem = PrimaryNavigationItem;
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
+import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
 import { AccountPanel } from './AccountPanel';
 import { AuthForm } from './AuthForm';
 import { useAuth } from './AuthProvider';
@@ -12,18 +12,10 @@ export function AuthMenu() {
 
   useEffect(() => {
     const dialog = dialogRef.current;
+    if (!dialog) return;
 
-    if (!dialog) {
-      return;
-    }
-
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
-    }
-
-    if (!isOpen && dialog.open) {
-      dialog.close();
-    }
+    if (isOpen && !dialog.open) dialog.showModal();
+    if (!isOpen && dialog.open) dialog.close();
   }, [isOpen]);
 
   function closeDialog() {
@@ -86,10 +78,10 @@ export function AuthMenu() {
               <AuthForm onAuthenticated={handleAuthenticated} />
             ) : null}
 
-            {authState.status === 'active' ||
-            authState.status === 'inactive' ||
-            authState.status === 'suspended' ||
-            authState.status === 'error' ? (
+            {authState.status === 'active'
+            || authState.status === 'inactive'
+            || authState.status === 'suspended'
+            || authState.status === 'error' ? (
               <AccountPanel
                 status={authState.status}
                 profile={authState.profile}
@@ -110,17 +102,8 @@ export function AuthMenu() {
 }
 
 function getPanelTitle(status: string) {
-  if (status === 'active') {
-    return 'Your account';
-  }
-
-  if (status === 'inactive' || status === 'suspended') {
-    return 'Account access unavailable';
-  }
-
-  if (status === 'error') {
-    return 'Account setup issue';
-  }
-
+  if (status === 'active') return 'Your account';
+  if (status === 'inactive' || status === 'suspended') return 'Account access unavailable';
+  if (status === 'error') return 'Account setup issue';
   return 'Continue with Google';
 }
