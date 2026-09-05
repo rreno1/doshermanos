@@ -3,11 +3,11 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ManagementPagination, ManagementToolbar } from '../src/app/ManagementControls.tsx';
+import { ManagementPagination, ManagementToolbar } from '../src/shared/ui/ManagementControls.tsx';
 
-const responsiveCss = await readFile(new URL('../src/app/responsive-actions.css', import.meta.url), 'utf8');
-const authMenuSource = await readFile(new URL('../src/features/auth/AuthMenu.tsx', import.meta.url), 'utf8');
-const packageCatalogSource = await readFile(new URL('../src/features/operations/PackageCatalog.tsx', import.meta.url), 'utf8');
+const responsiveCss = await readFile(new URL('../src/styles/responsive-actions.css', import.meta.url), 'utf8');
+const authMenuSource = await readFile(new URL('../src/modules/auth/AuthMenu.tsx', import.meta.url), 'utf8');
+const packageCatalogSource = await readFile(new URL('../src/modules/operations/PackageCatalog.tsx', import.meta.url), 'utf8');
 
 test('mobile responsive actions hide text labels and show icons', () => {
   assert.match(responsiveCss, /@media \(max-width: 620px\)/);
