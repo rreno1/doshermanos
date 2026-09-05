@@ -1,0 +1,183 @@
+/* Cross-feature GSU parity for Dos Hermanos management and public surfaces. */
+.admin-view .management-page {
+  display: contents;
+  --management-surface: var(--surface-translucent);
+  --management-surface-muted: var(--surface2);
+  --management-border: var(--line);
+  --management-border-strong: var(--line-strong);
+  --management-radius: var(--radius-lg);
+  --management-control-height: var(--ui-form-control-height);
+  --management-tab-content-gap: 20px;
+  --management-section-stack-gap: 12px;
+}
+
+.admin-view .management-page button {
+  border-radius: var(--ui-control-radius);
+  box-shadow: none;
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard);
+}
+
+/* GSU distinguishes 42px form controls from 40px toolbar controls. */
+.admin-view .management-page .management-data-controls .management-search input,
+.admin-view .management-page .management-data-controls .management-filter-trigger,
+.admin-view .management-page .management-data-controls > .management-primary-button,
+.admin-view .management-page .management-data-controls > .management-secondary-button {
+  box-sizing: border-box;
+  height: var(--ui-toolbar-control-size) !important;
+  min-height: var(--ui-toolbar-control-size) !important;
+  max-height: var(--ui-toolbar-control-size) !important;
+}
+
+.admin-view .management-page .inventory-primary-button,
+.admin-view .management-page .equipment-primary-button,
+.admin-view .management-page .package-management-primary,
+.admin-view .management-page .users-save-button,
+.admin-view .management-page .inventory-secondary-button,
+.admin-view .management-page .equipment-secondary-button,
+.admin-view .management-page .payment-secondary-button,
+.admin-view .management-page .inventory-text-button,
+.admin-view .management-page .report-actions button,
+.admin-view .management-page .package-management-actions button,
+.admin-view .management-page .package-management-editor-heading button,
+.admin-view .management-page .reservation-review-actions button {
+  min-height: var(--ui-toolbar-control-size) !important;
+  border-radius: var(--ui-control-radius) !important;
+}
+
+.admin-view .management-page .management-filter-panel,
+.admin-view .management-page .management-select-menu,
+.admin-view .management-page .package-management-table-wrap,
+.admin-view .management-page .users-table-wrap,
+.admin-view .management-page .report-table-wrap,
+.admin-view .management-page .inventory-main-column,
+.admin-view .management-page .inventory-activity,
+.admin-view .management-page .payments-main-column,
+.admin-view .management-page .payments-activity,
+.admin-view .management-page .equipment-column,
+.admin-view .management-page .equipment-activity,
+.admin-view .management-page .reservation-review-list,
+.admin-view .management-page .inventory-status-box,
+.admin-view .management-page .equipment-status-box,
+.admin-view .management-page .payment-status-box,
+.admin-view .management-page .report-status,
+.admin-view .management-page .audit-status,
+.admin-view .management-page .users-empty,
+.admin-view .management-page .package-management-empty {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-translucent) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.admin-view .management-page .inventory-summary-value,
+.admin-view .management-page .equipment-summary-value,
+.admin-view .management-page .users-summary span,
+.admin-view .management-page .package-management-summary span {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-translucent) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.admin-view .management-page table th {
+  background: var(--surface2) !important;
+  color: var(--muted) !important;
+}
+
+.admin-view .management-page table th,
+.admin-view .management-page table td {
+  border-color: var(--line) !important;
+  padding: var(--table-cell-py) var(--table-cell-px) !important;
+}
+
+/* Compact PageHeader → tabs → toolbar/data rhythm across every management module. */
+.management-page > .users-section,
+.management-page > .payments-section,
+.management-page > .reports-section,
+.management-page > .audit-section {
+  width: 100%;
+  margin-inline: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
+}
+
+.management-page > .users-section > .management-tabs,
+.management-page > .payments-section > .management-tabs,
+.management-page > .reports-section > .management-tabs,
+.management-page > .audit-section > .management-tabs {
+  margin-bottom: calc(var(--management-tab-content-gap) - var(--management-section-stack-gap));
+}
+
+.management-page > .operations-section,
+.management-page > .resources-section { display: block; }
+
+.management-page > .operations-section > .management-tabs,
+.management-page > .resources-section > .management-tabs { margin-bottom: var(--management-tab-content-gap); }
+
+.management-page > .operations-section > .reservation-review-section,
+.management-page > .operations-section > .package-management-section,
+.management-page > .resources-section > .inventory-section,
+.management-page > .resources-section > .equipment-section {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
+}
+
+.management-page > .operations-section > .manual-reservation-flow { margin-top: 0; padding-top: 0; }
+
+.management-page > .operations-section > .reservation-review-section > .management-data-toolbar,
+.management-page > .operations-section > .package-management-section > .management-data-toolbar,
+.management-page > .resources-section > .inventory-section > .management-data-toolbar,
+.management-page > .resources-section > .equipment-section > .management-data-toolbar { margin-top: 0; }
+
+/* Catering content keeps its semantics while inheriting GSU surface restraint. */
+.public-portal .primary-link,
+.app-shell .primary-link {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow) !important;
+  transition:
+    background-color var(--motion-standard) ease,
+    box-shadow var(--motion-standard) ease,
+    transform var(--motion-standard) var(--ease-standard) !important;
+}
+.public-portal .primary-link:hover,
+.app-shell .primary-link:hover { transform: translateY(-1px) !important; box-shadow: var(--shadow-md) !important; }
+.public-portal .package-card,
+.app-shell .package-card {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-translucent) !important;
+  box-shadow: var(--shadow) !important;
+}
+.public-portal .package-card:hover,
+.app-shell .package-card:hover {
+  transform: translateY(-1px) !important;
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.public-portal .catalog-status,
+.app-shell .catalog-status {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-raised) !important;
+}
+
+@media (max-width: 640px) {
+  .admin-view .management-page {
+    --management-tab-content-gap: 16px;
+    --management-section-stack-gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-page-stage,
+  .navigation-overlay-panel { animation: none !important; }
+}

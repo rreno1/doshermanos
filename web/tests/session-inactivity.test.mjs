@@ -3,15 +3,15 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const inactivitySource = await readFile(
-  new URL('../src/features/auth/session-inactivity.ts', import.meta.url),
+  new URL('../src/modules/auth/session-inactivity.ts', import.meta.url),
   'utf8',
 );
 const authProviderSource = await readFile(
-  new URL('../src/features/auth/AuthProvider.tsx', import.meta.url),
+  new URL('../src/modules/auth/AuthProvider.tsx', import.meta.url),
   'utf8',
 );
 const authServiceSource = await readFile(
-  new URL('../src/features/auth/auth.service.ts', import.meta.url),
+  new URL('../src/modules/auth/auth.service.ts', import.meta.url),
   'utf8',
 );
 

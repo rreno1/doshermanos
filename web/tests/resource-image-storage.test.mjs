@@ -3,19 +3,19 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const imageServiceSource = await readFile(
-  new URL('../src/features/resources/resource-image.service.ts', import.meta.url),
+  new URL('../src/modules/resources/resource-image.service.ts', import.meta.url),
   'utf8',
 );
 const inventoryDialogSource = await readFile(
-  new URL('../src/features/resources/InventoryItemDialog.tsx', import.meta.url),
+  new URL('../src/modules/resources/InventoryItemDialog.tsx', import.meta.url),
   'utf8',
 );
 const equipmentDialogSource = await readFile(
-  new URL('../src/features/resources/EquipmentItemDialog.tsx', import.meta.url),
+  new URL('../src/modules/resources/EquipmentItemDialog.tsx', import.meta.url),
   'utf8',
 );
 const firebaseSource = await readFile(
-  new URL('../src/firebase/firebase.ts', import.meta.url),
+  new URL('../src/core/firebase/firebase.ts', import.meta.url),
   'utf8',
 );
 const storageRulesSource = await readFile(

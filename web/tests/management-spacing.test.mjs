@@ -2,24 +2,25 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const shellPath = new URL('../src/app/ManagementShell.tsx', import.meta.url);
-const spacingPath = new URL('../src/styles/management-spacing.css', import.meta.url);
+const styleIndexPath = new URL('../src/styles/index.css', import.meta.url);
+const presentationPath = new URL('../src/styles/presentation-contract.css', import.meta.url);
 
 test('management tabs use one shared gap before summary and controls', async () => {
-  const [shellSource, spacingSource] = await Promise.all([
-    readFile(shellPath, 'utf8'),
-    readFile(spacingPath, 'utf8'),
+  const [styleIndexSource, presentationSource] = await Promise.all([
+    readFile(styleIndexPath, 'utf8'),
+    readFile(presentationPath, 'utf8'),
   ]);
 
-  assert.match(shellSource, /management-spacing\.css/);
-  assert.match(spacingSource, /--management-tab-content-gap:\s*20px/);
-  assert.match(spacingSource, /--management-section-stack-gap:\s*12px/);
-  assert.match(spacingSource, /\.management-page > \.operations-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.resources-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.payments-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.reports-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.users-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.audit-section > \.management-tabs/);
-  assert.match(spacingSource, /\.management-page > \.operations-section > \.reservation-review-section/);
-  assert.match(spacingSource, /\.management-page > \.resources-section > \.inventory-section/);
+  assert.match(styleIndexSource, /@import '\.\/presentation-contract\.css';/);
+  assert.doesNotMatch(styleIndexSource, /management-spacing\.css/);
+  assert.match(presentationSource, /--management-tab-content-gap:\s*20px/);
+  assert.match(presentationSource, /--management-section-stack-gap:\s*12px/);
+  assert.match(presentationSource, /\.management-page > \.operations-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.resources-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.payments-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.reports-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.users-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.audit-section > \.management-tabs/);
+  assert.match(presentationSource, /\.management-page > \.operations-section > \.reservation-review-section/);
+  assert.match(presentationSource, /\.management-page > \.resources-section > \.inventory-section/);
 });

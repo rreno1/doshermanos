@@ -9,10 +9,10 @@ import {
   ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
-} from '../src/app/ManagementControls.tsx';
+} from '../src/shared/ui/ManagementControls.tsx';
 
-const selectPath = new URL('../src/app/ManagementSelect.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
+const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
+const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
@@ -34,7 +34,7 @@ test('management tabs render as shared line tab controls', () => {
   assert.match(markup, /management-tab-active/);
 });
 
-test('management toolbar keeps summary search two-line filter control and primary action visible', () => {
+test('management toolbar keeps summary search semantic filter control and primary action visible', () => {
   const markup = renderToStaticMarkup(createElement(ManagementToolbar, {
     summary: [{ label: 'records', value: 12 }],
     searchValue: '',
@@ -48,7 +48,8 @@ test('management toolbar keeps summary search two-line filter control and primar
   assert.match(markup, /type="search"/);
   assert.match(markup, /management-filter-menu/);
   assert.match(markup, /management-filter-trigger/);
-  assert.match(markup, /M4 7h12M4 13h12/);
+  assert.match(markup, /22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3/);
+  assert.doesNotMatch(markup, /M4 7h12M4 13h12/);
   assert.equal(markup.includes('<details'), false);
   assert.match(markup, /Add record/);
 });
@@ -70,9 +71,9 @@ test('management select is custom and does not render a native select control', 
 });
 
 test('management select menus use a body portal so table overflow cannot clip them', async () => {
-  const [selectSource, interactionsCss] = await Promise.all([
+  const [selectSource, controlSystemCss] = await Promise.all([
     readFile(selectPath, 'utf8'),
-    readFile(interactionsCssPath, 'utf8'),
+    readFile(controlSystemCssPath, 'utf8'),
   ]);
 
   assert.match(selectSource, /createPortal/);
@@ -80,8 +81,8 @@ test('management select menus use a body portal so table overflow cannot clip th
   assert.match(selectSource, /management-select-menu-portal/);
   assert.match(selectSource, /getBoundingClientRect/);
   assert.match(selectSource, /spaceBelow < minimumUsefulHeight/);
-  assert.match(interactionsCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
-  assert.match(interactionsCss, /z-index:\s*1000/);
+  assert.match(controlSystemCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
+  assert.match(controlSystemCss, /z-index:\s*1000/);
 });
 
 test('management table frame owns pagination and dynamic loading state', () => {

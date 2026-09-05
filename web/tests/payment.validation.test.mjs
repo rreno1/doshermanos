@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateCashPayment } from '../src/features/payments/payment.validation.ts';
+import { validateCashPayment } from '../src/modules/payments/payment.validation.ts';
 
 test('cash payment validation converts pesos to integer centavos and trims text', () => {
   const result = validateCashPayment(' 5000.50 ', ' OR-102 ', ' received at office ');

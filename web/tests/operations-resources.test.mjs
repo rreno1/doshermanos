@@ -2,28 +2,26 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const appPath = new URL('../src/app/App.tsx', import.meta.url);
-const shellPath = new URL('../src/app/ManagementShell.tsx', import.meta.url);
-const operationsPath = new URL('../src/features/operations/OperationsPanel.tsx', import.meta.url);
-const operationsLayoutPath = new URL('../src/features/operations/operations-layout.css', import.meta.url);
-const resourcesPath = new URL('../src/features/resources/ResourcesPanel.tsx', import.meta.url);
-const equipmentPanelPath = new URL('../src/features/resources/EquipmentPanel.tsx', import.meta.url);
-const equipmentGridPath = new URL('../src/features/resources/EquipmentRegistryGrid.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
+const navigationPath = new URL('../src/core/app/nav.ts', import.meta.url);
+const operationsPath = new URL('../src/modules/operations/OperationsPanel.tsx', import.meta.url);
+const operationsLayoutPath = new URL('../src/modules/operations/operations-layout.css', import.meta.url);
+const resourcesPath = new URL('../src/modules/resources/ResourcesPanel.tsx', import.meta.url);
+const equipmentPanelPath = new URL('../src/modules/resources/EquipmentPanel.tsx', import.meta.url);
+const equipmentGridPath = new URL('../src/modules/resources/EquipmentRegistryGrid.tsx', import.meta.url);
+const presentationCssPath = new URL('../src/styles/presentation-contract.css', import.meta.url);
+const formCssPath = new URL('../src/styles/form-contract.css', import.meta.url);
+const tokensCssPath = new URL('../src/styles/tokens.css', import.meta.url);
 
 test('management navigation uses operations and resources instead of standalone legacy modules', async () => {
-  const [appSource, shellSource] = await Promise.all([
-    readFile(appPath, 'utf8'),
-    readFile(shellPath, 'utf8'),
-  ]);
+  const navigationSource = await readFile(navigationPath, 'utf8');
 
-  assert.match(shellSource, /label: 'Operations'/);
-  assert.match(shellSource, /label: 'Resources'/);
-  assert.doesNotMatch(shellSource, /label: 'Packages'/);
-  assert.doesNotMatch(shellSource, /label: 'Inventory'/);
-  assert.doesNotMatch(shellSource, /label: 'Equipment'/);
-  assert.match(appSource, /routeSegment === 'reservations' \|\| routeSegment === 'packages'/);
-  assert.match(appSource, /routeSegment === 'inventory' \|\| routeSegment === 'equipment'/);
+  assert.match(navigationSource, /label: 'Operations'/);
+  assert.match(navigationSource, /label: 'Resources'/);
+  assert.doesNotMatch(navigationSource, /label: 'Packages'/);
+  assert.doesNotMatch(navigationSource, /label: 'Inventory'/);
+  assert.doesNotMatch(navigationSource, /label: 'Equipment'/);
+  assert.match(navigationSource, /routeSegment === 'reservations' \|\| routeSegment === 'packages'/);
+  assert.match(navigationSource, /routeSegment === 'inventory' \|\| routeSegment === 'equipment'/);
 });
 
 test('operations and resources keep the approved tab order', async () => {
@@ -66,11 +64,13 @@ test('pending requests use the management workspace width without legacy section
   assert.doesNotMatch(layoutSource, /padding:\s*72px/);
 });
 
-test('equipment registry shares inventory cards and toolbar controls share one exact height', async () => {
-  const [panelSource, gridSource, cssSource] = await Promise.all([
+test('equipment registry shares inventory cards and GSU control geometry', async () => {
+  const [panelSource, gridSource, presentationSource, formSource, tokensSource] = await Promise.all([
     readFile(equipmentPanelPath, 'utf8'),
     readFile(equipmentGridPath, 'utf8'),
-    readFile(interactionsCssPath, 'utf8'),
+    readFile(presentationCssPath, 'utf8'),
+    readFile(formCssPath, 'utf8'),
+    readFile(tokensCssPath, 'utf8'),
   ]);
 
   assert.match(panelSource, /<EquipmentRegistryGrid/);
@@ -78,7 +78,15 @@ test('equipment registry shares inventory cards and toolbar controls share one e
   assert.match(gridSource, /<article className="inventory-card equipment-card"/);
   assert.match(gridSource, /useResourceImageUrl\('equipment'/);
   assert.match(gridSource, /availableQuantity/);
-  assert.match(cssSource, /\.management-data-controls \.management-search input,[\s\S]*height: var\(--management-control-height\)/);
-  assert.match(cssSource, /\.management-data-controls > \.management-primary-button/);
-  assert.match(cssSource, /\.management-data-controls \.management-filter-trigger/);
+
+  assert.match(tokensSource, /--ui-compact-control-size:\s*36px/);
+  assert.match(tokensSource, /--ui-toolbar-control-size:\s*40px/);
+  assert.match(tokensSource, /--ui-form-control-height:\s*42px/);
+  assert.match(
+    presentationSource,
+    /\.management-data-controls \.management-search input,[\s\S]*height: var\(--ui-toolbar-control-size\) !important/,
+  );
+  assert.match(presentationSource, /\.management-data-controls > \.management-primary-button/);
+  assert.match(presentationSource, /\.management-data-controls \.management-filter-trigger/);
+  assert.match(formSource, /min-height: var\(--ui-form-control-height\)/);
 });

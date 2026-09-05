@@ -1,0 +1,75 @@
+/* Canonical admin form geometry and field rhythm. */
+.admin-view .management-page input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.admin-view .management-page select,
+.admin-view .management-page .management-select-trigger {
+  min-height: var(--ui-form-control-height);
+  border-color: var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+  color: var(--text);
+}
+
+.admin-view .management-page textarea {
+  min-height: var(--ui-form-textarea-min-height);
+  border-color: var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-solid);
+  color: var(--text);
+}
+
+.admin-view .field-grid,
+.admin-view .equipment-field-row,
+.admin-view .inventory-field-row,
+.admin-view .payment-field-row,
+.admin-view .manual-reservation-grid,
+.admin-view .package-management-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.admin-view .equipment-field,
+.admin-view .inventory-field,
+.admin-view .payment-field,
+.admin-view .manual-reservation-field,
+.admin-view .package-management-field {
+  min-width: 0;
+}
+
+.admin-view .equipment-field small,
+.admin-view .inventory-field small,
+.admin-view .payment-field small,
+.admin-view .manual-reservation-field small,
+.admin-view .package-management-field small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.admin-view .management-page button:focus-visible,
+.admin-view .management-page input:focus-visible,
+.admin-view .management-page textarea:focus-visible,
+.admin-view .management-page select:focus-visible,
+.admin-view .management-page .management-select-trigger:focus-visible {
+  outline: var(--ui-focus-outline);
+  outline-offset: var(--ui-focus-offset);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+@media (max-width: 768px) {
+  .admin-view .field-grid,
+  .admin-view .equipment-field-row,
+  .admin-view .inventory-field-row,
+  .admin-view .payment-field-row,
+  .admin-view .manual-reservation-grid,
+  .admin-view .package-management-field-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-view input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .admin-view textarea,
+  .admin-view .management-select-trigger {
+    font-size: 16px;
+  }
+}
