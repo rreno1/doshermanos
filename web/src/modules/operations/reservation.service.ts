@@ -14,7 +14,7 @@ import {
   type QueryDocumentSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
+import { firestore } from '@core/firebase/firebase';
 import type { CateringPackage } from './package.types';
 import type {
   ManualReservationCustomer,
