@@ -1,8 +1,4 @@
-/*
- * Dos Hermanos public portal contract.
- * Presentation follows the GSU Waste public portal: quiet municipal-style structure,
- * restrained green, translucent surfaces, 8-12px geometry, deliberate motion.
- */
+/* Dos Hermanos public portal using the current GSU Waste public visual contract. */
 .public-view {
   --portal-ink: #153a31;
   --portal-muted: #63756f;
@@ -11,11 +7,10 @@
   --portal-line: rgba(31, 107, 87, 0.14);
   --portal-section-space: clamp(56px, 5vw, 76px);
   --portal-section-heading-gap: clamp(22px, 2vw, 28px);
+  --portal-hero-space: clamp(56px, 4.5vw, 68px);
   min-height: 100vh;
   overflow: visible;
-  background:
-    radial-gradient(circle at 82% 4%, rgba(114, 219, 177, 0.08), transparent 34rem),
-    #f4f7f5;
+  background: #f4f7f5;
   color: var(--portal-ink);
 }
 
@@ -90,7 +85,7 @@
 
 .public-view > .public-portal-header .primary-nav-horizontal .primary-nav-item.active::after { transform: scaleX(1); }
 
-.app-header-actions-slot {
+.public-view .app-header-actions-slot {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -132,14 +127,13 @@
   flex: 1;
 }
 
-/* Landing hero mirrors the restrained GSU public hero rather than a marketing billboard. */
 .public-view .landing-hero {
   position: relative;
   min-height: 480px;
   max-width: none;
   display: grid;
   align-content: center;
-  padding-block: clamp(56px, 4.5vw, 68px);
+  padding-block: var(--portal-hero-space);
 }
 
 .public-view .landing-hero::before,
@@ -242,7 +236,6 @@
   line-height: 1.65;
 }
 
-/* GSU-style surfaces: translucent, restrained radius and shadow. */
 .public-view .landing-package-card,
 .public-view .landing-process-grid article,
 .public-view .portal-action-card,
@@ -321,7 +314,6 @@
   border-radius: 8px;
 }
 
-/* GSU footer contract. */
 .public-view .public-footer.portal-footer {
   width: 100%;
   margin-top: 72px;
@@ -402,7 +394,7 @@
 }
 
 @media (max-width: 900px) {
-  .app-header-actions-slot { display: none; }
+  .public-view .app-header-actions-slot { display: none; }
   .public-view > .public-portal-header { --app-header-height: 68px; }
   .public-view > .public-portal-header .app-brand { max-width: calc(100% - 52px); }
   .public-view .portal-main { width: min(calc(100% - 32px), var(--layout-content-max)); }
