@@ -1,6 +1,6 @@
 import { signOut } from 'firebase/auth';
 import { useEffect, useRef } from 'react';
-import { firebaseAuth } from '../../firebase/firebase';
+import { firebaseAuth } from '@core/firebase/firebase';
 
 export const SESSION_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const activityWriteThrottleMs = 15 * 1000;
