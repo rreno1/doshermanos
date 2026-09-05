@@ -6,8 +6,8 @@ import {
   ManagementTableFrame,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
-import { useToast } from '../../app/ToastProvider';
+} from '@shared/ui/ManagementControls';
+import { useToast } from '@shared/ui/ToastProvider';
 import { EquipmentActivityList } from './EquipmentActivityList';
 import { EquipmentAssignmentDialog } from './EquipmentAssignmentDialog';
 import { EquipmentAssignmentList } from './EquipmentAssignmentList';
