@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
+import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
 import { getSafeAuthErrorMessage, signOutCurrentUser } from './auth.service';
 import type { UserProfile } from './auth.types';
 
