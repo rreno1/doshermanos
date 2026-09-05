@@ -24,32 +24,32 @@ export function EquipmentActivityList({ transactions, isLoading, hasError }: Pro
       <table className="management-table">
         <thead>
           <tr>
-            <th scope="col">Equipment</th>
-            <th scope="col">Type</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Return accountability</th>
-            <th scope="col">Recorded by</th>
-            <th scope="col">Recorded at</th>
+            <th scope="col" className="col-primary">Equipment</th>
+            <th scope="col" className="col-status">Type</th>
+            <th scope="col" className="col-secondary">Quantity</th>
+            <th scope="col" className="col-hide-tablet">Return accountability</th>
+            <th scope="col" className="col-secondary col-hide-mobile">Recorded by</th>
+            <th scope="col" className="col-secondary col-hide-mobile">Recorded at</th>
           </tr>
         </thead>
         <tbody>
           {transactions.map((transaction) => (
             <tr key={transaction.id}>
-              <td>
+              <td className="col-primary">
                 <div className="management-table-primary">
                   <strong>{transaction.equipmentName}</strong>
                   <span>{transaction.note || transaction.unit}</span>
                 </div>
               </td>
-              <td>
+              <td className="col-status">
                 <span className={transaction.type === 'return' ? 'management-status-badge management-status-badge-good' : 'management-status-badge management-status-badge-active'}>
                   {transaction.type === 'release' ? 'Released' : 'Returned'}
                 </span>
               </td>
-              <td>{transaction.quantity.toLocaleString('en-PH')} {transaction.unit}</td>
-              <td>{formatReturnAccountability(transaction)}</td>
-              <td>{transaction.recordedByName}</td>
-              <td>{formatActivityDate(transaction.createdAt)}</td>
+              <td className="col-secondary">{transaction.quantity.toLocaleString('en-PH')} {transaction.unit}</td>
+              <td className="col-hide-tablet">{formatReturnAccountability(transaction)}</td>
+              <td className="col-secondary col-hide-mobile">{transaction.recordedByName}</td>
+              <td className="col-secondary col-hide-mobile">{formatActivityDate(transaction.createdAt)}</td>
             </tr>
           ))}
         </tbody>
