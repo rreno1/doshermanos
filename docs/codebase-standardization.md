@@ -57,19 +57,17 @@ Aliases communicate ownership. Prefer them over long filesystem-relative imports
 5. **Do not duplicate infrastructure.** Authentication lifecycle, Firebase access, navigation, shared controls, formatting, errors, feedback, and responsive behavior each have one canonical implementation.
 6. **Use comments for reasons.** Comments explain trust boundaries, business constraints, retries, idempotency, compatibility decisions, or other non-obvious intent. Do not narrate syntax.
 7. **Keep presentation out of JSX when static.** Reusable visual rules belong in named CSS classes and shared style contracts. Inline style objects are for genuine runtime-calculated values only.
-8. **Remove replaced code.** Do not leave an old implementation beside its replacement. Migration aliases may exist only while active callers are being moved and must be removed before Issue #14 closes.
+8. **Remove replaced code.** Do not leave an old implementation beside its replacement.
 
-## Migration rule
+## Legacy-path policy
 
-The GSU-style structure is being introduced without changing Firebase behavior or breaking existing tests in one destructive move. Temporary legacy paths may therefore exist as **Git symlinks only**. They are compatibility aliases, not valid locations for new code.
+The GSU-style migration boundary is closed. The frontend must not contain compatibility aliases or duplicate legacy trees for `src/app`, `src/features`, or root `src/firebase`.
 
-During the migration:
-
-- new and refactored code targets `core`, `modules`, `shared`, and `styles`;
-- legacy `app`, `features`, or root `firebase` paths must never receive a second implementation;
-- tests explicitly verify that compatibility paths are symlinks;
-- every migrated caller reduces the compatibility surface;
-- all compatibility symlinks must be removed before the 1:1 parity issue is considered complete.
+- New and refactored code targets `core`, `modules`, `shared`, and `styles` only.
+- Tests target canonical paths directly so regressions cannot hide behind aliases.
+- Source symlinks are not an accepted compatibility mechanism.
+- Reintroducing `src/app`, `src/features`, or root `src/firebase` is an architecture regression unless the GSU Waste source of truth itself changes.
+- Replaced implementations are deleted rather than retained as fallbacks.
 
 ## Review gate
 
@@ -80,4 +78,4 @@ A change is not complete merely because it works or looks correct. Review it aga
 3. Does it reuse the canonical shared UI/data/navigation contract instead of creating a parallel system?
 4. Does it preserve Firebase security, data integrity, tests, and the GSU UI/UX standards?
 
-The structural and readability regression tests in `tests/gsu-architecture-parity.test.mjs` enforce the minimum mechanical part of this contract. Issue #14 remains the final acceptance gate.
+The structural and readability regression tests in `tests/gsu-architecture-parity.test.mjs` enforce the minimum mechanical part of this contract. Issue #14 remains the final acceptance gate until codebase, readability, responsive behavior, and UI/UX parity are all verified.
