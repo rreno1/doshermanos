@@ -109,3 +109,16 @@ test('human-readable module files remain bounded and avoid deep cross-layer impo
     );
   }
 });
+
+test('modules no longer depend on legacy app features or root firebase paths', () => {
+  const legacyImportPattern = /(?:from\s+['"]|import\s+['"])(?:\.\.\/)+(?:app|features|firebase)(?:\/|['"])/;
+  const offenders = sourceFiles('src/modules')
+    .filter((path) => legacyImportPattern.test(read(path)))
+    .sort();
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `Migrate these module imports to @core, @modules, @shared, or local module paths:\n${offenders.join('\n')}`,
+  );
+});
