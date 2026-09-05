@@ -6,7 +6,7 @@ import {
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
+} from '@shared/ui/ManagementControls';
 import { StaffPaymentLinkCard } from './PaymentLinkCards';
 import { PaymentRecordDialog } from './PaymentRecordDialog';
 import {
