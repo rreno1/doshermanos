@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ManagementTabs } from '../../app/ManagementControls';
+import { ManagementTabs } from '@shared/ui/ManagementControls';
 import { ManualReservationPanel } from './ManualReservationPanel';
 import { PackageManagementPanel } from './PackageManagementPanel';
 import { ReservationReviewPanel } from './ReservationReviewPanel';
