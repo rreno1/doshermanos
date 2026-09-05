@@ -7,11 +7,11 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { FilterIcon } from './FilterIcon';
 import {
   ResponsiveButtonContent,
   type ActionIconName,
 } from './ResponsiveButtonContent';
-import { TwoLineMenuIcon } from './TwoLineMenuIcon';
 
 export { ManagementSelect } from './ManagementSelect';
 
@@ -87,36 +87,59 @@ export function ManagementToolbar({
 }) {
   return (
     <div className="management-data-toolbar">
-      <div className="management-summary" aria-label="Summary">
-        {summary.map((item) => (
-          <span
-            key={item.label}
-            className={item.warn ? 'management-summary-item management-summary-warn' : 'management-summary-item'}
-          >
-            <strong>{item.value}</strong> {item.label}
-          </span>
-        ))}
-      </div>
+      <ManagementSummary items={summary} />
 
       <div className="management-data-controls">
-        <label className="management-search">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <circle cx="8.5" cy="8.5" r="5.25" />
-            <path d="m12.4 12.4 4.1 4.1" />
-          </svg>
-          <input
-            type="search"
-            aria-label="Search"
-            value={searchValue}
-            placeholder={searchPlaceholder}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
-        </label>
-
+        <ManagementSearch
+          value={searchValue}
+          placeholder={searchPlaceholder}
+          onChange={onSearchChange}
+        />
         {filterContent ? <ManagementFilterMenu>{filterContent}</ManagementFilterMenu> : null}
         {makeResponsivePrimaryAction(primaryAction)}
       </div>
     </div>
+  );
+}
+
+function ManagementSummary({ items }: { items: SummaryItem[] }) {
+  return (
+    <div className="management-summary" aria-label="Summary">
+      {items.map((item) => (
+        <span
+          key={item.label}
+          className={item.warn ? 'management-summary-item management-summary-warn' : 'management-summary-item'}
+        >
+          <strong>{item.value}</strong> {item.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ManagementSearch({
+  value,
+  placeholder,
+  onChange,
+}: {
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="management-search">
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="5.25" />
+        <path d="m12.4 12.4 4.1 4.1" />
+      </svg>
+      <input
+        type="search"
+        aria-label="Search"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
   );
 }
 
@@ -137,7 +160,7 @@ function ManagementFilterMenu({ children }: { children: ReactNode }) {
         title="Filters and sorting"
         onClick={() => setIsOpen((open) => !open)}
       >
-        <TwoLineMenuIcon />
+        <FilterIcon />
       </button>
       {isOpen ? <div className="management-filter-panel">{children}</div> : null}
     </div>
@@ -176,23 +199,24 @@ export function ManagementTableFrame({
 
   return (
     <div className="management-table-frame">
-      {loadingMessage ? (
-        <ManagementLoadingState message={loadingMessage} />
-      ) : errorMessage ? (
-        <div className="management-table-state management-table-state-error" role="alert">
-          {errorMessage}
-        </div>
-      ) : emptyMessage ? (
-        <div className="management-table-state" role="status">
-          {emptyMessage}
-        </div>
-      ) : (
-        <div className="management-table-frame-content">{children}</div>
-      )}
-
+      {renderTableState(children, loadingMessage, errorMessage, emptyMessage)}
       {!hasState && pagination ? <ManagementPagination {...pagination} /> : null}
     </div>
   );
+}
+
+function renderTableState(
+  children: ReactNode,
+  loadingMessage?: string,
+  errorMessage?: string,
+  emptyMessage?: string,
+) {
+  if (loadingMessage) return <ManagementLoadingState message={loadingMessage} />;
+  if (errorMessage) {
+    return <div className="management-table-state management-table-state-error" role="alert">{errorMessage}</div>;
+  }
+  if (emptyMessage) return <div className="management-table-state" role="status">{emptyMessage}</div>;
+  return <div className="management-table-frame-content">{children}</div>;
 }
 
 export function ManagementLoadingState({ message }: { message: string }) {
@@ -248,10 +272,7 @@ export function useManagementPage<T>(items: T[], resetKey: string) {
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(items.length / MANAGEMENT_PAGE_SIZE));
 
-  useEffect(() => {
-    setPage(1);
-  }, [resetKey]);
-
+  useEffect(() => setPage(1), [resetKey]);
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
@@ -266,14 +287,10 @@ export function useManagementPage<T>(items: T[], resetKey: string) {
 }
 
 function makeResponsivePrimaryAction(primaryAction: ReactNode) {
-  if (!isValidElement<ResponsiveActionProps>(primaryAction)) {
-    return primaryAction;
-  }
+  if (!isValidElement<ResponsiveActionProps>(primaryAction)) return primaryAction;
 
   const label = getActionLabel(primaryAction.props.children);
-  if (!label) {
-    return primaryAction;
-  }
+  if (!label) return primaryAction;
 
   const className = `${primaryAction.props.className ?? ''} responsive-action-button`.trim();
 
@@ -292,18 +309,15 @@ function getActionLabel(children: ReactNode) {
   if (typeof children === 'string' || typeof children === 'number') {
     return String(children).trim();
   }
-
   return '';
 }
 
 function getActionIcon(label: string): ActionIconName {
   const normalized = label.toLocaleLowerCase();
-
   if (normalized.startsWith('add')) return 'add';
   if (normalized.includes('assign')) return 'assign';
   if (normalized.includes('export') || normalized.includes('download')) return 'download';
   if (normalized.includes('cash') || normalized.includes('payment')) return 'cash';
-
   return 'action';
 }
 
