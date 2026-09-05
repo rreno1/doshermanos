@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ManagementLoadingState } from '../../app/ManagementControls';
-import { useToast } from '../../app/ToastProvider';
+import { useToast } from '@core/app/ToastProvider';
+import { ManagementLoadingState } from '@shared/ui/ManagementControls';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
 import {
