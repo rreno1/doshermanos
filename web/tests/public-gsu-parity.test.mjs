@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const portalShell = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
+const portalCss = await readFile(new URL('../src/modules/portal/portal.css', import.meta.url), 'utf8');
 const publicContract = await readFile(new URL('../src/modules/portal/public-portal-contract.css', import.meta.url), 'utf8');
 const sharedHeader = await readFile(new URL('../src/shared/ui/Header.tsx', import.meta.url), 'utf8');
 const overlay = await readFile(new URL('../src/shared/ui/NavigationOverlay.tsx', import.meta.url), 'utf8');
@@ -16,6 +17,14 @@ test('public portal uses the same GSU header and navigation primitives as manage
   assert.match(portalShell, /public-view portal-shell/);
   assert.doesNotMatch(portalShell, /useState\(/);
   assert.doesNotMatch(portalShell, /portal-menu-button/);
+});
+
+test('public content CSS no longer carries the replaced custom header and mobile menu system', () => {
+  assert.doesNotMatch(portalCss, /\.portal-header\b/);
+  assert.doesNotMatch(portalCss, /\.portal-navigation\b/);
+  assert.doesNotMatch(portalCss, /\.portal-menu-button\b/);
+  assert.doesNotMatch(portalCss, /\.portal-mobile-navigation\b/);
+  assert.doesNotMatch(portalCss, /border-radius:\s*(?:18|22)px/);
 });
 
 test('public header geometry follows the GSU public portal contract', () => {
