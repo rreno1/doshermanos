@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ManagementLoadingState, ManagementSelect } from '../../app/ManagementControls';
-import { useToast } from '../../app/ToastProvider';
+import { ManagementLoadingState, ManagementSelect } from '@shared/ui/ManagementControls';
+import { useToast } from '@shared/ui/ToastProvider';
 import {
   createEquipmentAssignment,
   loadAssignableReservations,
