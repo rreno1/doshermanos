@@ -48,7 +48,7 @@ test('management toolbar keeps summary search semantic filter control and primar
   assert.match(markup, /type="search"/);
   assert.match(markup, /management-filter-menu/);
   assert.match(markup, /management-filter-trigger/);
-  assert.match(markup, /M3 5h14M6 10h8M8 15h4/);
+  assert.match(markup, /22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3/);
   assert.doesNotMatch(markup, /M4 7h12M4 13h12/);
   assert.equal(markup.includes('<details'), false);
   assert.match(markup, /Add record/);
