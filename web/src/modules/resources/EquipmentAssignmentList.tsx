@@ -24,30 +24,30 @@ export function EquipmentAssignmentList({
       <table className="management-table">
         <thead>
           <tr>
-            <th scope="col">Equipment</th>
-            <th scope="col">Reservation</th>
-            <th scope="col">Event</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Return result</th>
-            <th scope="col">Status</th>
-            <th scope="col">Actions</th>
+            <th scope="col" className="col-primary">Equipment</th>
+            <th scope="col" className="col-secondary">Reservation</th>
+            <th scope="col" className="col-secondary">Event</th>
+            <th scope="col" className="col-secondary col-hide-mobile">Quantity</th>
+            <th scope="col" className="col-hide-tablet">Return result</th>
+            <th scope="col" className="col-status">Status</th>
+            <th scope="col" className="col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           {assignments.map((assignment) => (
             <tr key={assignment.id}>
-              <td>
+              <td className="col-primary">
                 <div className="management-table-primary">
                   <strong>{assignment.equipmentName}</strong>
                   <span>{assignment.note || assignment.unit}</span>
                 </div>
               </td>
-              <td>{assignment.packageName}</td>
-              <td>{formatEventRange(assignment)}</td>
-              <td>{assignment.assignedQuantity.toLocaleString('en-PH')} {assignment.unit}</td>
-              <td>{formatReturnResult(assignment)}</td>
-              <td><StatusBadge status={assignment.status} /></td>
-              <td>
+              <td className="col-secondary">{assignment.packageName}</td>
+              <td className="col-secondary">{formatEventRange(assignment)}</td>
+              <td className="col-secondary col-hide-mobile">{assignment.assignedQuantity.toLocaleString('en-PH')} {assignment.unit}</td>
+              <td className="col-hide-tablet">{formatReturnResult(assignment)}</td>
+              <td className="col-status"><StatusBadge status={assignment.status} /></td>
+              <td className="col-actions">
                 <div className="management-table-actions">
                   {assignment.status === 'assigned' ? (
                     <>
