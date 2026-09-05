@@ -1,0 +1,97 @@
+/* Cross-cutting dialog viewport, surface continuity, and mobile action behavior. */
+dialog.auth-dialog,
+dialog.inventory-dialog,
+dialog.equipment-dialog,
+dialog.payment-dialog {
+  max-width: min(680px, calc(100vw - 32px));
+  max-height: min(88vh, 820px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+dialog.auth-dialog::backdrop,
+dialog.inventory-dialog::backdrop,
+dialog.equipment-dialog::backdrop,
+dialog.payment-dialog::backdrop {
+  background: rgba(7, 24, 19, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.auth-panel,
+.inventory-dialog-panel,
+.equipment-dialog-panel,
+.payment-dialog-panel {
+  max-height: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface-raised);
+}
+
+.auth-panel-heading,
+.inventory-dialog-heading,
+.equipment-dialog-heading,
+.payment-dialog-heading {
+  background: transparent;
+}
+
+.auth-close,
+.inventory-close-button,
+.equipment-close-button,
+.payment-close-button {
+  width: var(--ui-compact-control-size);
+  min-width: var(--ui-compact-control-size);
+  height: var(--ui-compact-control-size);
+  min-height: var(--ui-compact-control-size);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+
+.inventory-dialog-actions,
+.equipment-dialog-actions,
+.payment-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  dialog.auth-dialog,
+  dialog.inventory-dialog,
+  dialog.equipment-dialog,
+  dialog.payment-dialog {
+    width: min(100% - 20px, 680px);
+    max-width: none;
+    max-height: calc(100dvh - 20px);
+  }
+
+  .inventory-dialog-actions,
+  .equipment-dialog-actions,
+  .payment-dialog-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-inline: -20px;
+    margin-top: var(--space-4);
+    padding: 14px 20px max(2px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--surface-raised);
+    box-shadow: 0 -8px 18px color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-dialog-actions,
+  .equipment-dialog-actions,
+  .payment-dialog-actions { flex-direction: column-reverse; }
+  .inventory-dialog-actions > button,
+  .equipment-dialog-actions > button,
+  .payment-dialog-actions > button,
+  .equipment-dialog-actions-main,
+  .equipment-dialog-actions-main > button { width: 100%; }
+}

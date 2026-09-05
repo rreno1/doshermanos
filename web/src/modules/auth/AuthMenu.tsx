@@ -3,7 +3,6 @@ import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
 import { AccountPanel } from './AccountPanel';
 import { AuthForm } from './AuthForm';
 import { useAuth } from './AuthProvider';
-import './auth.css';
 
 export function AuthMenu() {
   const { authState, refreshAuthState } = useAuth();

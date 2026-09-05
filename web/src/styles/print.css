@@ -1,0 +1,20 @@
+/* Print ownership mirrors the GSU reporting boundary. */
+@media print {
+  .sidebar,
+  .admin-top,
+  .admin-mobile-header,
+  .management-data-toolbar,
+  .management-tabs,
+  .navigation-overlay,
+  .public-portal-header,
+  .portal-footer,
+  .skip-link { display: none !important; }
+
+  .admin-grid { display: block; }
+  .admin-main { margin: 0 !important; padding: 0 !important; }
+  .management-page,
+  .reports-section,
+  .management-table-frame,
+  .management-table-wrap { width: 100% !important; max-width: none !important; overflow: visible !important; }
+  .management-table { min-width: 0 !important; }
+}

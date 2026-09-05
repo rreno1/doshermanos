@@ -2,9 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { AppErrorBoundary } from '@core/app/AppErrorBoundary';
-import { ToastProvider } from '@core/app/ToastProvider';
 import { AuthProvider } from '@modules/auth/AuthProvider';
-import '@styles/global.css';
+import { ToastProvider } from '@shared/ui/ToastProvider';
 import '@styles/typography.css';
 import '@styles/index.css';
 

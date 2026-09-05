@@ -5,7 +5,6 @@ import type { UserProfile } from '@modules/auth/auth.types';
 import { Header } from '@shared/ui/Header';
 import type { PrimaryNavigationItem } from '@shared/ui/PrimaryNavigation';
 import './portal.css';
-import './public-portal-contract.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
