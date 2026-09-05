@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const shellPath = new URL('../src/app/ManagementShell.tsx', import.meta.url);
+const shellPath = new URL('../src/core/app/ManagementShell.tsx', import.meta.url);
 const typographyPath = new URL('../src/styles/typography.css', import.meta.url);
-const loadingPath = new URL('../src/app/app-loading.css', import.meta.url);
+const loadingPath = new URL('../src/styles/app-loading.css', import.meta.url);
 
 test('management sidebar excludes the public portal shortcut', async () => {
   const source = await readFile(shellPath, 'utf8');
