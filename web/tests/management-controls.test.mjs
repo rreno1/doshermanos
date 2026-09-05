@@ -9,10 +9,10 @@ import {
   ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
-} from '../src/app/ManagementControls.tsx';
+} from '../src/shared/ui/ManagementControls.tsx';
 
-const selectPath = new URL('../src/app/ManagementSelect.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
+const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
+const interactionsCssPath = new URL('../src/styles/management-interactions.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
@@ -34,7 +34,7 @@ test('management tabs render as shared line tab controls', () => {
   assert.match(markup, /management-tab-active/);
 });
 
-test('management toolbar keeps summary search two-line filter control and primary action visible', () => {
+test('management toolbar keeps summary search semantic filter control and primary action visible', () => {
   const markup = renderToStaticMarkup(createElement(ManagementToolbar, {
     summary: [{ label: 'records', value: 12 }],
     searchValue: '',
@@ -48,7 +48,8 @@ test('management toolbar keeps summary search two-line filter control and primar
   assert.match(markup, /type="search"/);
   assert.match(markup, /management-filter-menu/);
   assert.match(markup, /management-filter-trigger/);
-  assert.match(markup, /M4 7h12M4 13h12/);
+  assert.match(markup, /M3 5h14M6 10h8M8 15h4/);
+  assert.doesNotMatch(markup, /M4 7h12M4 13h12/);
   assert.equal(markup.includes('<details'), false);
   assert.match(markup, /Add record/);
 });
