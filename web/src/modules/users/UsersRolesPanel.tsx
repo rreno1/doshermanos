@@ -6,9 +6,9 @@ import {
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
-import { useToast } from '../../app/ToastProvider';
-import type { UserProfile, UserRole, UserStatus } from '../auth/auth.types';
+} from '@shared/ui/ManagementControls';
+import { useToast } from '@shared/ui/ToastProvider';
+import type { UserProfile, UserRole, UserStatus } from '@modules/auth/auth.types';
 import { subscribeToUsers, updateUserAccess } from './users.service';
 import './users.css';
 
