@@ -1,16 +1,18 @@
-export function FilterIcon({ className }: { className?: string }) {
+import type { SVGProps } from 'react';
+
+export function FilterIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      className={className}
-      viewBox="0 0 20 20"
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
+      {...props}
     >
-      <path d="M3 5h14M6 10h8M8 15h4" />
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
     </svg>
   );
 }
