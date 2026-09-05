@@ -11,8 +11,8 @@ const [
   responsiveSource,
   presentationSource,
 ] = await Promise.all([
-  readFile(new URL('../src/app/ManagementShell.tsx', import.meta.url), 'utf8'),
-  readFile(new URL('../src/app/gsu-ui/NavigationOverlay.tsx', import.meta.url), 'utf8'),
+  readFile(new URL('../src/core/app/ManagementShell.tsx', import.meta.url), 'utf8'),
+  readFile(new URL('../src/shared/ui/NavigationOverlay.tsx', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/tokens.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/admin-shell.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/ui-consistency.css', import.meta.url), 'utf8'),
@@ -68,7 +68,7 @@ test('mobile navigation follows the GSU viewport overlay contract', () => {
   assert.match(responsiveSource, /\.admin-grid \.sidebar \{ display: none !important; \}/);
 });
 
-test('legacy feature surfaces are normalized through GSU tokens while markup migrates', () => {
+test('feature surfaces are normalized through GSU tokens and shared contracts', () => {
   assert.match(presentationSource, /--management-radius:\s*var\(--radius-lg\)/);
   assert.match(presentationSource, /--management-control-height:\s*var\(--ui-form-control-height\)/);
   assert.match(presentationSource, /min-height:\s*var\(--ui-form-control-height\) !important/);
