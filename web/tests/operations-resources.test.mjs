@@ -9,6 +9,7 @@ const resourcesPath = new URL('../src/modules/resources/ResourcesPanel.tsx', imp
 const equipmentPanelPath = new URL('../src/modules/resources/EquipmentPanel.tsx', import.meta.url);
 const equipmentGridPath = new URL('../src/modules/resources/EquipmentRegistryGrid.tsx', import.meta.url);
 const presentationCssPath = new URL('../src/styles/presentation-contract.css', import.meta.url);
+const formCssPath = new URL('../src/styles/form-contract.css', import.meta.url);
 const tokensCssPath = new URL('../src/styles/tokens.css', import.meta.url);
 
 test('management navigation uses operations and resources instead of standalone legacy modules', async () => {
@@ -64,10 +65,11 @@ test('pending requests use the management workspace width without legacy section
 });
 
 test('equipment registry shares inventory cards and GSU control geometry', async () => {
-  const [panelSource, gridSource, presentationSource, tokensSource] = await Promise.all([
+  const [panelSource, gridSource, presentationSource, formSource, tokensSource] = await Promise.all([
     readFile(equipmentPanelPath, 'utf8'),
     readFile(equipmentGridPath, 'utf8'),
     readFile(presentationCssPath, 'utf8'),
+    readFile(formCssPath, 'utf8'),
     readFile(tokensCssPath, 'utf8'),
   ]);
 
@@ -86,5 +88,5 @@ test('equipment registry shares inventory cards and GSU control geometry', async
   );
   assert.match(presentationSource, /\.management-data-controls > \.management-primary-button/);
   assert.match(presentationSource, /\.management-data-controls \.management-filter-trigger/);
-  assert.match(presentationSource, /min-height: var\(--ui-form-control-height\) !important/);
+  assert.match(formSource, /min-height: var\(--ui-form-control-height\)/);
 });
