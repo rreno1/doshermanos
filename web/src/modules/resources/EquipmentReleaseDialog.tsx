@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useToast } from '@shared/ui/ToastProvider';
+import { useToast } from '@core/app/ToastProvider';
 import { releaseEquipmentAssignment } from './equipment.service';
 import type { EquipmentAssignment, StaffIdentity } from './equipment.types';
 import './equipment-dialog.css';
