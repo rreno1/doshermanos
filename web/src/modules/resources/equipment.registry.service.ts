@@ -10,7 +10,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
+import { firestore } from '@core/firebase/firebase';
 import { parseEquipmentItem, requireInteger } from './equipment.parsers';
 import type {
   EquipmentItem,
