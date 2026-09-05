@@ -8,7 +8,8 @@ const operationsLayoutPath = new URL('../src/modules/operations/operations-layou
 const resourcesPath = new URL('../src/modules/resources/ResourcesPanel.tsx', import.meta.url);
 const equipmentPanelPath = new URL('../src/modules/resources/EquipmentPanel.tsx', import.meta.url);
 const equipmentGridPath = new URL('../src/modules/resources/EquipmentRegistryGrid.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/styles/management-interactions.css', import.meta.url);
+const presentationCssPath = new URL('../src/styles/presentation-contract.css', import.meta.url);
+const tokensCssPath = new URL('../src/styles/tokens.css', import.meta.url);
 
 test('management navigation uses operations and resources instead of standalone legacy modules', async () => {
   const navigationSource = await readFile(navigationPath, 'utf8');
@@ -62,11 +63,12 @@ test('pending requests use the management workspace width without legacy section
   assert.doesNotMatch(layoutSource, /padding:\s*72px/);
 });
 
-test('equipment registry shares inventory cards and toolbar controls share one exact height', async () => {
-  const [panelSource, gridSource, cssSource] = await Promise.all([
+test('equipment registry shares inventory cards and GSU control geometry', async () => {
+  const [panelSource, gridSource, presentationSource, tokensSource] = await Promise.all([
     readFile(equipmentPanelPath, 'utf8'),
     readFile(equipmentGridPath, 'utf8'),
-    readFile(interactionsCssPath, 'utf8'),
+    readFile(presentationCssPath, 'utf8'),
+    readFile(tokensCssPath, 'utf8'),
   ]);
 
   assert.match(panelSource, /<EquipmentRegistryGrid/);
@@ -74,7 +76,15 @@ test('equipment registry shares inventory cards and toolbar controls share one e
   assert.match(gridSource, /<article className="inventory-card equipment-card"/);
   assert.match(gridSource, /useResourceImageUrl\('equipment'/);
   assert.match(gridSource, /availableQuantity/);
-  assert.match(cssSource, /\.management-data-controls \.management-search input,[\s\S]*height: var\(--management-control-height\)/);
-  assert.match(cssSource, /\.management-data-controls > \.management-primary-button/);
-  assert.match(cssSource, /\.management-data-controls \.management-filter-trigger/);
+
+  assert.match(tokensSource, /--ui-compact-control-size:\s*36px/);
+  assert.match(tokensSource, /--ui-toolbar-control-size:\s*40px/);
+  assert.match(tokensSource, /--ui-form-control-height:\s*42px/);
+  assert.match(
+    presentationSource,
+    /\.management-data-controls \.management-search input,[\s\S]*height: var\(--ui-toolbar-control-size\) !important/,
+  );
+  assert.match(presentationSource, /\.management-data-controls > \.management-primary-button/);
+  assert.match(presentationSource, /\.management-data-controls \.management-filter-trigger/);
+  assert.match(presentationSource, /min-height: var\(--ui-form-control-height\) !important/);
 });
