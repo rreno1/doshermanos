@@ -6,7 +6,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { firebaseAuth, firestore } from '../../firebase/firebase';
+import { firebaseAuth, firestore } from '@core/firebase/firebase';
 import { clearSessionActivity, markSessionActivity } from './session-inactivity';
 import type { UserProfile, UserRole, UserStatus } from './auth.types';
 
