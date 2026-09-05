@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useToast } from '@shared/ui/ToastProvider';
+import { useToast } from '@core/app/ToastProvider';
 import { returnEquipmentAssignment } from './equipment.service';
 import type { EquipmentAssignment, StaffIdentity } from './equipment.types';
 import { validateEquipmentReturn } from './equipment.validation';
