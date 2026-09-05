@@ -6,7 +6,7 @@ import {
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
+} from '@shared/ui/ManagementControls';
 import { subscribeToAuditActivity } from './audit.service';
 import type { AuditActivity } from './audit.types';
 import './audit.css';
