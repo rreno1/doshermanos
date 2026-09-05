@@ -7,23 +7,8 @@
   --management-border-strong: var(--line-strong);
   --management-radius: var(--radius-lg);
   --management-control-height: var(--ui-form-control-height);
-}
-
-.admin-view .management-page input:not([type='checkbox']):not([type='radio']):not([type='file']),
-.admin-view .management-page select {
-  min-height: var(--ui-form-control-height) !important;
-  border-color: var(--line-strong) !important;
-  border-radius: var(--ui-control-radius) !important;
-  background: var(--surface-solid) !important;
-  color: var(--text) !important;
-}
-
-.admin-view .management-page textarea {
-  min-height: var(--ui-form-textarea-min-height);
-  border-color: var(--line-strong) !important;
-  border-radius: var(--ui-control-radius) !important;
-  background: var(--surface-solid) !important;
-  color: var(--text) !important;
+  --management-tab-content-gap: 20px;
+  --management-section-stack-gap: 12px;
 }
 
 .admin-view .management-page button {
@@ -109,14 +94,49 @@
   padding: var(--table-cell-py) var(--table-cell-px) !important;
 }
 
-.admin-view .management-page button:focus-visible,
-.admin-view .management-page input:focus-visible,
-.admin-view .management-page textarea:focus-visible,
-.admin-view .management-page select:focus-visible {
-  outline: var(--ui-focus-outline) !important;
-  outline-offset: var(--ui-focus-offset) !important;
-  box-shadow: var(--ui-focus-shadow) !important;
+/* Compact PageHeader → tabs → toolbar/data rhythm across every management module. */
+.management-page > .users-section,
+.management-page > .payments-section,
+.management-page > .reports-section,
+.management-page > .audit-section {
+  width: 100%;
+  margin-inline: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
 }
+
+.management-page > .users-section > .management-tabs,
+.management-page > .payments-section > .management-tabs,
+.management-page > .reports-section > .management-tabs,
+.management-page > .audit-section > .management-tabs {
+  margin-bottom: calc(var(--management-tab-content-gap) - var(--management-section-stack-gap));
+}
+
+.management-page > .operations-section,
+.management-page > .resources-section { display: block; }
+
+.management-page > .operations-section > .management-tabs,
+.management-page > .resources-section > .management-tabs { margin-bottom: var(--management-tab-content-gap); }
+
+.management-page > .operations-section > .reservation-review-section,
+.management-page > .operations-section > .package-management-section,
+.management-page > .resources-section > .inventory-section,
+.management-page > .resources-section > .equipment-section {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
+}
+
+.management-page > .operations-section > .manual-reservation-flow { margin-top: 0; padding-top: 0; }
+
+.management-page > .operations-section > .reservation-review-section > .management-data-toolbar,
+.management-page > .operations-section > .package-management-section > .management-data-toolbar,
+.management-page > .resources-section > .inventory-section > .management-data-toolbar,
+.management-page > .resources-section > .equipment-section > .management-data-toolbar { margin-top: 0; }
 
 /* Catering content keeps its semantics while inheriting GSU surface restraint. */
 .public-portal .primary-link,
@@ -129,10 +149,7 @@
     transform var(--motion-standard) var(--ease-standard) !important;
 }
 .public-portal .primary-link:hover,
-.app-shell .primary-link:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: var(--shadow-md) !important;
-}
+.app-shell .primary-link:hover { transform: translateY(-1px) !important; box-shadow: var(--shadow-md) !important; }
 .public-portal .package-card,
 .app-shell .package-card {
   border-color: var(--line) !important;
@@ -153,9 +170,14 @@
   background: var(--surface-raised) !important;
 }
 
+@media (max-width: 640px) {
+  .admin-view .management-page {
+    --management-tab-content-gap: 16px;
+    --management-section-stack-gap: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-page-stage,
-  .navigation-overlay-panel {
-    animation: none !important;
-  }
+  .navigation-overlay-panel { animation: none !important; }
 }
