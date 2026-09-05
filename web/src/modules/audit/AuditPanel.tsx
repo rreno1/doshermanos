@@ -122,14 +122,21 @@ export function AuditPanel() {
       >
         <div className="management-table-wrap">
           <table className="management-table">
-            <thead><tr><th>Activity</th><th>Category</th><th>Actor</th><th>Recorded at</th></tr></thead>
+            <thead>
+              <tr>
+                <th scope="col" className="col-primary">Activity</th>
+                <th scope="col" className="col-status">Category</th>
+                <th scope="col" className="col-secondary">Actor</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Recorded at</th>
+              </tr>
+            </thead>
             <tbody>
               {page.pageItems.map((activity) => (
                 <tr key={activity.id}>
-                  <td><div className="management-table-primary"><strong>{activity.title}</strong><span>{activity.detail}</span></div></td>
-                  <td><span className="management-status-badge">{formatCategory(activity.kind)}</span></td>
-                  <td>{activity.actorName}</td>
-                  <td>{formatAuditTime(activity.createdAt)}</td>
+                  <td className="col-primary"><div className="management-table-primary"><strong>{activity.title}</strong><span>{activity.detail}</span></div></td>
+                  <td className="col-status"><span className="management-status-badge">{formatCategory(activity.kind)}</span></td>
+                  <td className="col-secondary">{activity.actorName}</td>
+                  <td className="col-secondary col-hide-mobile">{formatAuditTime(activity.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
