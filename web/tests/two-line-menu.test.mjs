@@ -19,8 +19,8 @@ test('two-line menu icon is reserved for shared navigation controls', () => {
   assert.doesNotMatch(portalSource, /☰/);
 });
 
-test('management filter trigger uses a semantic filter icon instead of navigation hamburger', () => {
-  assert.match(filterIconSource, /M3 5h14M6 10h8M8 15h4/);
+test('management filter trigger uses the GSU funnel icon instead of navigation hamburger', () => {
+  assert.match(filterIconSource, /polygon points="22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3"/);
   assert.match(controlsSource, /<FilterIcon\s*\/>/);
   assert.doesNotMatch(controlsSource, /<TwoLineMenuIcon\s*\/>/);
   assert.match(controlsSource, /aria-label="Filters and sorting"/);
