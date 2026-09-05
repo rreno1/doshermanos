@@ -1,5 +1,5 @@
+import { AppLink } from '@core/app/navigation';
 import type { UserProfile } from '../auth/auth.types';
-import { AppLink } from '../../app/navigation';
 
 type WorkspaceRole = 'staff' | 'admin';
 
