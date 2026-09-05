@@ -1,0 +1,184 @@
+/* Canonical responsive contract inherited from GSU Waste. */
+.admin-view .admin-main,
+.admin-view .admin-page-stage,
+.admin-view .admin-page-content,
+.admin-view .panel,
+.admin-view .panel-head,
+.admin-view .panel-head > *,
+.admin-view .stat-card,
+.admin-view .table-wrap,
+.admin-view .list-toolbar-wrap,
+.admin-view .list-toolbar-controls,
+.admin-view .list-toolbar-search-wrap,
+.admin-view .list-toolbar-search,
+.admin-view .dropdown-select-wrap,
+.admin-view .tab-bar {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.admin-view .admin-main { overflow-x: clip; }
+.panel-head-copy { min-width: 0; }
+.panel-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.composite-inline-control { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-width: 0; }
+.composite-inline-control > :first-child { flex: 1 1 auto; min-width: 0; }
+
+@media (max-width: 1200px) {
+  .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .stats,
+  .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .admin-view > .admin-mobile-header.app-header-wrap {
+    display: block !important;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 950;
+  }
+  .admin-grid { display: block; min-height: 100vh; }
+  .admin-grid .sidebar { display: none !important; }
+  .admin-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 20px 16px 36px;
+  }
+  .dash-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 768px) {
+  .tab-bar { width: 100%; margin-bottom: 12px; scroll-padding-inline: 0; }
+  .tab-bar button { flex: 1 0 auto; padding: 10px 12px; font-size: 12.5px; }
+  .tab-label-full { display: none; }
+  .tab-label-mobile { display: inline; }
+  .list-toolbar-wrap { gap: 10px; margin-bottom: 14px; }
+  .list-toolbar-header {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .list-toolbar-header h3 { min-width: 0; font-size: 16px; }
+  .list-toolbar-header .meta {
+    min-width: 0;
+    max-width: 52%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    font-size: 12px;
+  }
+  .list-toolbar-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+  .list-toolbar-search-wrap { flex: 1 1 0%; width: auto; }
+  .list-toolbar-search {
+    width: 100%;
+    min-width: 0;
+    height: var(--ui-toolbar-control-size);
+    min-height: var(--ui-toolbar-control-size);
+    padding-inline: 11px;
+    font-size: 13.5px;
+  }
+  .list-toolbar-filters,
+  .list-toolbar-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+  .list-toolbar-action { margin-left: 0; }
+  .admin-view .dropdown-select-btn.responsive-icon-only:not(.full-width) {
+    width: var(--ui-toolbar-control-size) !important;
+    min-width: var(--ui-toolbar-control-size) !important;
+    max-width: var(--ui-toolbar-control-size) !important;
+    height: var(--ui-toolbar-control-size);
+    min-height: var(--ui-toolbar-control-size);
+    padding: 0 !important;
+    gap: 0;
+    justify-content: center;
+  }
+  .admin-view .dropdown-select-btn.responsive-icon-only:not(.full-width) .dropdown-select-label,
+  .admin-view .dropdown-select-btn.responsive-icon-only:not(.full-width) .dropdown-select-arrow { display: none !important; }
+  .admin-view .dropdown-select-btn.responsive-icon-only:not(.full-width) .dropdown-select-leading-icon,
+  .admin-view .dropdown-select-btn.responsive-icon-only:not(.full-width) .dropdown-select-icon {
+    position: static !important;
+    inset: auto !important;
+    margin: 0;
+    color: currentColor;
+  }
+  .admin-view .btn-create-action,
+  .admin-view .btn-mobile-icon-action {
+    width: var(--ui-toolbar-control-size) !important;
+    min-width: var(--ui-toolbar-control-size) !important;
+    max-width: var(--ui-toolbar-control-size) !important;
+    height: var(--ui-toolbar-control-size) !important;
+    min-height: var(--ui-toolbar-control-size) !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    justify-content: center !important;
+  }
+  .admin-view .btn-create-label,
+  .admin-view .btn-mobile-icon-action .btn-mobile-action-label { display: none !important; }
+  .panel-head { align-items: flex-start; flex-wrap: wrap; }
+  .panel-head-actions { flex: 0 0 auto; margin-left: auto; }
+  .modal .field-grid,
+  .modal .date-picker-custom-grid,
+  .public-view .portal-report-form .field-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .modal .form-section-head { display: block; }
+  .modal .form-section-head > div { min-width: 0; }
+  .modal .form-section-head p { max-width: none; margin-top: 7px; text-align: left; }
+  .modal .composite-inline-control { flex-direction: column; align-items: stretch; }
+  .modal .composite-inline-control > .btn,
+  .modal .composite-inline-control > button { width: 100%; justify-content: center; }
+  .date-picker-custom-grid { grid-template-columns: minmax(0, 1fr); }
+  .modal input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .modal textarea,
+  .modal .dropdown-select-btn.full-width { font-size: 16px; }
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-inline: -20px;
+    margin-top: 16px;
+    padding: 14px 20px 2px;
+    border-top: 1px solid var(--line);
+    background: var(--surface) !important;
+    box-shadow: 0 -8px 18px color-mix(in srgb, var(--surface) 88%, transparent);
+  }
+  .modal-actions > .btn { flex: 1 1 150px; justify-content: center; }
+  .stats,
+  .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .stat-card,
+  .timeline-content,
+  .detail-row > * { min-width: 0; overflow-wrap: anywhere; }
+  .stat-card { padding: 14px 12px; }
+  .table-footer { flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .pagination { width: 100%; justify-content: center; }
+  .pagination button { flex: 1; max-width: 140px; }
+}
+@media (max-width: 480px) {
+  .modal-actions > .btn { flex-basis: 100%; width: 100%; }
+}
+@media (max-width: 420px) {
+  .admin-view .stats,
+  .admin-view .dash-stats { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-view .admin-main { padding-inline: 12px !important; }
+  .admin-view .panel { padding-inline: 10px !important; }
+}
