@@ -1,4 +1,4 @@
-import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
+import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
 import { useResourceImageUrl } from './ResourceImagePicker';
 import type { InventoryItem } from './inventory.types';
 import './inventory-cards.css';
