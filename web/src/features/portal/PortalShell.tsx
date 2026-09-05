@@ -1,9 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { AppLink } from '../../app/navigation';
-import { TwoLineMenuIcon } from '../../app/TwoLineMenuIcon';
+import type { ReactNode } from 'react';
+import { AppLink, navigate } from '../../app/navigation';
+import { Header } from '../../app/gsu-ui/Header';
+import type { PrimaryNavigationItem } from '../../app/gsu-ui/PrimaryNavigation';
 import { AuthMenu } from '../auth/AuthMenu';
 import type { UserProfile } from '../auth/auth.types';
 import './portal.css';
+import './public-portal-contract.css';
 
 type WorkspaceRole = 'staff' | 'admin';
 
@@ -22,103 +24,83 @@ export function PortalShell({
   workspaceRole,
   landing,
 }: PortalShellProps) {
-  const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const isCustomer = profile?.role === 'customer';
+  const workspacePath = workspaceRole === 'admin' ? '/admin' : '/staff';
 
-  useEffect(() => {
-    setIsNavigationOpen(false);
-  }, [pathname]);
-
-  const navigation = landing
+  const navigation: Array<{ key: string; label: string; path: string }> = landing
     ? []
     : [
-        { label: 'Home', path: '/' },
-        { label: 'Packages', path: '/packages' },
+        { key: 'home', label: 'Home', path: '/' },
+        { key: 'packages', label: 'Packages', path: '/packages' },
         ...(isCustomer
           ? [
-              { label: 'My Reservations', path: '/reservations' },
-              { label: 'Payments', path: '/payments' },
+              { key: 'reservations', label: 'My Reservations', path: '/reservations' },
+              { key: 'payments', label: 'Payments', path: '/payments' },
             ]
           : []),
       ];
 
+  const navigationItems: PrimaryNavigationItem[] = navigation.map((item) => ({
+    key: item.key,
+    label: item.label,
+    active: isActivePath(pathname, item.path),
+    onClick: () => navigate(item.path),
+  }));
+
+  const desktopActions = (
+    <>
+      {workspaceRole ? (
+        <AppLink className="portal-workspace-link" to={workspacePath}>
+          Workspace
+        </AppLink>
+      ) : null}
+      <AuthMenu />
+    </>
+  );
+
+  const mobileMenuFooter = (
+    <div className="portal-mobile-account">
+      {workspaceRole ? (
+        <AppLink className="portal-mobile-workspace" to={workspacePath}>
+          Workspace
+        </AppLink>
+      ) : null}
+      <AuthMenu />
+    </div>
+  );
+
   return (
-    <div className={landing ? 'portal-shell portal-shell-landing' : 'portal-shell'} id="top">
+    <div className={landing ? 'public-view portal-shell portal-shell-landing' : 'public-view portal-shell'} id="top">
       <a className="skip-link" href="#main-content">Skip to main content</a>
 
-      <header className="portal-header">
-        <AppLink className="portal-brand" to="/" aria-label="Dos Hermanos Catering home">
-          <span className="portal-brand-name">Dos Hermanos</span>
-          <span className="portal-brand-label">Catering</span>
-        </AppLink>
-
-        {!landing ? (
-          <nav className="portal-navigation" aria-label="Customer portal">
-            {navigation.map((item) => (
-              <AppLink
-                className={isActivePath(pathname, item.path) ? 'portal-nav-link portal-nav-link-active' : 'portal-nav-link'}
-                key={item.path}
-                to={item.path}
-                aria-current={isActivePath(pathname, item.path) ? 'page' : undefined}
-              >
-                {item.label}
-              </AppLink>
-            ))}
-          </nav>
-        ) : null}
-
-        <button
-          type="button"
-          className="portal-menu-button"
-          aria-label="Open portal menu"
-          aria-expanded={isNavigationOpen}
-          onClick={() => setIsNavigationOpen((open) => !open)}
-        >
-          <TwoLineMenuIcon />
-        </button>
-
-        <div className="portal-header-actions">
-          {workspaceRole ? (
-            <AppLink
-              className="portal-workspace-link"
-              to={workspaceRole === 'admin' ? '/admin' : '/staff'}
-            >
-              Workspace
-            </AppLink>
-          ) : null}
-          <AuthMenu />
-        </div>
-      </header>
-
-      {isNavigationOpen ? (
-        <nav className="portal-mobile-navigation" aria-label="Portal mobile navigation">
-          {!landing ? navigation.map((item) => (
-            <AppLink
-              className={isActivePath(pathname, item.path) ? 'portal-mobile-link portal-mobile-link-active' : 'portal-mobile-link'}
-              key={item.path}
-              to={item.path}
-            >
-              {item.label}
-            </AppLink>
-          )) : null}
-          {workspaceRole ? (
-            <AppLink className="portal-mobile-workspace" to={workspaceRole === 'admin' ? '/admin' : '/staff'}>
-              Workspace
-            </AppLink>
-          ) : null}
-          <div className="portal-mobile-account">
-            <AuthMenu />
-          </div>
-        </nav>
-      ) : null}
+      <Header
+        className="public-portal-header"
+        theme="light"
+        title="Dos Hermanos"
+        subtitle="Catering · Hilongos, Leyte"
+        onBrandClick={() => navigate('/')}
+        items={navigationItems}
+        navigationLabel="Dos Hermanos public navigation"
+        desktopActions={desktopActions}
+        mobileMenuFooter={mobileMenuFooter}
+      />
 
       <main id="main-content" tabIndex={-1} className="portal-main">
         {children}
       </main>
 
-      <footer className="portal-footer">
-        <span>Dos Hermanos Catering</span>
-        <span>Hilongos, Leyte</span>
+      <footer className="public-footer portal-footer">
+        <div className="shell portal-footer-row">
+          <div>
+            <strong>Dos Hermanos Catering</strong>
+            <small>Hilongos, Leyte</small>
+          </div>
+          <nav aria-label="Footer navigation">
+            <AppLink to="/packages">Packages</AppLink>
+            {isCustomer ? <AppLink to="/reservations">Reservations</AppLink> : null}
+            {workspaceRole ? <AppLink to={workspacePath}>Workspace</AppLink> : null}
+          </nav>
+        </div>
       </footer>
     </div>
   );

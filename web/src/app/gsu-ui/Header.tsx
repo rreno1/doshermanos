@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import { TwoLineMenuIcon } from '../TwoLineMenuIcon';
 import { AppBrand } from './AppBrand';
 import { type AccountMenuUser } from './AccountMenu';
@@ -19,6 +19,8 @@ export interface AppHeaderProps {
   onBrandClick?: () => void;
   items: HeaderNavItem[];
   account?: HeaderAccount;
+  desktopActions?: ReactNode;
+  mobileMenuFooter?: ReactNode;
   navigationLabel?: string;
   className?: string;
 }
@@ -38,6 +40,8 @@ export function Header({
   onBrandClick,
   items = [],
   account,
+  desktopActions,
+  mobileMenuFooter,
   navigationLabel = 'Primary navigation',
   className = '',
 }: AppHeaderProps) {
@@ -75,6 +79,8 @@ export function Header({
             />
           </div>
 
+          {desktopActions ? <div className="app-header-actions-slot">{desktopActions}</div> : null}
+
           <button
             type="button"
             className={`header-menu-toggle ${open ? 'active' : ''}`}
@@ -96,6 +102,7 @@ export function Header({
         anchorRef={headerRef}
         items={items}
         account={account}
+        footer={mobileMenuFooter}
         navigationLabel={navigationLabel}
         onClose={closeNavigation}
       />

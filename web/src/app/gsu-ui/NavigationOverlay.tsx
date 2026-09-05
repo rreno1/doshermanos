@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { AccountMenu, type AccountMenuUser } from './AccountMenu';
 import { PrimaryNavigation, type PrimaryNavigationItem } from './PrimaryNavigation';
@@ -15,6 +15,7 @@ export interface NavigationOverlayProps {
   anchorRef: RefObject<HTMLElement | null>;
   items: PrimaryNavigationItem[];
   account?: NavigationOverlayAccount;
+  footer?: ReactNode;
   navigationLabel: string;
   onClose(): void;
 }
@@ -40,6 +41,7 @@ export function NavigationOverlay({
   anchorRef,
   items,
   account,
+  footer,
   navigationLabel,
   onClose,
 }: NavigationOverlayProps) {
@@ -181,6 +183,7 @@ export function NavigationOverlay({
             ariaLabel={navigationLabel}
             onItemActivated={onClose}
           />
+          {footer ? <div className="navigation-overlay-footer">{footer}</div> : null}
           {account ? (
             <AccountMenu
               variant="menu"
