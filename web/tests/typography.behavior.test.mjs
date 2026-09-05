@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 
 const shellPath = new URL('../src/core/app/ManagementShell.tsx', import.meta.url);
 const typographyPath = new URL('../src/styles/typography.css', import.meta.url);
-const loadingPath = new URL('../src/styles/app-loading.css', import.meta.url);
+const foundationPath = new URL('../src/styles/foundation.css', import.meta.url);
+const controlSystemPath = new URL('../src/styles/control-system.css', import.meta.url);
 
 test('management sidebar excludes the public portal shortcut', async () => {
   const source = await readFile(shellPath, 'utf8');
@@ -21,11 +22,11 @@ test('navigation and placeholders use the regular text weight', async () => {
 });
 
 test('application and management spinners keep rotating', async () => {
-  const [loadingSource, typographySource] = await Promise.all([
-    readFile(loadingPath, 'utf8'),
-    readFile(typographyPath, 'utf8'),
+  const [foundationSource, controlSystemSource] = await Promise.all([
+    readFile(foundationPath, 'utf8'),
+    readFile(controlSystemPath, 'utf8'),
   ]);
 
-  assert.match(loadingSource, /animation:\s*app-loading-spin\s+720ms\s+linear\s+infinite\s*!important/);
-  assert.match(typographySource, /animation:\s*management-spinner-rotate\s+720ms\s+linear\s+infinite\s*!important/);
+  assert.match(foundationSource, /animation:\s*app-loading-spin\s+720ms\s+linear\s+infinite\s*!important/);
+  assert.match(controlSystemSource, /animation:\s*management-spinner-rotate\s+720ms\s+linear\s+infinite/);
 });
