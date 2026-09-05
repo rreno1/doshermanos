@@ -12,7 +12,7 @@ import {
 } from '../src/shared/ui/ManagementControls.tsx';
 
 const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/styles/management-interactions.css', import.meta.url);
+const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
@@ -71,9 +71,9 @@ test('management select is custom and does not render a native select control', 
 });
 
 test('management select menus use a body portal so table overflow cannot clip them', async () => {
-  const [selectSource, interactionsCss] = await Promise.all([
+  const [selectSource, controlSystemCss] = await Promise.all([
     readFile(selectPath, 'utf8'),
-    readFile(interactionsCssPath, 'utf8'),
+    readFile(controlSystemCssPath, 'utf8'),
   ]);
 
   assert.match(selectSource, /createPortal/);
@@ -81,8 +81,8 @@ test('management select menus use a body portal so table overflow cannot clip th
   assert.match(selectSource, /management-select-menu-portal/);
   assert.match(selectSource, /getBoundingClientRect/);
   assert.match(selectSource, /spaceBelow < minimumUsefulHeight/);
-  assert.match(interactionsCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
-  assert.match(interactionsCss, /z-index:\s*1000/);
+  assert.match(controlSystemCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
+  assert.match(controlSystemCss, /z-index:\s*1000/);
 });
 
 test('management table frame owns pagination and dynamic loading state', () => {
