@@ -150,11 +150,19 @@ export function ReportsPanel() {
       >
         <div className="management-table-wrap">
           <table className="management-table">
-            <thead><tr>{report.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead>
+            <thead>
+              <tr>
+                {report.headers.map((header, index) => (
+                  <th key={header} scope="col" className={getReportColumnClass(index, report.headers.length)}>{header}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
               {page.pageItems.map((row, rowIndex) => (
                 <tr key={`${reportKind}-${page.page}-${rowIndex}`}>
-                  {row.map((cell, cellIndex) => <td key={`${rowIndex}-${cellIndex}`}>{cell}</td>)}
+                  {row.map((cell, cellIndex) => (
+                    <td key={`${rowIndex}-${cellIndex}`} className={getReportColumnClass(cellIndex, report.headers.length)}>{cell}</td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -163,6 +171,13 @@ export function ReportsPanel() {
       </ManagementTableFrame>
     </section>
   );
+}
+
+function getReportColumnClass(index: number, totalColumns: number) {
+  if (index === 0) return 'col-primary';
+  if (index === totalColumns - 1) return 'col-secondary col-hide-mobile';
+  if (index >= 4) return 'col-hide-tablet';
+  return 'col-secondary';
 }
 
 function getSourceState(
