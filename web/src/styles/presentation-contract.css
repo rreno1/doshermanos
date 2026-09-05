@@ -1,7 +1,4 @@
-/*
- * Dos Hermanos compatibility layer while feature markup is migrated to the
- * canonical GSU shared primitives. This file owns only cross-feature parity.
- */
+/* Cross-feature GSU parity for Dos Hermanos management and public surfaces. */
 .admin-view .management-page {
   display: contents;
   --management-surface: var(--surface-translucent);
@@ -39,6 +36,17 @@
     transform var(--motion-standard) var(--ease-standard);
 }
 
+/* GSU distinguishes 42px form controls from 40px toolbar controls. */
+.admin-view .management-page .management-data-controls .management-search input,
+.admin-view .management-page .management-data-controls .management-filter-trigger,
+.admin-view .management-page .management-data-controls > .management-primary-button,
+.admin-view .management-page .management-data-controls > .management-secondary-button {
+  box-sizing: border-box;
+  height: var(--ui-toolbar-control-size) !important;
+  min-height: var(--ui-toolbar-control-size) !important;
+  max-height: var(--ui-toolbar-control-size) !important;
+}
+
 .admin-view .management-page .inventory-primary-button,
 .admin-view .management-page .equipment-primary-button,
 .admin-view .management-page .package-management-primary,
@@ -55,6 +63,8 @@
   border-radius: var(--ui-control-radius) !important;
 }
 
+.admin-view .management-page .management-filter-panel,
+.admin-view .management-page .management-select-menu,
 .admin-view .management-page .package-management-table-wrap,
 .admin-view .management-page .users-table-wrap,
 .admin-view .management-page .report-table-wrap,
@@ -108,7 +118,7 @@
   box-shadow: var(--ui-focus-shadow) !important;
 }
 
-/* Public portal: preserve catering content while using GSU restraint. */
+/* Catering content keeps its semantics while inheriting GSU surface restraint. */
 .public-portal .primary-link,
 .app-shell .primary-link {
   border-radius: var(--radius-md) !important;
