@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '@core/app/ToastProvider';
 import {
-  ManagementFilterField,
   ManagementLoadingState,
-  ManagementSelect,
   ManagementTableFrame,
   ManagementToolbar,
   useManagementPage,
@@ -11,6 +9,7 @@ import {
 import { EquipmentActivityList } from './EquipmentActivityList';
 import { EquipmentAssignmentDialog } from './EquipmentAssignmentDialog';
 import { EquipmentAssignmentList } from './EquipmentAssignmentList';
+import { EquipmentFilters } from './EquipmentFilters';
 import { EquipmentItemDialog } from './EquipmentItemDialog';
 import { EquipmentRegistryGrid } from './EquipmentRegistryGrid';
 import { EquipmentReleaseDialog } from './EquipmentReleaseDialog';
@@ -26,25 +25,30 @@ import type {
   EquipmentItem,
   EquipmentTransactionRecord,
 } from './equipment.types';
+import {
+  filterAssignments,
+  filterEquipmentItems,
+  filterTransactions,
+  getEmptyMessage,
+  getSearchPlaceholder,
+  getViewDefaults,
+  getViewLabel,
+  type EquipmentSort,
+  type EquipmentView,
+  type SortDirection,
+} from './equipment-view';
 import { useProgressiveItems } from './useProgressiveItems';
 import './equipment.css';
 import './inventory-cards.css';
 import './equipment-cards.css';
 
-export type EquipmentView = 'registry' | 'assignments' | 'activity';
-type SortDirection = 'asc' | 'desc';
-type EquipmentSort = 'name' | 'available' | 'total' | 'event' | 'equipment' | 'status' | 'date' | 'type';
+export type { EquipmentView } from './equipment-view';
 
 type EquipmentPanelProps = {
   staffId: string;
   staffName: string;
   view: EquipmentView;
 };
-
-const directionOptions: { value: SortDirection; label: string }[] = [
-  { value: 'asc', label: 'Ascending' },
-  { value: 'desc', label: 'Descending' },
-];
 
 export function EquipmentPanel({ staffId, staffName, view }: EquipmentPanelProps) {
   const { showToast } = useToast();
@@ -294,32 +298,6 @@ export function EquipmentPanel({ staffId, staffName, view }: EquipmentPanelProps
   );
 }
 
-function EquipmentFilters({ view, filterValue, sortBy, sortDirection, onFilterChange, onSortChange, onDirectionChange, onReset }: {
-  view: EquipmentView;
-  filterValue: string;
-  sortBy: EquipmentSort;
-  sortDirection: SortDirection;
-  onFilterChange: (value: string) => void;
-  onSortChange: (value: EquipmentSort) => void;
-  onDirectionChange: (value: SortDirection) => void;
-  onReset: () => void;
-}) {
-  return (
-    <>
-      <ManagementFilterField label={view === 'activity' ? 'Activity type' : 'Status'}>
-        <ManagementSelect value={filterValue} options={getFilterOptions(view)} onChange={onFilterChange} ariaLabel="Filter equipment view" />
-      </ManagementFilterField>
-      <ManagementFilterField label="Sort by">
-        <ManagementSelect value={sortBy} options={getSortOptions(view)} onChange={onSortChange} ariaLabel="Sort equipment view by" />
-      </ManagementFilterField>
-      <ManagementFilterField label="Direction">
-        <ManagementSelect value={sortDirection} options={directionOptions} onChange={onDirectionChange} ariaLabel="Equipment sort direction" />
-      </ManagementFilterField>
-      <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
-    </>
-  );
-}
-
 function getPrimaryAction(view: EquipmentView, activeItemCount: number, onAdd: () => void, onAssign: () => void) {
   if (view === 'registry') {
     return <button type="button" className="management-primary-button" onClick={onAdd}>Add equipment</button>;
@@ -332,135 +310,4 @@ function getPrimaryAction(view: EquipmentView, activeItemCount: number, onAdd: (
     );
   }
   return undefined;
-}
-
-function getViewDefaults(view: EquipmentView): { sortBy: EquipmentSort; direction: SortDirection } {
-  if (view === 'registry') return { sortBy: 'name', direction: 'asc' };
-  if (view === 'assignments') return { sortBy: 'event', direction: 'desc' };
-  return { sortBy: 'date', direction: 'desc' };
-}
-
-function getFilterOptions(view: EquipmentView) {
-  if (view === 'registry') {
-    return [
-      { value: 'all', label: 'All statuses' },
-      { value: 'active', label: 'Active' },
-      { value: 'inactive', label: 'Inactive' },
-    ];
-  }
-  if (view === 'assignments') {
-    return [
-      { value: 'all', label: 'All statuses' },
-      { value: 'assigned', label: 'Assigned' },
-      { value: 'released', label: 'Released' },
-      { value: 'closed', label: 'Closed' },
-      { value: 'cancelled', label: 'Cancelled' },
-    ];
-  }
-  return [
-    { value: 'all', label: 'All activity' },
-    { value: 'release', label: 'Released' },
-    { value: 'return', label: 'Returned' },
-  ];
-}
-
-function getSortOptions(view: EquipmentView): { value: EquipmentSort; label: string }[] {
-  if (view === 'registry') {
-    return [
-      { value: 'name', label: 'Name' },
-      { value: 'available', label: 'Available quantity' },
-      { value: 'total', label: 'Total quantity' },
-    ];
-  }
-  if (view === 'assignments') {
-    return [
-      { value: 'event', label: 'Event date' },
-      { value: 'equipment', label: 'Equipment' },
-      { value: 'status', label: 'Status' },
-    ];
-  }
-  return [
-    { value: 'date', label: 'Recorded date' },
-    { value: 'equipment', label: 'Equipment' },
-    { value: 'type', label: 'Activity type' },
-  ];
-}
-
-function filterEquipmentItems(items: EquipmentItem[], query: string, status: string, sortBy: EquipmentSort, direction: SortDirection) {
-  const text = query.trim().toLocaleLowerCase();
-  return [...items]
-    .filter((item) => status === 'all' || (status === 'active' ? item.isActive : !item.isActive))
-    .filter((item) => !text || `${item.name} ${item.unit}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      getEquipmentItemSortValue(left, sortBy),
-      getEquipmentItemSortValue(right, sortBy),
-      direction,
-    ));
-}
-
-function filterAssignments(assignments: EquipmentAssignment[], query: string, status: string, sortBy: EquipmentSort, direction: SortDirection) {
-  const text = query.trim().toLocaleLowerCase();
-  return [...assignments]
-    .filter((assignment) => status === 'all' || assignment.status === status)
-    .filter((assignment) => !text || `${assignment.equipmentName} ${assignment.packageName} ${assignment.note} ${assignment.status}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      getAssignmentSortValue(left, sortBy),
-      getAssignmentSortValue(right, sortBy),
-      direction,
-    ));
-}
-
-function filterTransactions(transactions: EquipmentTransactionRecord[], query: string, type: string, sortBy: EquipmentSort, direction: SortDirection) {
-  const text = query.trim().toLocaleLowerCase();
-  return [...transactions]
-    .filter((transaction) => type === 'all' || transaction.type === type)
-    .filter((transaction) => !text || `${transaction.equipmentName} ${transaction.recordedByName} ${transaction.note} ${transaction.type}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => compareValues(
-      getTransactionSortValue(left, sortBy),
-      getTransactionSortValue(right, sortBy),
-      direction,
-    ));
-}
-
-function getEquipmentItemSortValue(item: EquipmentItem, sortBy: EquipmentSort) {
-  if (sortBy === 'available') return item.availableQuantity;
-  if (sortBy === 'total') return item.totalQuantity;
-  return item.name;
-}
-
-function getAssignmentSortValue(assignment: EquipmentAssignment, sortBy: EquipmentSort) {
-  if (sortBy === 'equipment') return assignment.equipmentName;
-  if (sortBy === 'status') return assignment.status;
-  return assignment.eventStartDate.getTime();
-}
-
-function getTransactionSortValue(transaction: EquipmentTransactionRecord, sortBy: EquipmentSort) {
-  if (sortBy === 'equipment') return transaction.equipmentName;
-  if (sortBy === 'type') return transaction.type;
-  return transaction.createdAt.getTime();
-}
-
-function compareValues(left: string | number, right: string | number, direction: SortDirection) {
-  const result = typeof left === 'number' && typeof right === 'number'
-    ? left - right
-    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
-  return direction === 'asc' ? result : -result;
-}
-
-function getEmptyMessage(totalCount: number, visibleCount: number, emptyMessage: string, noMatchMessage: string) {
-  if (totalCount === 0) return emptyMessage;
-  if (visibleCount === 0) return noMatchMessage;
-  return undefined;
-}
-
-function getSearchPlaceholder(view: EquipmentView) {
-  if (view === 'registry') return 'Search equipment';
-  if (view === 'assignments') return 'Search assignments';
-  return 'Search activity';
-}
-
-function getViewLabel(view: EquipmentView) {
-  if (view === 'registry') return 'Equipment registry';
-  if (view === 'assignments') return 'Equipment assignments';
-  return 'Equipment activity';
 }
