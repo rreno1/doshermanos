@@ -10,8 +10,8 @@ import {
   type QueryDocumentSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
-import type { UserProfile, UserRole, UserStatus } from '../auth/auth.types';
+import { firestore } from '@core/firebase/firebase';
+import type { UserProfile, UserRole, UserStatus } from '@modules/auth/auth.types';
 
 const USER_LIMIT = 100;
 const validRoles: UserRole[] = ['customer', 'staff', 'admin'];
