@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useToast } from '../../app/ToastProvider';
+import { useToast } from '@shared/ui/ToastProvider';
 import {
   ResourceImagePicker,
   useResourceImageDraft,
