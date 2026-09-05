@@ -10,6 +10,9 @@ const [
   uiSource,
   responsiveSource,
   presentationSource,
+  formSource,
+  tableSource,
+  modalSource,
 ] = await Promise.all([
   readFile(new URL('../src/core/app/ManagementShell.tsx', import.meta.url), 'utf8'),
   readFile(new URL('../src/shared/ui/NavigationOverlay.tsx', import.meta.url), 'utf8'),
@@ -18,6 +21,9 @@ const [
   readFile(new URL('../src/styles/ui-consistency.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/responsive-contract.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/presentation-contract.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/styles/form-contract.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/styles/table-behavior.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/styles/modal-behavior.css', import.meta.url), 'utf8'),
 ]);
 
 test('management shell uses the canonical GSU composition', () => {
@@ -68,10 +74,20 @@ test('mobile navigation follows the GSU viewport overlay contract', () => {
   assert.match(responsiveSource, /\.admin-grid \.sidebar \{ display: none !important; \}/);
 });
 
-test('feature surfaces are normalized through GSU tokens and shared contracts', () => {
+test('feature surfaces and controls are normalized through canonical GSU contracts', () => {
   assert.match(presentationSource, /--management-radius:\s*var\(--radius-lg\)/);
   assert.match(presentationSource, /--management-control-height:\s*var\(--ui-form-control-height\)/);
-  assert.match(presentationSource, /min-height:\s*var\(--ui-form-control-height\) !important/);
+  assert.match(presentationSource, /height:\s*var\(--ui-toolbar-control-size\) !important/);
   assert.match(presentationSource, /border-radius:\s*var\(--radius-lg\) !important/);
   assert.match(presentationSource, /\.package-card/);
+
+  assert.match(formSource, /min-height:\s*var\(--ui-form-control-height\)/);
+  assert.match(formSource, /grid-template-columns:\s*minmax\(0, 1fr\) !important/);
+  assert.match(tableSource, /min-height:\s*var\(--ui-compact-control-size\)/);
+  assert.match(tableSource, /\.col-primary/);
+  assert.match(tableSource, /\.col-status/);
+  assert.match(tableSource, /\.col-actions/);
+  assert.match(tableSource, /@media \(max-width: 480px\)[\s\S]*\.management-table thead/);
+  assert.match(modalSource, /dialog\.inventory-dialog/);
+  assert.match(modalSource, /position:\s*sticky/);
 });
