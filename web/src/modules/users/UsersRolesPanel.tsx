@@ -169,7 +169,12 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
         <div className="management-table-wrap">
           <table className="management-table">
             <thead>
-              <tr><th>User</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+              <tr>
+                <th scope="col" className="col-primary">User</th>
+                <th scope="col" className="col-secondary">Role</th>
+                <th scope="col" className="col-status">Status</th>
+                <th scope="col" className="col-actions">Actions</th>
+              </tr>
             </thead>
             <tbody>
               {page.pageItems.map((user) => {
@@ -177,13 +182,13 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                 const disabled = isCurrentUser || savingUserId === user.id;
                 return (
                   <tr key={user.id}>
-                    <td>
+                    <td className="col-primary">
                       <div className="management-table-primary">
                         <strong>{user.displayName}</strong>
                         <span>{isCurrentUser ? 'Current account' : `User ${shortId(user.id)}`}</span>
                       </div>
                     </td>
-                    <td>
+                    <td className="col-secondary">
                       <ManagementSelect<UserRole>
                         value={user.role}
                         options={[
@@ -196,7 +201,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                         ariaLabel={`Role for ${user.displayName}`}
                       />
                     </td>
-                    <td>
+                    <td className="col-status">
                       <ManagementSelect<UserStatus>
                         value={user.status}
                         options={[
@@ -209,7 +214,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                         ariaLabel={`Status for ${user.displayName}`}
                       />
                     </td>
-                    <td>
+                    <td className="col-actions">
                       <div className="management-table-actions">
                         <button
                           className="management-primary-button"
