@@ -11,7 +11,7 @@ import {
   where,
   type DocumentSnapshot,
 } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
+import { firestore } from '@core/firebase/firebase';
 import {
   parseAssignableReservation,
   parseEquipmentAssignment,
