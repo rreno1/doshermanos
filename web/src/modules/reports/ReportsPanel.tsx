@@ -6,11 +6,11 @@ import {
   ManagementTabs,
   ManagementToolbar,
   useManagementPage,
-} from '../../app/ManagementControls';
-import { subscribeToEquipment } from '../resources/equipment.service';
-import type { EquipmentItem } from '../resources/equipment.types';
-import { subscribeToInventory } from '../resources/inventory.service';
-import type { InventoryItem } from '../resources/inventory.types';
+} from '@shared/ui/ManagementControls';
+import { subscribeToEquipment } from '@modules/resources/equipment.service';
+import type { EquipmentItem } from '@modules/resources/equipment.types';
+import { subscribeToInventory } from '@modules/resources/inventory.service';
+import type { InventoryItem } from '@modules/resources/inventory.types';
 import { createCsv, downloadCsv } from './report.export';
 import {
   subscribeToReportPayments,
