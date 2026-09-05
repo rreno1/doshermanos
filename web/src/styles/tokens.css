@@ -76,7 +76,7 @@
   --ui-focus-shadow: 0 0 0 3px rgba(38, 117, 91, 0.15);
   --ui-transition-fast: var(--motion-fast) ease;
 
-  /* Compatibility aliases while legacy Dos Hermanos feature styles move to shared primitives. */
+  /* Dos-specific semantic names map directly to the canonical GSU tokens. */
   --page-width: var(--layout-content-max);
   --surface-strong: var(--surface-solid);
   --text-muted: var(--muted);
