@@ -15,6 +15,10 @@ type AuditSort = 'date' | 'activity' | 'actor';
 type SortDirection = 'asc' | 'desc';
 
 const tabs = [{ value: 'activity', label: 'Activity' }] as const;
+const directionOptions: { value: SortDirection; label: string }[] = [
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
+];
 
 export function AuditPanel() {
   const [activities, setActivities] = useState<AuditActivity[]>([]);
@@ -48,11 +52,13 @@ export function AuditPanel() {
     visibleActivities,
     `${queryText}|${kindFilter}|${sortBy}|${sortDirection}`,
   );
-  const emptyMessage = activities.length === 0
-    ? 'No audit activity yet.'
-    : visibleActivities.length === 0
-      ? 'No audit activity matches the current view.'
-      : undefined;
+  const emptyMessage = getAuditEmptyMessage(activities.length, visibleActivities.length);
+
+  function resetFilters() {
+    setKindFilter('all');
+    setSortBy('date');
+    setSortDirection('desc');
+  }
 
   return (
     <section className="audit-section" id="audit" aria-label="Audit trail">
@@ -94,15 +100,12 @@ export function AuditPanel() {
             <ManagementFilterField label="Direction">
               <ManagementSelect
                 value={sortDirection}
-                options={[
-                  { value: 'asc', label: 'Ascending' },
-                  { value: 'desc', label: 'Descending' },
-                ]}
+                options={directionOptions}
                 onChange={setSortDirection}
                 ariaLabel="Audit sort direction"
               />
             </ManagementFilterField>
-            <button type="button" className="management-secondary-button" onClick={() => { setKindFilter('all'); setSortBy('date'); setSortDirection('desc'); }}>Reset filters</button>
+            <button type="button" className="management-secondary-button" onClick={resetFilters}>Reset filters</button>
           </>
         )}
       />
@@ -137,17 +140,41 @@ export function AuditPanel() {
   );
 }
 
-function filterActivities(activities: AuditActivity[], query: string, category: string, sortBy: AuditSort, direction: SortDirection) {
+function filterActivities(
+  activities: AuditActivity[],
+  query: string,
+  category: string,
+  sortBy: AuditSort,
+  direction: SortDirection,
+) {
   const text = query.trim().toLocaleLowerCase();
   return [...activities]
     .filter((activity) => category === 'all' || activity.kind.startsWith(`${category}_`))
     .filter((activity) => !text || `${activity.title} ${activity.detail} ${activity.actorName} ${activity.kind}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => {
-      const leftValue = sortBy === 'activity' ? left.title : sortBy === 'actor' ? left.actorName : left.createdAt.getTime();
-      const rightValue = sortBy === 'activity' ? right.title : sortBy === 'actor' ? right.actorName : right.createdAt.getTime();
-      const result = typeof leftValue === 'number' && typeof rightValue === 'number' ? leftValue - rightValue : String(leftValue).localeCompare(String(rightValue), 'en-PH', { sensitivity: 'base' });
-      return direction === 'asc' ? result : -result;
-    });
+    .sort((left, right) => compareAuditValues(
+      getAuditSortValue(left, sortBy),
+      getAuditSortValue(right, sortBy),
+      direction,
+    ));
+}
+
+function getAuditSortValue(activity: AuditActivity, sortBy: AuditSort) {
+  if (sortBy === 'activity') return activity.title;
+  if (sortBy === 'actor') return activity.actorName;
+  return activity.createdAt.getTime();
+}
+
+function compareAuditValues(left: string | number, right: string | number, direction: SortDirection) {
+  const result = typeof left === 'number' && typeof right === 'number'
+    ? left - right
+    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  return direction === 'asc' ? result : -result;
+}
+
+function getAuditEmptyMessage(totalCount: number, visibleCount: number) {
+  if (totalCount === 0) return 'No audit activity yet.';
+  if (visibleCount === 0) return 'No audit activity matches the current view.';
+  return undefined;
 }
 
 function formatCategory(kind: AuditActivity['kind']) {
