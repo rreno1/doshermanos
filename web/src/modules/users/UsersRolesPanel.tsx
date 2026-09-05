@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useToast } from '@core/app/ToastProvider';
 import {
   ManagementFilterField,
   ManagementSelect,
@@ -7,7 +8,6 @@ import {
   ManagementToolbar,
   useManagementPage,
 } from '@shared/ui/ManagementControls';
-import { useToast } from '@shared/ui/ToastProvider';
 import type { UserProfile, UserRole, UserStatus } from '@modules/auth/auth.types';
 import { subscribeToUsers, updateUserAccess } from './users.service';
 import './users.css';
