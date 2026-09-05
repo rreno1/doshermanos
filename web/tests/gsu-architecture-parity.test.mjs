@@ -16,6 +16,18 @@ function sourceFiles(directory) {
   });
 }
 
+function symbolicLinks(directory) {
+  if (!existsSync(directory)) return [];
+
+  return readdirSync(directory).flatMap((name) => {
+    const path = `${directory}/${name}`;
+    const stats = lstatSync(path);
+    if (stats.isSymbolicLink()) return [path];
+    if (stats.isDirectory()) return symbolicLinks(path);
+    return [];
+  });
+}
+
 test('GSU architecture roots are the canonical frontend structure', () => {
   for (const path of [
     'src/App.tsx',
@@ -30,25 +42,11 @@ test('GSU architecture roots are the canonical frontend structure', () => {
     assert.ok(existsSync(path), `Canonical GSU-style source path is missing: ${path}`);
   }
 
-  for (const path of ['src/features', 'src/firebase', 'src/app/gsu-ui']) {
-    assert.ok(lstatSync(path).isSymbolicLink(), `${path} must remain a migration-only symlink, never a second implementation.`);
+  for (const path of ['src/app', 'src/features', 'src/firebase']) {
+    assert.equal(existsSync(path), false, `Legacy frontend path must be removed: ${path}`);
   }
-});
 
-test('legacy app entry points are symlink-only compatibility paths', () => {
-  for (const path of [
-    'src/app/App.tsx',
-    'src/app/ManagementShell.tsx',
-    'src/app/navigation.tsx',
-    'src/app/AppErrorBoundary.tsx',
-    'src/app/ToastProvider.tsx',
-    'src/app/ManagementControls.tsx',
-    'src/app/ManagementSelect.tsx',
-    'src/app/ResponsiveButtonContent.tsx',
-    'src/app/TwoLineMenuIcon.tsx',
-  ]) {
-    assert.ok(lstatSync(path).isSymbolicLink(), `${path} must not contain a duplicate active implementation.`);
-  }
+  assert.deepEqual(symbolicLinks('src'), [], 'Canonical frontend source must not depend on compatibility symlinks.');
 });
 
 test('architectural imports communicate ownership through GSU aliases', () => {
@@ -80,9 +78,16 @@ test('shared UI has one canonical implementation tree', () => {
     'ManagementSelect.tsx',
     'ResponsiveButtonContent.tsx',
     'TwoLineMenuIcon.tsx',
+    'FilterIcon.tsx',
   ]) {
     assert.ok(existsSync(`src/shared/ui/${name}`), `Shared UI primitive missing: ${name}`);
   }
+
+  assert.equal(
+    existsSync('src/shared/ui/ToastProvider.tsx'),
+    false,
+    'ToastProvider belongs to core/app and must not have a duplicate shared implementation.',
+  );
 });
 
 test('styles keep one imports-only ownership entrypoint with responsive rules last', () => {
@@ -120,5 +125,18 @@ test('modules no longer depend on legacy app features or root firebase paths', (
     offenders,
     [],
     `Migrate these module imports to @core, @modules, @shared, or local module paths:\n${offenders.join('\n')}`,
+  );
+});
+
+test('tests exercise canonical source paths instead of migration aliases', () => {
+  const legacyTestPathPattern = /\.\.\/src\/(?:app|features|firebase)(?:\/|['"])/;
+  const offenders = sourceFiles('tests')
+    .filter((path) => legacyTestPathPattern.test(read(path)))
+    .sort();
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `Tests must target canonical source ownership:\n${offenders.join('\n')}`,
   );
 });
