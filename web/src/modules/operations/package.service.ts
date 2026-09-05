@@ -11,7 +11,7 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
+import { firestore } from '@core/firebase/firebase';
 import type {
   CateringPackage,
   ManagedCateringPackage,
