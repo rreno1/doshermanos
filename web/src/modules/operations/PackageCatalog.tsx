@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ResponsiveButtonContent } from '../../app/ResponsiveButtonContent';
+import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
 import { useAuth } from '../auth/AuthProvider';
 import { ReservationRequestDialog } from './ReservationRequestDialog';
 import { loadActivePackages } from './package.service';
