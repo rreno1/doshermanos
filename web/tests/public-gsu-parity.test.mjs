@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const portalShell = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
 const portalCss = await readFile(new URL('../src/modules/portal/portal.css', import.meta.url), 'utf8');
-const publicContract = await readFile(new URL('../src/modules/portal/public-portal-contract.css', import.meta.url), 'utf8');
+const publicContract = await readFile(new URL('../src/styles/public-portal-v2.css', import.meta.url), 'utf8');
 const sharedHeader = await readFile(new URL('../src/shared/ui/Header.tsx', import.meta.url), 'utf8');
 const overlay = await readFile(new URL('../src/shared/ui/NavigationOverlay.tsx', import.meta.url), 'utf8');
 
@@ -17,6 +17,7 @@ test('public portal uses the same GSU header and navigation primitives as manage
   assert.match(portalShell, /public-view portal-shell/);
   assert.doesNotMatch(portalShell, /useState\(/);
   assert.doesNotMatch(portalShell, /portal-menu-button/);
+  assert.doesNotMatch(portalShell, /public-portal-contract\.css/);
 });
 
 test('public content CSS no longer carries the replaced custom header and mobile menu system', () => {
