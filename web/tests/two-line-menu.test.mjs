@@ -8,7 +8,7 @@ const controlsSource = await readFile(new URL('../src/shared/ui/ManagementContro
 const shellSource = await readFile(new URL('../src/core/app/ManagementShell.tsx', import.meta.url), 'utf8');
 const sharedHeaderSource = await readFile(new URL('../src/shared/ui/Header.tsx', import.meta.url), 'utf8');
 const portalSource = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
-const publicContractCss = await readFile(new URL('../src/modules/portal/public-portal-contract.css', import.meta.url), 'utf8');
+const publicContractCss = await readFile(new URL('../src/styles/public-portal-v2.css', import.meta.url), 'utf8');
 
 test('two-line menu icon is reserved for shared navigation controls', () => {
   assert.match(menuIconSource, /M4 7h12M4 13h12/);
