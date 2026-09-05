@@ -119,15 +119,23 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
       >
         <div className="management-table-wrap">
           <table className="management-table">
-            <thead><tr><th>Package</th><th>Event date</th><th>Status</th><th>Base package</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th scope="col" className="col-primary">Package</th>
+                <th scope="col" className="col-secondary">Event date</th>
+                <th scope="col" className="col-status">Status</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Base package</th>
+                <th scope="col" className="col-actions">Actions</th>
+              </tr>
+            </thead>
             <tbody>
               {reservationPage.pageItems.map((reservation) => (
                 <tr key={reservation.id}>
-                  <td><div className="management-table-primary"><strong>{reservation.packageName}</strong><span>Reservation {shortId(reservation.id)}</span></div></td>
-                  <td>{formatEventDate(reservation.eventStartDate)}</td>
-                  <td><ReservationStatus status={reservation.status} /></td>
-                  <td>{formatMoney(reservation.packageBasePriceInCentavos)}</td>
-                  <td><div className="management-table-actions"><button type="button" className="management-primary-button" onClick={() => setSelectedReservation(reservation)}>Record cash</button></div></td>
+                  <td className="col-primary"><div className="management-table-primary"><strong>{reservation.packageName}</strong><span>Reservation {shortId(reservation.id)}</span></div></td>
+                  <td className="col-secondary">{formatEventDate(reservation.eventStartDate)}</td>
+                  <td className="col-status"><ReservationStatus status={reservation.status} /></td>
+                  <td className="col-secondary col-hide-mobile">{formatMoney(reservation.packageBasePriceInCentavos)}</td>
+                  <td className="col-actions"><div className="management-table-actions"><button type="button" className="management-primary-button" onClick={() => setSelectedReservation(reservation)}>Record cash</button></div></td>
                 </tr>
               ))}
             </tbody>
@@ -152,16 +160,25 @@ export function PaymentsPanel({ staffId, staffName }: PaymentsPanelProps) {
       >
         <div className="management-table-wrap">
           <table className="management-table">
-            <thead><tr><th>Amount</th><th>Package</th><th>Event date</th><th>Reference</th><th>Recorded by</th><th>Recorded at</th></tr></thead>
+            <thead>
+              <tr>
+                <th scope="col" className="col-status">Amount</th>
+                <th scope="col" className="col-primary">Package</th>
+                <th scope="col" className="col-secondary">Event date</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Reference</th>
+                <th scope="col" className="col-hide-tablet">Recorded by</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Recorded at</th>
+              </tr>
+            </thead>
             <tbody>
               {paymentPage.pageItems.map((payment) => (
                 <tr key={payment.id}>
-                  <td><strong>{formatMoney(payment.amountInCentavos)}</strong></td>
-                  <td><div className="management-table-primary"><strong>{payment.packageName}</strong><span>{payment.note || 'Cash payment'}</span></div></td>
-                  <td>{formatEventDate(payment.eventStartDate)}</td>
-                  <td>{payment.reference || '—'}</td>
-                  <td>{payment.recordedByName}</td>
-                  <td>{formatPaymentTime(payment.createdAt)}</td>
+                  <td className="col-status"><strong>{formatMoney(payment.amountInCentavos)}</strong></td>
+                  <td className="col-primary"><div className="management-table-primary"><strong>{payment.packageName}</strong><span>{payment.note || 'Cash payment'}</span></div></td>
+                  <td className="col-secondary">{formatEventDate(payment.eventStartDate)}</td>
+                  <td className="col-secondary col-hide-mobile">{payment.reference || '—'}</td>
+                  <td className="col-hide-tablet">{payment.recordedByName}</td>
+                  <td className="col-secondary col-hide-mobile">{formatPaymentTime(payment.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
