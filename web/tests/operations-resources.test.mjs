@@ -2,28 +2,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const appPath = new URL('../src/app/App.tsx', import.meta.url);
-const shellPath = new URL('../src/app/ManagementShell.tsx', import.meta.url);
-const operationsPath = new URL('../src/features/operations/OperationsPanel.tsx', import.meta.url);
-const operationsLayoutPath = new URL('../src/features/operations/operations-layout.css', import.meta.url);
-const resourcesPath = new URL('../src/features/resources/ResourcesPanel.tsx', import.meta.url);
-const equipmentPanelPath = new URL('../src/features/resources/EquipmentPanel.tsx', import.meta.url);
-const equipmentGridPath = new URL('../src/features/resources/EquipmentRegistryGrid.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
+const navigationPath = new URL('../src/core/app/nav.ts', import.meta.url);
+const operationsPath = new URL('../src/modules/operations/OperationsPanel.tsx', import.meta.url);
+const operationsLayoutPath = new URL('../src/modules/operations/operations-layout.css', import.meta.url);
+const resourcesPath = new URL('../src/modules/resources/ResourcesPanel.tsx', import.meta.url);
+const equipmentPanelPath = new URL('../src/modules/resources/EquipmentPanel.tsx', import.meta.url);
+const equipmentGridPath = new URL('../src/modules/resources/EquipmentRegistryGrid.tsx', import.meta.url);
+const interactionsCssPath = new URL('../src/styles/management-interactions.css', import.meta.url);
 
 test('management navigation uses operations and resources instead of standalone legacy modules', async () => {
-  const [appSource, shellSource] = await Promise.all([
-    readFile(appPath, 'utf8'),
-    readFile(shellPath, 'utf8'),
-  ]);
+  const navigationSource = await readFile(navigationPath, 'utf8');
 
-  assert.match(shellSource, /label: 'Operations'/);
-  assert.match(shellSource, /label: 'Resources'/);
-  assert.doesNotMatch(shellSource, /label: 'Packages'/);
-  assert.doesNotMatch(shellSource, /label: 'Inventory'/);
-  assert.doesNotMatch(shellSource, /label: 'Equipment'/);
-  assert.match(appSource, /routeSegment === 'reservations' \|\| routeSegment === 'packages'/);
-  assert.match(appSource, /routeSegment === 'inventory' \|\| routeSegment === 'equipment'/);
+  assert.match(navigationSource, /label: 'Operations'/);
+  assert.match(navigationSource, /label: 'Resources'/);
+  assert.doesNotMatch(navigationSource, /label: 'Packages'/);
+  assert.doesNotMatch(navigationSource, /label: 'Inventory'/);
+  assert.doesNotMatch(navigationSource, /label: 'Equipment'/);
+  assert.match(navigationSource, /routeSegment === 'reservations' \|\| routeSegment === 'packages'/);
+  assert.match(navigationSource, /routeSegment === 'inventory' \|\| routeSegment === 'equipment'/);
 });
 
 test('operations and resources keep the approved tab order', async () => {
