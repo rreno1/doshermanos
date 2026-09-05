@@ -5,7 +5,7 @@ import {
   ref,
   uploadBytes,
 } from 'firebase/storage';
-import { firebaseStorage } from '../../firebase/firebase';
+import { firebaseStorage } from '@core/firebase/firebase';
 
 export type ResourceImageKind = 'inventory' | 'equipment';
 
