@@ -232,23 +232,23 @@ export function InventoryPanel({ staffId, staffName, view }: InventoryPanelProps
           <table className="management-table">
             <thead>
               <tr>
-                <th scope="col">Item</th>
-                <th scope="col">Movement</th>
-                <th scope="col">Previous</th>
-                <th scope="col">New quantity</th>
-                <th scope="col">Recorded by</th>
-                <th scope="col">Recorded at</th>
+                <th scope="col" className="col-primary">Item</th>
+                <th scope="col" className="col-status">Movement</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Previous</th>
+                <th scope="col" className="col-secondary">New quantity</th>
+                <th scope="col" className="col-hide-tablet">Recorded by</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Recorded at</th>
               </tr>
             </thead>
             <tbody>
               {movementPage.pageItems.map((movement) => (
                 <tr key={movement.id}>
-                  <td><div className="management-table-primary"><strong>{movement.itemName}</strong><span>{movement.note || movement.unit}</span></div></td>
-                  <td><MovementBadge movement={movement} /></td>
-                  <td>{movement.previousQuantity.toLocaleString('en-PH')}</td>
-                  <td>{movement.newQuantity.toLocaleString('en-PH')} {movement.unit}</td>
-                  <td>{movement.recordedByName}</td>
-                  <td>{formatMovementTime(movement.createdAt)}</td>
+                  <td className="col-primary"><div className="management-table-primary"><strong>{movement.itemName}</strong><span>{movement.note || movement.unit}</span></div></td>
+                  <td className="col-status"><MovementBadge movement={movement} /></td>
+                  <td className="col-secondary col-hide-mobile">{movement.previousQuantity.toLocaleString('en-PH')}</td>
+                  <td className="col-secondary">{movement.newQuantity.toLocaleString('en-PH')} {movement.unit}</td>
+                  <td className="col-hide-tablet">{movement.recordedByName}</td>
+                  <td className="col-secondary col-hide-mobile">{formatMovementTime(movement.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
