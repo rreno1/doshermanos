@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react';
+import { TwoLineMenuIcon } from '../TwoLineMenuIcon';
 import { AppBrand } from './AppBrand';
 import { type AccountMenuUser } from './AccountMenu';
 import { NavigationOverlay } from './NavigationOverlay';
@@ -20,14 +21,6 @@ export interface AppHeaderProps {
   account?: HeaderAccount;
   navigationLabel?: string;
   className?: string;
-}
-
-function BurgerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <path d="M4 8h16M4 16h16" />
-    </svg>
-  );
 }
 
 function CloseIcon() {
@@ -91,7 +84,7 @@ export function Header({
             aria-expanded={open}
             aria-controls={menuId}
           >
-            {open ? <CloseIcon /> : <BurgerIcon />}
+            {open ? <CloseIcon /> : <TwoLineMenuIcon />}
           </button>
         </div>
       </header>

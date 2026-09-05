@@ -44,7 +44,7 @@ export function ManagementShell({
 }: ManagementShellProps) {
   const basePath = role === 'admin' ? '/admin' : '/staff';
 
-  const navigationItems: NavigationItem[] = [
+  const navigationItems = ([
     { key: 'dashboard', label: 'Dashboard', path: basePath, icon: 'dashboard' },
     { key: 'operations', label: 'Operations', path: `${basePath}/operations`, icon: 'operations' },
     { key: 'resources', label: 'Resources', path: `${basePath}/resources`, icon: 'resources' },
@@ -52,7 +52,7 @@ export function ManagementShell({
     { key: 'reports', label: 'Reports', path: `${basePath}/reports`, icon: 'reports' },
     { key: 'users', label: 'Users & roles', path: `${basePath}/users`, icon: 'users', adminOnly: true },
     { key: 'audit', label: 'Audit trail', path: `${basePath}/audit`, icon: 'audit', adminOnly: true },
-  ].filter((item) => !item.adminOnly || role === 'admin');
+  ] satisfies NavigationItem[]).filter((item) => !item.adminOnly || role === 'admin');
 
   const primaryItems: PrimaryNavigationItem[] = navigationItems.map((item) => ({
     key: item.key,
