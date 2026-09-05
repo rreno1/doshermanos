@@ -34,6 +34,7 @@ test('GSU architecture roots are the canonical frontend structure', () => {
     'src/core/app/nav.ts',
     'src/core/app/navigation.tsx',
     'src/core/app/ManagementShell.tsx',
+    'src/core/app/ToastProvider.tsx',
     'src/core/firebase',
     'src/modules',
     'src/shared/ui',
@@ -54,6 +55,7 @@ test('architectural imports communicate ownership through GSU aliases', () => {
   const tsconfig = read('tsconfig.json');
   const appSource = read('src/App.tsx');
   const shellSource = read('src/core/app/ManagementShell.tsx');
+  const mainSource = read('src/main.tsx');
 
   for (const alias of ['@core', '@modules', '@shared', '@styles']) {
     assert.match(viteConfig, new RegExp(alias));
@@ -64,6 +66,7 @@ test('architectural imports communicate ownership through GSU aliases', () => {
   assert.match(appSource, /from '@modules\/dashboard\/DashboardPanel'/);
   assert.match(shellSource, /from '@shared\/ui\/Header'/);
   assert.match(shellSource, /from '@core\/firebase\/firebase'/);
+  assert.match(mainSource, /from '@core\/app\/ToastProvider'/);
   assert.doesNotMatch(appSource, /\.\.\/features|\.\/app\//);
 });
 
@@ -90,10 +93,52 @@ test('shared UI has one canonical implementation tree', () => {
   );
 });
 
-test('styles keep one imports-only ownership entrypoint with responsive rules last', () => {
+test('styles use the canonical GSU ownership layers and responsive contract stays last', () => {
   const styleIndex = read('src/styles/index.css');
   assert.doesNotMatch(styleIndex, /\{/);
   assert.match(styleIndex, /@import '\.\/responsive-contract\.css';\s*$/);
+
+  const canonicalStyles = [
+    'tokens.css',
+    'base-reset.css',
+    'foundation.css',
+    'auth.css',
+    'shared-components.css',
+    'admin-shell.css',
+    'widgets.css',
+    'table-behavior.css',
+    'print.css',
+    'feedback.css',
+    'ui.css',
+    'ui-consistency.css',
+    'control-system.css',
+    'form-contract.css',
+    'public-portal-v2.css',
+    'modal-behavior.css',
+    'presentation-contract.css',
+    'responsive-contract.css',
+  ];
+  for (const name of canonicalStyles) {
+    assert.ok(existsSync(`src/styles/${name}`), `Canonical GSU style ownership file is missing: ${name}`);
+    assert.match(styleIndex, new RegExp(`@import '\\.\\/${name.replace('.', '\\.')}';`));
+  }
+
+  for (const obsoletePath of [
+    'src/styles/global.css',
+    'src/styles/management-ui.css',
+    'src/styles/management-data.css',
+    'src/styles/management-spacing.css',
+    'src/styles/management-interactions.css',
+    'src/styles/responsive-actions.css',
+    'src/styles/toast.css',
+    'src/styles/app-error.css',
+    'src/styles/app-loading.css',
+    'src/styles/staff-workspace.css',
+    'src/modules/auth/auth.css',
+    'src/modules/portal/public-portal-contract.css',
+  ]) {
+    assert.equal(existsSync(obsoletePath), false, `Replaced style ownership must be removed: ${obsoletePath}`);
+  }
 
   for (const name of readdirSync('src/styles')) {
     const path = `src/styles/${name}`;
