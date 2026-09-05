@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const portalShell = await readFile(new URL('../src/features/portal/PortalShell.tsx', import.meta.url), 'utf8');
-const publicContract = await readFile(new URL('../src/features/portal/public-portal-contract.css', import.meta.url), 'utf8');
-const sharedHeader = await readFile(new URL('../src/app/gsu-ui/Header.tsx', import.meta.url), 'utf8');
-const overlay = await readFile(new URL('../src/app/gsu-ui/NavigationOverlay.tsx', import.meta.url), 'utf8');
+const portalShell = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
+const publicContract = await readFile(new URL('../src/modules/portal/public-portal-contract.css', import.meta.url), 'utf8');
+const sharedHeader = await readFile(new URL('../src/shared/ui/Header.tsx', import.meta.url), 'utf8');
+const overlay = await readFile(new URL('../src/shared/ui/NavigationOverlay.tsx', import.meta.url), 'utf8');
 
 test('public portal uses the same GSU header and navigation primitives as management', () => {
   assert.match(portalShell, /className="public-portal-header"/);
