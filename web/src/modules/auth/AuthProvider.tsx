@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { firebaseAuth } from '../../firebase/firebase';
+import { firebaseAuth } from '@core/firebase/firebase';
 import { loadUserProfile } from './auth.service';
 import { useSessionInactivity } from './session-inactivity';
 import type { UserProfile } from './auth.types';
