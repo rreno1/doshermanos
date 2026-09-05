@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppLink } from '../../app/navigation';
+import { AppLink } from '@core/app/navigation';
 import { subscribeToPendingReservations } from '../operations/reservation.service';
 import { subscribeToRecentPayments } from '../payments/payment.service';
 import { subscribeToEquipment } from '../resources/equipment.service';
