@@ -93,7 +93,16 @@ export function ManagementToolbar({
           placeholder={searchPlaceholder}
           onChange={onSearchChange}
         />
-        {filterContent ? <ManagementFilterMenu>{filterContent}</ManagementFilterMenu> : null}
+        {filterContent ? (
+          <>
+            <div className="management-toolbar-filters" aria-label="Filters and sorting">
+              {filterContent}
+            </div>
+            <div className="management-toolbar-mobile-filter">
+              <ManagementFilterMenu>{filterContent}</ManagementFilterMenu>
+            </div>
+          </>
+        ) : null}
         {makeResponsivePrimaryAction(primaryAction)}
       </div>
     </div>
