@@ -6,10 +6,9 @@ This document defines the security controls that are part of the Dos Hermanos St
 
 - Dos Hermanos accepts only authenticated, non-anonymous, email-verified Firebase users whose provider data includes Google (`google.com`).
 - A Firebase session from another provider is rejected even if another provider is accidentally enabled in the Firebase console.
-- Customer sessions use browser-local persistence for convenience.
-- Staff and administrator sessions use browser-session persistence so closing the tab/window clears the privileged browser session.
+- Authentication initializes with browser-session persistence before a profile is trusted. Verified customer accounts may then use browser-local persistence; staff and administrator accounts remain browser-session scoped.
 - Authenticated sessions are also subject to the existing 30-minute inactivity timeout.
-- Authorization changes and cash-payment recording require Google reauthentication when the Firebase authentication time is older than ten minutes.
+- Authorization changes, cash-payment recording, and package creation/editing/publishing/deactivation require Google reauthentication when the Firebase authentication time is older than ten minutes.
 - Reauthentication is a client-side step-up control; Firestore Rules still decide whether the write is authorized.
 
 ### Firebase Authentication console requirements
@@ -44,6 +43,9 @@ The Firestore rules follow a default-deny model and validate allowed fields, fie
 Important invariants include:
 
 - customers cannot promote their own role;
+- administrators cannot use a custom client to change their own role or access status; their self-service write remains limited to display-name metadata;
+- administrators can manage another user's access only through the validated user-document contract;
+- package records cannot be hard-deleted; operational removal uses the retained active/inactive state so historical reservation references remain stable;
 - customer reservation reads are owner-scoped;
 - reservation rejection requires its immutable decision record;
 - inventory quantity changes require a matching movement record;
@@ -84,10 +86,12 @@ Firebase Hosting sends the Dos Hermanos security-header baseline:
 
 The CI Hosting security guard fails if required headers or CSP directives are removed.
 
-## Supply-chain controls
+## Supply-chain and credential controls
 
 - CI performs `npm audit --omit=dev --audit-level=high` for production web dependencies.
 - Dependabot monitors web, mobile, Firebase test dependencies, and GitHub Actions weekly.
+- A repository secret-leak guard rejects tracked real `.env` files, private-key containers, PEM private-key material, Google service-account credentials, and recognizable high-risk provider tokens without printing the suspected value into CI logs.
+- Only `.env*.example` templates belong in source control; deployment secrets and App Check operational values belong in the deployment environment.
 - Dependency changes must still pass typecheck, behavior tests, security-rule tests, and the Dos Hermanos architecture/readability guards.
 - Avoid adding packages when a small, readable local implementation is sufficient.
 
@@ -99,7 +103,7 @@ Before a release or merge to `main`, verify all of the following:
 2. Firestore and Storage retain explicit default-deny fallbacks.
 3. New writes validate fields, attribution, timestamps, ownership, and state transitions server-side where applicable.
 4. Sensitive staff/admin actions use recent authentication when appropriate.
-5. No secret, service-account credential, App Check debug token, private key, or privileged API credential is committed.
+5. No secret, service-account credential, App Check debug token, private key, or privileged API credential is committed, and the secret-leak CI guard passes.
 6. The production build targets only the approved Firebase project.
 7. App Check metrics are healthy before enforcement is enabled or tightened.
 8. All exact-head CI security jobs pass.
