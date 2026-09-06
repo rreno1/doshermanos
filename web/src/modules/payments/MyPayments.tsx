@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from '@modules/auth/AuthProvider';
 import { CustomerPaymentLinkCard } from './PaymentLinkCards';
 import { subscribeToOwnPaymentReceipts } from './payment.service';
 import type { PaymentReceipt } from './payment.types';
