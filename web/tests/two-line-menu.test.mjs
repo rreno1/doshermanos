@@ -6,13 +6,18 @@ const menuIconSource = await readFile(new URL('../src/shared/ui/TwoLineMenuIcon.
 const filterIconSource = await readFile(new URL('../src/shared/ui/FilterIcon.tsx', import.meta.url), 'utf8');
 const controlsSource = await readFile(new URL('../src/shared/ui/ManagementControls.tsx', import.meta.url), 'utf8');
 const shellSource = await readFile(new URL('../src/core/app/ManagementShell.tsx', import.meta.url), 'utf8');
+const adminShellSource = await readFile(new URL('../src/shared/ui/AdminShell.tsx', import.meta.url), 'utf8');
 const sharedHeaderSource = await readFile(new URL('../src/shared/ui/Header.tsx', import.meta.url), 'utf8');
 const portalSource = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
 const publicContractCss = await readFile(new URL('../src/styles/public-portal-v2.css', import.meta.url), 'utf8');
 
 test('two-line menu icon is reserved for shared navigation controls', () => {
-  assert.match(menuIconSource, /M4 7h12M4 13h12/);
-  assert.match(shellSource, /<Header/);
+  assert.match(menuIconSource, /viewBox="0 0 24 24"/);
+  assert.match(menuIconSource, /strokeWidth="2"/);
+  assert.match(menuIconSource, /x1="4" y1="8" x2="20" y2="8"/);
+  assert.match(menuIconSource, /x1="4" y1="16" x2="20" y2="16"/);
+  assert.match(shellSource, /<AdminShell/);
+  assert.match(adminShellSource, /<Header/);
   assert.match(portalSource, /<Header/);
   assert.match(sharedHeaderSource, /<TwoLineMenuIcon\s*\/>/);
   assert.doesNotMatch(shellSource, /☰/);
