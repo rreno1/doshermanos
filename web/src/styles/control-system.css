@@ -1,4 +1,4 @@
-/* Management select/filter interaction layer using the canonical GSU control contract. */
+/* Management select/filter interaction layer using the canonical Dos Hermanos control contract. */
 .management-filter-menu,
 .management-select { position: relative; }
 
@@ -113,12 +113,12 @@
 
 .management-select-option {
   width: 100%;
-  min-height: 38px;
+  min-height: var(--ui-compact-control-size);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
