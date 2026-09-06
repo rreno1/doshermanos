@@ -4,7 +4,7 @@
 }
 
 .resource-image-field-label {
-  color: #263732;
+  color: var(--text);
   font-size: 0.88rem;
   font-weight: 500;
 }
@@ -12,9 +12,9 @@
 .resource-image-preview {
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: 1px solid var(--management-border-strong, #d8e0dc);
-  border-radius: 14px;
-  background: #eef2ef;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface2);
 }
 
 .resource-image-preview img,
@@ -33,7 +33,7 @@
   place-items: center;
   align-content: center;
   gap: 9px;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.78rem;
   text-align: center;
 }
@@ -42,7 +42,7 @@
   width: 38px;
   height: 38px;
   fill: none;
-  stroke: #8a9793;
+  stroke: var(--muted);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -61,11 +61,11 @@
 .resource-image-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .resource-image-field small {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.75rem;
   font-weight: 400;
   line-height: 1.45;
