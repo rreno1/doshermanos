@@ -4,6 +4,7 @@ import {
   initializeAppCheck,
 } from 'firebase/app-check';
 import {
+  browserLocalPersistence,
   browserPopupRedirectResolver,
   browserSessionPersistence,
   initializeAuth,
@@ -55,11 +56,12 @@ if (isDeploymentMode && appCheckSiteKey) {
 
 const storageBucket = `gs://${firebaseConfig.projectId}.firebasestorage.app`;
 
-// All sessions begin tab-scoped. AuthProvider may explicitly promote a verified
-// customer session to local persistence after the role profile is resolved.
-// Privileged identities therefore never begin life as a durable local session.
+// Session storage is the preferred startup persistence. Local persistence is
+// included only so an existing verified customer can be restored before the
+// role profile explicitly selects its final persistence policy. Privileged
+// profiles are always moved back to browserSessionPersistence by AuthProvider.
 export const firebaseAuth = initializeAuth(firebaseApp, {
-  persistence: browserSessionPersistence,
+  persistence: [browserSessionPersistence, browserLocalPersistence],
   popupRedirectResolver: browserPopupRedirectResolver,
 });
 export const firestore = getFirestore(firebaseApp);
