@@ -19,6 +19,16 @@ function nonWhiteHexColors(source) {
     .filter((value) => value !== '#fff' && value !== '#ffffff');
 }
 
+function hasIndependentBoxShadow(source) {
+  for (const match of source.matchAll(/box-shadow:\s*([^;]+);/gi)) {
+    const value = match[1].trim();
+    if (value === 'none' || value.startsWith('var(')) continue;
+    return true;
+  }
+
+  return false;
+}
+
 test('module CSS does not revive oversized custom corner radii', () => {
   const offenders = [];
 
@@ -58,7 +68,7 @@ test('module CSS uses semantic palette tokens instead of local hard-coded colors
 test('module CSS does not create independent numeric shadow systems', () => {
   const offenders = moduleCssFiles.filter((path) => {
     const source = readFileSync(path, 'utf8');
-    return /box-shadow:\s*(?!var\(|none\b)[^;]+;/i.test(source);
+    return hasIndependentBoxShadow(source);
   });
 
   assert.deepEqual(
