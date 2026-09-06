@@ -1,14 +1,14 @@
 .manual-reservation-flow {
   display: grid;
-  gap: 20px;
-  padding-top: 18px;
+  gap: var(--space-5);
+  padding-top: var(--space-4);
 }
 
 .manual-reservation-note {
   padding: 14px 16px;
-  border-left: 3px solid var(--accent);
-  background: #f7faf8;
-  color: var(--text-muted);
+  border-left: 3px solid var(--primary);
+  background: var(--surface2);
+  color: var(--muted);
   font-size: 0.84rem;
   line-height: 1.6;
 }
@@ -22,14 +22,14 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .manual-step-heading > span {
   margin-top: 2px;
-  color: var(--accent-dark);
+  color: var(--primary);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -40,12 +40,12 @@
 
 .manual-step-heading h2 {
   font-size: 1.08rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .manual-step-heading p {
-  margin-top: 4px;
-  color: var(--text-muted);
+  margin-top: var(--space-1);
+  color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -65,18 +65,22 @@
   display: grid;
   align-content: start;
   gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--management-border, var(--border));
-  border-radius: 12px;
-  background: #ffffff;
-  color: #24332f;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--text);
   text-align: left;
   cursor: pointer;
-  transition: border-color 150ms ease, transform 150ms ease;
+  transition:
+    border-color var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard);
 }
 
 .manual-package-option:hover {
-  border-color: rgba(23, 107, 91, 0.34);
+  border-color: var(--primary);
+  background: var(--primary-light);
   transform: translateY(-1px);
 }
 
@@ -89,17 +93,19 @@
 
 .manual-package-option-heading strong {
   font-size: 0.98rem;
+  font-weight: 600;
 }
 
 .manual-package-option-heading b {
-  color: var(--accent-dark);
+  color: var(--primary);
   font-size: 0.86rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .manual-package-option > span:not(.manual-package-option-heading),
 .manual-package-option small {
-  color: var(--text-muted);
+  color: var(--muted);
   line-height: 1.5;
 }
 
@@ -117,9 +123,9 @@
   justify-content: space-between;
   gap: 18px;
   padding: 14px 16px;
-  border: 1px solid var(--management-border, var(--border));
-  border-radius: 12px;
-  background: #f9fbfa;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-tint);
 }
 
 .manual-selected-package > div {
@@ -129,13 +135,14 @@
 
 .manual-selected-package span,
 .manual-entered-by {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.74rem;
 }
 
 .manual-selected-package b {
-  color: var(--accent-dark);
+  color: var(--primary);
   font-size: 0.84rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -144,15 +151,15 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--management-border, var(--border));
+  border-bottom: 1px solid var(--line);
 }
 
 .manual-reservation-flow .reservation-form {
   margin-top: 0;
   padding: 18px;
-  border: 1px solid var(--management-border, var(--border));
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
 }
 
 .manual-entered-by {
@@ -177,7 +184,7 @@
   .manual-selected-package {
     align-items: flex-start;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .manual-reservation-flow .reservation-form {
