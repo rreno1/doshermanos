@@ -1,13 +1,17 @@
-/* Cross-cutting dialog viewport, surface continuity, and mobile action behavior. */
+/* Canonical Dos Hermanos dialog viewport, surface continuity, and mobile action behavior. */
 dialog.auth-dialog,
 dialog.inventory-dialog,
 dialog.equipment-dialog,
 dialog.payment-dialog,
 dialog.package-management-dialog,
 dialog.reservation-dialog {
+  width: min(680px, calc(100vw - 32px));
   max-width: min(680px, calc(100vw - 32px));
-  max-height: min(88vh, 820px);
+  max-height: calc(100vh - 32px);
+  margin: auto;
   padding: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
@@ -23,6 +27,7 @@ dialog.package-management-dialog::backdrop,
 dialog.reservation-dialog::backdrop {
   background: rgba(7, 24, 19, 0.42);
   backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .auth-panel,
@@ -33,18 +38,23 @@ dialog.reservation-dialog::backdrop {
 .reservation-dialog-content {
   max-height: inherit;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scroll-padding-top: 24px;
   scroll-padding-bottom: 92px;
   background: var(--surface-raised);
 }
 
+/* Dialog headers stay visually continuous with the surface. */
 .auth-panel-heading,
 .inventory-dialog-heading,
 .equipment-dialog-heading,
 .payment-dialog-heading,
 .package-management-editor-heading,
 .reservation-dialog-heading {
+  position: static;
+  z-index: auto;
   background: transparent;
 }
 
@@ -72,6 +82,17 @@ dialog.reservation-dialog::backdrop {
   gap: var(--space-2);
 }
 
+@supports (height: 100dvh) {
+  dialog.auth-dialog,
+  dialog.inventory-dialog,
+  dialog.equipment-dialog,
+  dialog.payment-dialog,
+  dialog.package-management-dialog,
+  dialog.reservation-dialog {
+    max-height: calc(100dvh - 32px);
+  }
+}
+
 @media (max-width: 620px) {
   dialog.auth-dialog,
   dialog.inventory-dialog,
@@ -79,9 +100,10 @@ dialog.reservation-dialog::backdrop {
   dialog.payment-dialog,
   dialog.package-management-dialog,
   dialog.reservation-dialog {
-    width: min(100% - 20px, 680px);
+    width: calc(100% - 20px);
     max-width: none;
     max-height: calc(100vh - 20px);
+    margin: auto;
   }
 
   @supports (height: 100dvh) {
