@@ -22,6 +22,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
@@ -245,16 +246,50 @@ test('an administrator cannot change their own role or access status', async () 
   );
 });
 
-test('an administrator can still manage another user access record', async () => {
+test('an administrator cannot change another user access without a matching audit record', async () => {
   const database = testEnvironment.authenticatedContext('admin-a').firestore();
 
-  await assertSucceeds(
+  await assertFails(
     updateDoc(doc(database, 'users', 'customer-a'), {
       role: 'staff',
       status: 'active',
+      lastAccessEventId: 'missing-event',
       updatedAt: serverTimestamp(),
     }),
   );
+});
+
+test('an administrator can atomically manage another user access with an immutable audit record', async () => {
+  const database = testEnvironment.authenticatedContext('admin-a').firestore();
+  const eventId = 'access-event-1';
+  const batch = writeBatch(database);
+
+  batch.update(doc(database, 'users', 'customer-a'), {
+    role: 'staff',
+    status: 'active',
+    lastAccessEventId: eventId,
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(doc(database, 'userAccessEvents', eventId), {
+    targetUserId: 'customer-a',
+    targetDisplayName: 'Customer A',
+    previousRole: 'customer',
+    newRole: 'staff',
+    previousStatus: 'active',
+    newStatus: 'active',
+    changedBy: 'admin-a',
+    changedByName: 'Admin A',
+    createdAt: serverTimestamp(),
+  });
+
+  await assertSucceeds(batch.commit());
+  await assertSucceeds(getDoc(doc(database, 'userAccessEvents', eventId)));
+  await assertFails(
+    updateDoc(doc(database, 'userAccessEvents', eventId), {
+      newRole: 'admin',
+    }),
+  );
+  await assertFails(deleteDoc(doc(database, 'userAccessEvents', eventId)));
 });
 
 test('package records are retained and cannot be hard-deleted by administrators', async () => {
