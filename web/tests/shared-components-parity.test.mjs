@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const sharedComponents = await readFile(new URL('../src/styles/shared-components.css', import.meta.url), 'utf8');
 
-test('shared-components owns canonical GSU primitives instead of the retired management visual system', () => {
+test('shared-components owns canonical Dos Hermanos primitives instead of the retired management visual system', () => {
   for (const legacySelector of [
     '.management-shell',
     '.management-topbar',
@@ -25,7 +25,7 @@ test('shared-components owns canonical GSU primitives instead of the retired man
   }
 });
 
-test('shared-components keeps the canonical GSU surface and utility language', () => {
+test('shared-components keeps the canonical Dos Hermanos surface and utility language', () => {
   assert.match(sharedComponents, /\.status\s*\{/);
   assert.match(sharedComponents, /\.tag-badge\s*\{/);
   assert.match(sharedComponents, /\.panel\s*\{/);
