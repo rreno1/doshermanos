@@ -1,11 +1,11 @@
-import { subscribeToReservationDecisions } from '../operations/reservation.service';
-import type { ReservationDecision } from '../operations/reservation.types';
-import { subscribeToRecentPayments } from '../payments/payment.service';
-import type { PaymentRecord } from '../payments/payment.types';
-import { subscribeToEquipmentTransactions } from '../resources/equipment.service';
-import type { EquipmentTransactionRecord } from '../resources/equipment.types';
-import { subscribeToRecentInventoryMovements } from '../resources/inventory.service';
-import type { InventoryMovement } from '../resources/inventory.types';
+import { subscribeToReservationDecisions } from '@modules/operations/reservation.service';
+import type { ReservationDecision } from '@modules/operations/reservation.types';
+import { subscribeToRecentPayments } from '@modules/payments/payment.service';
+import type { PaymentRecord } from '@modules/payments/payment.types';
+import { subscribeToEquipmentTransactions } from '@modules/resources/equipment.service';
+import type { EquipmentTransactionRecord } from '@modules/resources/equipment.types';
+import { subscribeToRecentInventoryMovements } from '@modules/resources/inventory.service';
+import type { InventoryMovement } from '@modules/resources/inventory.types';
 import type { AuditActivity, AuditActivityKind } from './audit.types';
 
 const maximumAuditActivities = 60;
