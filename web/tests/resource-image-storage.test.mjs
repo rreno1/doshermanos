@@ -59,10 +59,15 @@ test('Firebase Storage retries are bounded so failures cannot spin for minutes',
   assert.match(firebaseSource, /maxUploadRetryTime = 30_000/);
 });
 
-test('Storage rules allow only authenticated staff and admin to list resource image folders', () => {
+test('Storage rules bind staff image access to real resource records', () => {
   assert.match(storageRulesSource, /match \/inventory\/\{allPaths=\*\*\}[\s\S]*allow list: if isStaffOrAdmin\(\)/);
   assert.match(storageRulesSource, /match \/equipment\/\{allPaths=\*\*\}[\s\S]*allow list: if isStaffOrAdmin\(\)/);
-  assert.match(storageRulesSource, /allow create, update: if isStaffOrAdmin\(\) && isAllowedImage\(\)/);
+  assert.match(storageRulesSource, /inventoryItemExists\(inventoryItemId\)/);
+  assert.match(storageRulesSource, /equipmentItemAcceptsImage\(equipmentItemId\)/);
+  assert.match(storageRulesSource, /firestore\.exists/);
+  assert.match(storageRulesSource, /data\.get\('isDeleted', false\) != true/);
+  assert.match(storageRulesSource, /request\.resource\.contentType\.matches\('image\/\(jpeg\|png\|webp\)'\)/);
+  assert.match(storageRulesSource, /request\.resource\.size <= 5 \* 1024 \* 1024/);
 });
 
 test('bucket CORS policy is restricted to the deployed Firebase Hosting origins', () => {
