@@ -3,7 +3,6 @@ import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
-  ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '@shared/ui/ManagementControls';
@@ -14,7 +13,6 @@ import './audit.css';
 type AuditSort = 'date' | 'activity' | 'actor';
 type SortDirection = 'asc' | 'desc';
 
-const tabs = [{ value: 'activity', label: 'Activity' }] as const;
 const directionOptions: { value: SortDirection; label: string }[] = [
   { value: 'asc', label: 'Ascending' },
   { value: 'desc', label: 'Descending' },
@@ -62,8 +60,6 @@ export function AuditPanel() {
 
   return (
     <section className="audit-section" id="audit" aria-label="Audit trail">
-      <ManagementTabs value="activity" options={[...tabs]} onChange={() => undefined} label="Audit views" />
-
       <ManagementToolbar
         summary={[{ label: 'activity records', value: activities.length }]}
         searchValue={queryText}
@@ -172,9 +168,12 @@ function getAuditSortValue(activity: AuditActivity, sortBy: AuditSort) {
 }
 
 function compareAuditValues(left: string | number, right: string | number, direction: SortDirection) {
-  const result = typeof left === 'number' && typeof right === 'number'
-    ? left - right
-    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  let result: number;
+  if (typeof left === 'number' && typeof right === 'number') {
+    result = left - right;
+  } else {
+    result = String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  }
   return direction === 'asc' ? result : -result;
 }
 
