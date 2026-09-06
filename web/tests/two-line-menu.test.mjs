@@ -19,14 +19,14 @@ test('two-line menu icon is reserved for shared navigation controls', () => {
   assert.doesNotMatch(portalSource, /☰/);
 });
 
-test('management filter trigger uses the GSU funnel icon instead of navigation hamburger', () => {
+test('management filter trigger uses the Dos Hermanos funnel icon instead of navigation hamburger', () => {
   assert.match(filterIconSource, /polygon points="22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3"/);
   assert.match(controlsSource, /<FilterIcon\s*\/>/);
   assert.doesNotMatch(controlsSource, /<TwoLineMenuIcon\s*\/>/);
   assert.match(controlsSource, /aria-label="Filters and sorting"/);
 });
 
-test('mobile public account access is composed inside the shared GSU navigation overlay', () => {
+test('mobile public account access is composed inside the shared Dos Hermanos navigation overlay', () => {
   assert.match(portalSource, /mobileMenuFooter=\{mobileMenuFooter\}/);
   assert.match(portalSource, /className="portal-mobile-account"/);
   assert.match(sharedHeaderSource, /mobileMenuFooter/);
