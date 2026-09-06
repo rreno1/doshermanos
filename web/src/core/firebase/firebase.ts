@@ -3,7 +3,11 @@ import {
   ReCaptchaEnterpriseProvider,
   initializeAppCheck,
 } from 'firebase/app-check';
-import { getAuth } from 'firebase/auth';
+import {
+  browserPopupRedirectResolver,
+  browserSessionPersistence,
+  initializeAuth,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
@@ -51,7 +55,13 @@ if (isDeploymentMode && appCheckSiteKey) {
 
 const storageBucket = `gs://${firebaseConfig.projectId}.firebasestorage.app`;
 
-export const firebaseAuth = getAuth(firebaseApp);
+// All sessions begin tab-scoped. AuthProvider may explicitly promote a verified
+// customer session to local persistence after the role profile is resolved.
+// Privileged identities therefore never begin life as a durable local session.
+export const firebaseAuth = initializeAuth(firebaseApp, {
+  persistence: browserSessionPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver,
+});
 export const firestore = getFirestore(firebaseApp);
 export const firebaseStorage = getStorage(firebaseApp, storageBucket);
 
