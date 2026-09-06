@@ -14,6 +14,7 @@ import './package-management.css';
 
 type PackageSort = 'name' | 'price' | 'order';
 type SortDirection = 'asc' | 'desc';
+type PackageSortValue = string | number;
 
 export function PackageManagementPanel() {
   const { showToast } = useToast();
@@ -44,6 +45,7 @@ export function PackageManagementPanel() {
     visiblePackages,
     `${queryText}|${statusFilter}|${sortBy}|${sortDirection}`,
   );
+  const emptyMessage = getPackageEmptyMessage(packages.length, visiblePackages.length);
 
   async function refreshPackages() {
     setIsLoading(true);
@@ -67,6 +69,12 @@ export function PackageManagementPanel() {
     setIsEditorOpen(true);
   }
 
+  function resetFilters() {
+    setStatusFilter('all');
+    setSortBy('order');
+    setSortDirection('asc');
+  }
+
   async function handleStatusChange(cateringPackage: ManagedCateringPackage) {
     setBusyPackageId(cateringPackage.id);
     try {
@@ -82,12 +90,6 @@ export function PackageManagementPanel() {
       setBusyPackageId(null);
     }
   }
-
-  const emptyMessage = packages.length === 0
-    ? 'No packages yet.'
-    : visiblePackages.length === 0
-      ? 'No packages match the current view.'
-      : undefined;
 
   return (
     <div className="package-management-section" aria-label="Manage packages">
@@ -137,15 +139,7 @@ export function PackageManagementPanel() {
                 ariaLabel="Package sort direction"
               />
             </ManagementFilterField>
-            <button
-              type="button"
-              className="management-secondary-button"
-              onClick={() => {
-                setStatusFilter('all');
-                setSortBy('order');
-                setSortDirection('asc');
-              }}
-            >
+            <button type="button" className="management-secondary-button" onClick={resetFilters}>
               Reset filters
             </button>
           </>
@@ -171,30 +165,30 @@ export function PackageManagementPanel() {
           <table className="management-table">
             <thead>
               <tr>
-                <th scope="col">Package</th>
-                <th scope="col">Base price</th>
-                <th scope="col">Catalog order</th>
-                <th scope="col">Status</th>
-                <th scope="col">Actions</th>
+                <th scope="col" className="col-primary">Package</th>
+                <th scope="col" className="col-secondary">Base price</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Catalog order</th>
+                <th scope="col" className="col-status">Status</th>
+                <th scope="col" className="col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
               {page.pageItems.map((cateringPackage) => (
                 <tr key={cateringPackage.id}>
-                  <td>
+                  <td className="col-primary">
                     <div className="management-table-primary">
                       <strong>{cateringPackage.name}</strong>
                       <span>{cateringPackage.menuHighlights.length} menu items</span>
                     </div>
                   </td>
-                  <td>{formatCurrency(cateringPackage.priceInCentavos)}</td>
-                  <td>{cateringPackage.sortOrder.toLocaleString('en-PH')}</td>
-                  <td>
-                    <span className={cateringPackage.isActive ? 'management-status-badge management-status-badge-active' : 'management-status-badge management-status-badge-muted'}>
+                  <td className="col-secondary">{formatCurrency(cateringPackage.priceInCentavos)}</td>
+                  <td className="col-secondary col-hide-mobile">{cateringPackage.sortOrder.toLocaleString('en-PH')}</td>
+                  <td className="col-status">
+                    <span className={getPackageStatusClass(cateringPackage.isActive)}>
                       {cateringPackage.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td>
+                  <td className="col-actions">
                     <div className="management-table-actions">
                       <button type="button" className="management-row-button" onClick={() => openEditEditor(cateringPackage)}>Edit</button>
                       <button
@@ -203,7 +197,7 @@ export function PackageManagementPanel() {
                         disabled={busyPackageId === cateringPackage.id}
                         onClick={() => void handleStatusChange(cateringPackage)}
                       >
-                        {busyPackageId === cateringPackage.id ? 'Saving…' : cateringPackage.isActive ? 'Hide' : 'Publish'}
+                        {getPackageStatusActionLabel(cateringPackage, busyPackageId)}
                       </button>
                     </div>
                   </td>
@@ -227,21 +221,74 @@ export function PackageManagementPanel() {
   );
 }
 
-function filterPackages(packages: ManagedCateringPackage[], query: string, status: string, sortBy: PackageSort, direction: SortDirection) {
+function getPackageEmptyMessage(totalCount: number, visibleCount: number) {
+  if (totalCount === 0) return 'No packages yet.';
+  if (visibleCount === 0) return 'No packages match the current view.';
+  return undefined;
+}
+
+function getPackageStatusClass(isActive: boolean) {
+  return isActive
+    ? 'management-status-badge management-status-badge-active'
+    : 'management-status-badge management-status-badge-muted';
+}
+
+function getPackageStatusActionLabel(cateringPackage: ManagedCateringPackage, busyPackageId: string | null) {
+  if (busyPackageId === cateringPackage.id) return 'Saving…';
+  return cateringPackage.isActive ? 'Hide' : 'Publish';
+}
+
+function filterPackages(
+  packages: ManagedCateringPackage[],
+  query: string,
+  status: string,
+  sortBy: PackageSort,
+  direction: SortDirection,
+) {
   const text = query.trim().toLocaleLowerCase();
   return [...packages]
-    .filter((cateringPackage) => status === 'all' || (status === 'active' ? cateringPackage.isActive : !cateringPackage.isActive))
-    .filter((cateringPackage) => !text || `${cateringPackage.name} ${cateringPackage.description} ${cateringPackage.menuHighlights.join(' ')}`.toLocaleLowerCase().includes(text))
-    .sort((left, right) => {
-      const leftValue = sortBy === 'price' ? left.priceInCentavos : sortBy === 'name' ? left.name : left.sortOrder;
-      const rightValue = sortBy === 'price' ? right.priceInCentavos : sortBy === 'name' ? right.name : right.sortOrder;
-      const result = typeof leftValue === 'number' && typeof rightValue === 'number'
-        ? leftValue - rightValue
-        : String(leftValue).localeCompare(String(rightValue), 'en-PH', { sensitivity: 'base' });
-      return direction === 'asc' ? result : -result;
-    });
+    .filter((cateringPackage) => status === 'all' || matchesPackageStatus(cateringPackage, status))
+    .filter((cateringPackage) => matchesPackageQuery(cateringPackage, text))
+    .sort((left, right) => comparePackageValues(
+      getPackageSortValue(left, sortBy),
+      getPackageSortValue(right, sortBy),
+      direction,
+    ));
+}
+
+function matchesPackageStatus(cateringPackage: ManagedCateringPackage, status: string) {
+  if (status === 'active') return cateringPackage.isActive;
+  if (status === 'inactive') return !cateringPackage.isActive;
+  return true;
+}
+
+function matchesPackageQuery(cateringPackage: ManagedCateringPackage, text: string) {
+  if (!text) return true;
+  const searchable = [
+    cateringPackage.name,
+    cateringPackage.description,
+    ...cateringPackage.menuHighlights,
+  ].join(' ').toLocaleLowerCase();
+  return searchable.includes(text);
+}
+
+function getPackageSortValue(cateringPackage: ManagedCateringPackage, sortBy: PackageSort): PackageSortValue {
+  if (sortBy === 'price') return cateringPackage.priceInCentavos;
+  if (sortBy === 'name') return cateringPackage.name;
+  return cateringPackage.sortOrder;
+}
+
+function comparePackageValues(left: PackageSortValue, right: PackageSortValue, direction: SortDirection) {
+  const result = typeof left === 'number' && typeof right === 'number'
+    ? left - right
+    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  return direction === 'asc' ? result : -result;
 }
 
 function formatCurrency(valueInCentavos: number) {
-  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(valueInCentavos / 100);
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+  }).format(valueInCentavos / 100);
 }
