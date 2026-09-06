@@ -34,7 +34,7 @@ export interface AdminShellProps {
   mainId?: string;
 }
 
-/** Canonical GSU management shell shared by every Dos Hermanos staff workspace. */
+/** Canonical Dos Hermanos management shell shared by every staff workspace. */
 export function AdminShell({
   brand,
   navigationItems,
