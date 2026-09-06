@@ -12,6 +12,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { firestore } from '@core/firebase/firebase';
+import { ensureRecentGoogleAuthentication } from '@modules/auth/auth-security';
 import type {
   CateringPackage,
   ManagedCateringPackage,
@@ -98,6 +99,7 @@ export async function loadManagedPackages(): Promise<ManagedCateringPackage[]> {
 }
 
 export async function createManagedPackage(input: PackageInput): Promise<void> {
+  await ensureRecentGoogleAuthentication();
   await addDoc(collection(firestore, 'packages'), {
     ...input,
     createdAt: serverTimestamp(),
@@ -109,6 +111,7 @@ export async function updateManagedPackage(
   packageId: string,
   input: PackageInput,
 ): Promise<void> {
+  await ensureRecentGoogleAuthentication();
   await updateDoc(doc(firestore, 'packages', packageId), {
     ...input,
     updatedAt: serverTimestamp(),
@@ -119,6 +122,7 @@ export async function setManagedPackageActive(
   packageId: string,
   isActive: boolean,
 ): Promise<void> {
+  await ensureRecentGoogleAuthentication();
   await updateDoc(doc(firestore, 'packages', packageId), {
     isActive,
     updatedAt: serverTimestamp(),
