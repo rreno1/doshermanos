@@ -7,7 +7,7 @@ const [dashboardCss, dashboardSource] = await Promise.all([
   readFile(new URL('../src/modules/dashboard/DashboardPanel.tsx', import.meta.url), 'utf8'),
 ]);
 
-test('dashboard keeps its domain widgets while using GSU geometry and surfaces', () => {
+test('dashboard keeps its domain widgets while using Dos Hermanos geometry and surfaces', () => {
   assert.match(dashboardSource, /className="dashboard-grid"/);
   assert.match(dashboardSource, /className={`dashboard-metric/);
   assert.match(dashboardSource, /className="dashboard-module-link"/);
