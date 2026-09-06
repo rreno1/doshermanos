@@ -12,11 +12,8 @@ import {
 import { navigate } from '@core/app/navigation';
 import { firebaseAuth } from '@core/firebase/firebase';
 import type { UserProfile } from '@modules/auth/auth.types';
-import { AccountMenu } from '@shared/ui/AccountMenu';
-import { AppBrand } from '@shared/ui/AppBrand';
-import { Header } from '@shared/ui/Header';
-import { PageHeader } from '@shared/ui/PageHeader';
-import { PrimaryNavigation, type PrimaryNavigationItem } from '@shared/ui/PrimaryNavigation';
+import { AdminShell } from '@shared/ui/AdminShell';
+import type { PrimaryNavigationItem } from '@shared/ui/PrimaryNavigation';
 
 type ManagementShellProps = {
   role: WorkspaceRole;
@@ -57,54 +54,28 @@ export function ManagementShell({
     navigate('/', { replace: true });
   }
 
+  const brand = {
+    title: 'Dos Hermanos',
+    subtitle: 'Catering',
+    onClick: () => navigate(basePath),
+  };
+
   return (
-    <div className="admin-view">
+    <>
       <a className="skip-link" href="#main-content">Skip to main content</a>
-
-      <Header
-        theme="green"
-        className="admin-mobile-header"
-        title="Dos Hermanos"
-        subtitle="Catering"
-        onBrandClick={() => navigate(basePath)}
-        items={primaryItems}
+      <AdminShell
+        brand={brand}
+        navigationItems={primaryItems}
         navigationLabel={`${formatWorkspaceRole(role)} navigation`}
+        pageHeader={{ title: pageTitle, subtitle: pageDescription }}
         account={{ user: accountUser, onLogout: handleLogout }}
-      />
-
-      <div className="admin-grid">
-        <aside className="sidebar" aria-label={`${formatWorkspaceRole(role)} navigation`}>
-          <AppBrand
-            theme="green"
-            title="Dos Hermanos"
-            subtitle="Catering"
-            className="app-brand-sidebar"
-            onClick={() => navigate(basePath)}
-          />
-
-          <PrimaryNavigation
-            items={primaryItems}
-            orientation="vertical"
-            ariaLabel="Management modules"
-            className="sidebar-primary-navigation"
-          />
-
-          <AccountMenu
-            variant="sidebar"
-            className="sidebar-account-menu"
-            user={accountUser}
-            onLogout={handleLogout}
-          />
-        </aside>
-
-        <main className="admin-main" id="main-content" tabIndex={-1}>
-          <PageHeader className="admin-top" title={pageTitle} subtitle={pageDescription} />
-          <div className="admin-page-stage" key={pathname}>
-            <div className="management-page">{children}</div>
-          </div>
-        </main>
-      </div>
-    </div>
+        mainId="main-content"
+      >
+        <div className="admin-page-stage" key={pathname}>
+          <div className="management-page">{children}</div>
+        </div>
+      </AdminShell>
+    </>
   );
 }
 
