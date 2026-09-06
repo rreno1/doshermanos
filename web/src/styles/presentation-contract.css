@@ -2,18 +2,17 @@
 .admin-view .management-page {
   display: contents;
   --management-surface: var(--surface-translucent);
-  --management-surface-muted: var(--surface2);
+  --management-surface-muted: var(--surface-tint);
   --management-border: var(--line);
   --management-border-strong: var(--line-strong);
   --management-radius: var(--radius-lg);
   --management-control-height: var(--ui-form-control-height);
-  --management-tab-content-gap: 20px;
+  --management-tab-content-gap: 12px;
   --management-section-stack-gap: 12px;
 }
 
 .admin-view .management-page button {
   border-radius: var(--ui-control-radius);
-  box-shadow: none;
   transition:
     background-color var(--motion-fast) ease,
     border-color var(--motion-fast) ease,
@@ -49,52 +48,19 @@
 }
 
 .admin-view .management-page .management-filter-panel,
-.admin-view .management-page .management-select-menu,
-.admin-view .management-page .package-management-table-wrap,
-.admin-view .management-page .users-table-wrap,
-.admin-view .management-page .report-table-wrap,
-.admin-view .management-page .inventory-main-column,
-.admin-view .management-page .inventory-activity,
-.admin-view .management-page .payments-main-column,
-.admin-view .management-page .payments-activity,
-.admin-view .management-page .equipment-column,
-.admin-view .management-page .equipment-activity,
-.admin-view .management-page .reservation-review-list,
-.admin-view .management-page .inventory-status-box,
-.admin-view .management-page .equipment-status-box,
-.admin-view .management-page .payment-status-box,
-.admin-view .management-page .report-status,
-.admin-view .management-page .audit-status,
-.admin-view .management-page .users-empty,
-.admin-view .management-page .package-management-empty {
+.admin-view .management-page .management-select-menu {
   border-color: var(--line) !important;
-  border-radius: var(--radius-lg) !important;
-  background: var(--surface-translucent) !important;
-  box-shadow: var(--shadow) !important;
-}
-
-.admin-view .management-page .inventory-summary-value,
-.admin-view .management-page .equipment-summary-value,
-.admin-view .management-page .users-summary span,
-.admin-view .management-page .package-management-summary span {
-  border-color: var(--line) !important;
-  border-radius: var(--radius-lg) !important;
-  background: var(--surface-translucent) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.admin-view .management-page table th {
-  background: var(--surface2) !important;
-  color: var(--muted) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-raised) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 .admin-view .management-page table th,
 .admin-view .management-page table td {
   border-color: var(--line) !important;
-  padding: var(--table-cell-py) var(--table-cell-px) !important;
 }
 
-/* Compact PageHeader → tabs → toolbar/data rhythm across every management module. */
+/* PageHeader → tabs → toolbar/data uses the same compact 12px GSU rhythm. */
 .management-page > .users-section,
 .management-page > .payments-section,
 .management-page > .reports-section,
@@ -106,18 +72,20 @@
   gap: var(--management-section-stack-gap);
 }
 
-.management-page > .users-section > .management-tabs,
-.management-page > .payments-section > .management-tabs,
-.management-page > .reports-section > .management-tabs,
-.management-page > .audit-section > .management-tabs {
-  margin-bottom: calc(var(--management-tab-content-gap) - var(--management-section-stack-gap));
+.management-page > .users-section > .tab-bar,
+.management-page > .payments-section > .tab-bar,
+.management-page > .reports-section > .tab-bar,
+.management-page > .audit-section > .tab-bar {
+  margin-bottom: 0;
 }
 
 .management-page > .operations-section,
 .management-page > .resources-section { display: block; }
 
-.management-page > .operations-section > .management-tabs,
-.management-page > .resources-section > .management-tabs { margin-bottom: var(--management-tab-content-gap); }
+.management-page > .operations-section > .tab-bar,
+.management-page > .resources-section > .tab-bar {
+  margin-bottom: var(--management-tab-content-gap);
+}
 
 .management-page > .operations-section > .reservation-review-section,
 .management-page > .operations-section > .package-management-section,
@@ -131,15 +99,20 @@
   gap: var(--management-section-stack-gap);
 }
 
-.management-page > .operations-section > .manual-reservation-flow { margin-top: 0; padding-top: 0; }
+.management-page > .operations-section > .manual-reservation-flow {
+  margin-top: 0;
+  padding-top: 0;
+}
 
 .management-page > .operations-section > .reservation-review-section > .management-data-toolbar,
 .management-page > .operations-section > .package-management-section > .management-data-toolbar,
 .management-page > .resources-section > .inventory-section > .management-data-toolbar,
-.management-page > .resources-section > .equipment-section > .management-data-toolbar { margin-top: 0; }
+.management-page > .resources-section > .equipment-section > .management-data-toolbar {
+  margin-top: 0;
+}
 
 /* Catering content keeps its semantics while inheriting GSU surface restraint. */
-.public-portal .primary-link,
+.public-view .primary-link,
 .app-shell .primary-link {
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow) !important;
@@ -148,22 +121,29 @@
     box-shadow var(--motion-standard) ease,
     transform var(--motion-standard) var(--ease-standard) !important;
 }
-.public-portal .primary-link:hover,
-.app-shell .primary-link:hover { transform: translateY(-1px) !important; box-shadow: var(--shadow-md) !important; }
-.public-portal .package-card,
+
+.public-view .primary-link:hover,
+.app-shell .primary-link:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.public-view .package-card,
 .app-shell .package-card {
   border-color: var(--line) !important;
   border-radius: var(--radius-lg) !important;
   background: var(--surface-translucent) !important;
   box-shadow: var(--shadow) !important;
 }
-.public-portal .package-card:hover,
+
+.public-view .package-card:hover,
 .app-shell .package-card:hover {
   transform: translateY(-1px) !important;
   border-color: var(--primary) !important;
   box-shadow: var(--shadow-md) !important;
 }
-.public-portal .catalog-status,
+
+.public-view .catalog-status,
 .app-shell .catalog-status {
   border-color: var(--line) !important;
   border-radius: var(--radius-lg) !important;
@@ -171,10 +151,7 @@
 }
 
 @media (max-width: 640px) {
-  .admin-view .management-page {
-    --management-tab-content-gap: 16px;
-    --management-section-stack-gap: 10px;
-  }
+  .admin-view .management-page { --management-section-stack-gap: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
