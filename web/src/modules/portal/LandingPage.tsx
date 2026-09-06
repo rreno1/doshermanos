@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { loadActivePackages } from '../operations/package.service';
-import type { CateringPackage } from '../operations/package.types';
+import { loadActivePackages } from '@modules/operations/package.service';
+import type { CateringPackage } from '@modules/operations/package.types';
 
 export function LandingPage() {
   const [packages, setPackages] = useState<CateringPackage[]>([]);
