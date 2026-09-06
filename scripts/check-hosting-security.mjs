@@ -15,28 +15,35 @@ for (const directive of [
   "script-src 'self'",
   "https://apis.google.com",
   "https://www.gstatic.com",
+  "https://www.google.com/recaptcha/",
+  "https://www.gstatic.com/recaptcha/",
   "frame-src 'self'",
   "https://accounts.google.com",
   "https://*.firebaseapp.com",
+  "https://recaptcha.google.com/recaptcha/",
+  "connect-src 'self'",
+  "https://*.googleapis.com",
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'none'",
+  "form-action 'self'",
+  'upgrade-insecure-requests',
 ]) {
   if (!contentSecurityPolicy.includes(directive)) {
     violations.push(`Content-Security-Policy must contain: ${directive}`);
   }
 }
 
-if (globalHeaders.get('x-content-type-options') !== 'nosniff') {
-  violations.push('Hosting must send X-Content-Type-Options: nosniff.');
-}
+requireHeader('x-content-type-options', 'nosniff');
+requireHeader('x-frame-options', 'DENY');
+requireHeader('referrer-policy', 'no-referrer');
+requireHeader('permissions-policy', 'camera=(), microphone=(), geolocation=()');
+requireHeader('cross-origin-opener-policy', 'same-origin-allow-popups');
+requireHeader('cross-origin-resource-policy', 'same-origin');
 
-if (globalHeaders.get('x-frame-options') !== 'DENY') {
-  violations.push('Hosting must send X-Frame-Options: DENY.');
-}
-
-if (!globalHeaders.has('strict-transport-security')) {
-  violations.push('Hosting must send Strict-Transport-Security.');
+const hsts = globalHeaders.get('strict-transport-security') ?? '';
+if (!hsts.includes('max-age=31536000') || !hsts.includes('includeSubDomains')) {
+  violations.push('Hosting must send one-year HSTS with includeSubDomains.');
 }
 
 const indexCacheControl = indexHeaders.get('cache-control') ?? '';
@@ -58,6 +65,12 @@ if (violations.length > 0) {
 }
 
 console.log('Firebase Hosting security guard passed.');
+
+function requireHeader(name, expectedValue) {
+  if (globalHeaders.get(name) !== expectedValue) {
+    violations.push(`Hosting must send ${name}: ${expectedValue}.`);
+  }
+}
 
 function getHeaderMap(source) {
   const rule = headers.find((item) => item.source === source);
