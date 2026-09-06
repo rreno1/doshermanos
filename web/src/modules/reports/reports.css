@@ -1,4 +1,4 @@
-/* Reports is composed from shared GSU management and print contracts. */
+/* Reports is composed from shared Dos Hermanos management and print contracts. */
 .reports-section {
   display: grid;
   gap: var(--management-section-stack-gap, var(--space-3));
