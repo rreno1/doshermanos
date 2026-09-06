@@ -2,13 +2,25 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const [inventoryCss, equipmentCss, inventoryDialogCss, equipmentDialogCss, cardCss, equipmentCardCss, modalCss] = await Promise.all([
+const [
+  inventoryCss,
+  equipmentCss,
+  inventoryDialogCss,
+  equipmentDialogCss,
+  cardCss,
+  equipmentCardCss,
+  resourceImageCss,
+  resourceScrollCss,
+  modalCss,
+] = await Promise.all([
   readFile(new URL('../src/modules/resources/inventory.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/resources/equipment.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/resources/inventory-dialog.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/resources/equipment-dialog.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/resources/inventory-cards.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/resources/equipment-cards.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/modules/resources/resource-image.css', import.meta.url), 'utf8'),
+  readFile(new URL('../src/modules/resources/resources-scroll.css', import.meta.url), 'utf8'),
   readFile(new URL('../src/styles/modal-behavior.css', import.meta.url), 'utf8'),
 ]);
 
@@ -48,4 +60,19 @@ test('resource cards use semantic GSU colors and geometry', () => {
   assert.doesNotMatch(cardCss, /#[0-9a-f]{3,8}\b/i);
   assert.doesNotMatch(cardCss, /rgba?\(/i);
   assert.doesNotMatch(equipmentCardCss, /#[0-9a-f]{3,8}\b/i);
+});
+
+test('resource image and scroll affordances use shared GSU tokens', () => {
+  assert.match(resourceImageCss, /var\(--radius-lg\)/);
+  assert.match(resourceImageCss, /var\(--line-strong\)/);
+  assert.match(resourceImageCss, /var\(--surface2\)/);
+  assert.match(resourceScrollCss, /var\(--ui-toolbar-control-size\)/);
+  assert.match(resourceScrollCss, /var\(--radius-md\)/);
+  assert.match(resourceScrollCss, /var\(--ui-focus-outline\)/);
+
+  for (const css of [resourceImageCss, resourceScrollCss]) {
+    assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i);
+    assert.doesNotMatch(css, /rgba?\(/i);
+    assert.doesNotMatch(css, /border-radius:\s*(?:14|18|20|22|24|26|28)px/);
+  }
 });
