@@ -1,4 +1,4 @@
-/* Canonical GSU shared component language. Feature-specific management layout lives with its owning contracts. */
+/* Canonical Dos Hermanos shared component language. Feature-specific management layout lives with its owning contracts. */
 .status {
   display: inline-flex;
   align-items: center;
@@ -274,8 +274,8 @@ tr:last-child td { border-bottom: 0; }
 }
 
 .icon-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--ui-compact-control-size);
+  height: var(--ui-compact-control-size);
   padding: 0;
   font-size: 16px;
   line-height: 1;
