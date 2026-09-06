@@ -1,8 +1,10 @@
-/* Canonical admin form geometry and field rhythm. */
+/* Canonical Dos Hermanos form geometry and field rhythm. */
 .admin-view .management-page input:not([type='checkbox']):not([type='radio']):not([type='file']),
 .admin-view .management-page select,
 .admin-view .management-page .management-select-trigger {
+  height: var(--ui-form-control-height);
   min-height: var(--ui-form-control-height);
+  box-sizing: border-box;
   border-color: var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--surface-solid);
@@ -11,10 +13,58 @@
 
 .admin-view .management-page textarea {
   min-height: var(--ui-form-textarea-min-height);
+  box-sizing: border-box;
   border-color: var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--surface-solid);
   color: var(--text);
+}
+
+/* Every native Dos Hermanos dialog uses the same physical single-line control height. */
+dialog.auth-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.auth-dialog select,
+dialog.inventory-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.inventory-dialog select,
+dialog.equipment-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.equipment-dialog select,
+dialog.payment-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.payment-dialog select,
+dialog.package-management-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.package-management-dialog select,
+dialog.reservation-dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+dialog.reservation-dialog select {
+  width: 100%;
+  height: var(--ui-form-control-height) !important;
+  min-height: var(--ui-form-control-height) !important;
+  box-sizing: border-box;
+  padding-block: 0;
+  padding-inline: 13px;
+}
+
+dialog.auth-dialog textarea,
+dialog.inventory-dialog textarea,
+dialog.equipment-dialog textarea,
+dialog.payment-dialog textarea,
+dialog.package-management-dialog textarea,
+dialog.reservation-dialog textarea {
+  width: 100%;
+  min-height: var(--ui-form-textarea-min-height);
+  box-sizing: border-box;
+  padding: 11px 13px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+dialog.auth-dialog input[type='file'],
+dialog.inventory-dialog input[type='file'],
+dialog.equipment-dialog input[type='file'],
+dialog.payment-dialog input[type='file'],
+dialog.package-management-dialog input[type='file'],
+dialog.reservation-dialog input[type='file'] {
+  width: 100%;
+  min-height: var(--ui-form-control-height);
+  box-sizing: border-box;
+  padding: 6px 8px;
 }
 
 .admin-view .field-grid,
@@ -22,10 +72,12 @@
 .admin-view .inventory-field-row,
 .admin-view .payment-field-row,
 .admin-view .manual-reservation-grid,
-.admin-view .package-management-field-grid {
+.admin-view .package-management-field-grid,
+dialog .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  column-gap: 16px;
+  row-gap: 16px;
   min-width: 0;
 }
 
@@ -33,7 +85,12 @@
 .admin-view .inventory-field,
 .admin-view .payment-field,
 .admin-view .manual-reservation-field,
-.admin-view .package-management-field {
+.admin-view .package-management-field,
+dialog .field,
+dialog .equipment-field,
+dialog .inventory-field,
+dialog .payment-field,
+dialog .package-management-field {
   min-width: 0;
 }
 
@@ -41,7 +98,8 @@
 .admin-view .inventory-field small,
 .admin-view .payment-field small,
 .admin-view .manual-reservation-field small,
-.admin-view .package-management-field small {
+.admin-view .package-management-field small,
+dialog .inline-help {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.45;
@@ -51,7 +109,11 @@
 .admin-view .management-page input:focus-visible,
 .admin-view .management-page textarea:focus-visible,
 .admin-view .management-page select:focus-visible,
-.admin-view .management-page .management-select-trigger:focus-visible {
+.admin-view .management-page .management-select-trigger:focus-visible,
+dialog button:focus-visible,
+dialog input:focus-visible,
+dialog textarea:focus-visible,
+dialog select:focus-visible {
   outline: var(--ui-focus-outline);
   outline-offset: var(--ui-focus-offset);
   box-shadow: var(--ui-focus-shadow);
@@ -63,13 +125,17 @@
   .admin-view .inventory-field-row,
   .admin-view .payment-field-row,
   .admin-view .manual-reservation-grid,
-  .admin-view .package-management-field-grid {
+  .admin-view .package-management-field-grid,
+  dialog .field-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .admin-view input:not([type='checkbox']):not([type='radio']):not([type='file']),
   .admin-view textarea,
-  .admin-view .management-select-trigger {
+  .admin-view .management-select-trigger,
+  dialog input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  dialog textarea,
+  dialog select {
     font-size: 16px;
   }
 }
