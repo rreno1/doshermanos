@@ -72,6 +72,7 @@ export function AuditPanel() {
                 value={kindFilter}
                 options={[
                   { value: 'all', label: 'All activity' },
+                  { value: 'access', label: 'Access control' },
                   { value: 'inventory', label: 'Inventory' },
                   { value: 'payment', label: 'Payments' },
                   { value: 'reservation', label: 'Reservations' },
@@ -184,6 +185,7 @@ function getAuditEmptyMessage(totalCount: number, visibleCount: number) {
 }
 
 function formatCategory(kind: AuditActivity['kind']) {
+  if (kind.startsWith('access_')) return 'Access control';
   if (kind.startsWith('inventory_')) return 'Inventory';
   if (kind.startsWith('payment_')) return 'Payments';
   if (kind.startsWith('reservation_')) return 'Reservations';
