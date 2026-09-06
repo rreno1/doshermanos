@@ -11,6 +11,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { firestore } from '@core/firebase/firebase';
+import { ensureRecentGoogleAuthentication } from '@modules/auth/auth-security';
 import type { UserProfile, UserRole, UserStatus } from '@modules/auth/auth.types';
 
 const USER_LIMIT = 100;
@@ -65,6 +66,7 @@ export async function updateUserAccess(
   role: UserRole,
   status: UserStatus,
 ): Promise<void> {
+  await ensureRecentGoogleAuthentication();
   await updateDoc(doc(firestore, 'users', userId), {
     role,
     status,
