@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@modules/auth/AuthProvider';
 import { ResponsiveButtonContent } from '@shared/ui/ResponsiveButtonContent';
-import { useAuth } from '../auth/AuthProvider';
 import { ReservationRequestDialog } from './ReservationRequestDialog';
 import { loadActivePackages } from './package.service';
 import type { CateringPackage } from './package.types';
