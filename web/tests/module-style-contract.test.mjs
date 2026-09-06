@@ -22,7 +22,7 @@ function nonWhiteHexColors(source) {
 function hasIndependentBoxShadow(source) {
   for (const match of source.matchAll(/box-shadow:\s*([^;]+);/gi)) {
     const value = match[1].trim();
-    if (value === 'none' || value.startsWith('var(')) continue;
+    if (/^none(?:\s*!important)?$/i.test(value) || value.startsWith('var(')) continue;
     return true;
   }
 
