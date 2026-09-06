@@ -11,6 +11,7 @@ const [
   firebaseCore,
   stagingEnv,
   productionEnv,
+  hostingConfig,
 ] = await Promise.all([
   readFile(new URL('../src/modules/auth/auth-security.ts', import.meta.url), 'utf8'),
   readFile(new URL('../src/modules/auth/AuthProvider.tsx', import.meta.url), 'utf8'),
@@ -20,6 +21,7 @@ const [
   readFile(new URL('../src/core/firebase/firebase.ts', import.meta.url), 'utf8'),
   readFile(new URL('../.env.staging.example', import.meta.url), 'utf8'),
   readFile(new URL('../.env.production.example', import.meta.url), 'utf8'),
+  readFile(new URL('../../firebase.json', import.meta.url), 'utf8'),
 ]);
 
 test('authenticated sessions accept only verified Google identities', () => {
@@ -61,4 +63,14 @@ test('deployment builds support Firebase App Check with reCAPTCHA Enterprise', (
   assert.doesNotMatch(firebaseCore, /APPCHECK_DEBUG_TOKEN/);
   assert.match(stagingEnv, /VITE_FIREBASE_APP_CHECK_SITE_KEY=/);
   assert.match(productionEnv, /VITE_FIREBASE_APP_CHECK_SITE_KEY=/);
+});
+
+test('hosting policy permits App Check endpoints without weakening isolation', () => {
+  assert.match(hostingConfig, /https:\/\/www\.google\.com\/recaptcha\//);
+  assert.match(hostingConfig, /https:\/\/www\.gstatic\.com\/recaptcha\//);
+  assert.match(hostingConfig, /https:\/\/recaptcha\.google\.com\/recaptcha\//);
+  assert.match(hostingConfig, /Cross-Origin-Opener-Policy/);
+  assert.match(hostingConfig, /same-origin-allow-popups/);
+  assert.match(hostingConfig, /Cross-Origin-Resource-Policy/);
+  assert.match(hostingConfig, /upgrade-insecure-requests/);
 });
