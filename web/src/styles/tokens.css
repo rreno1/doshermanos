@@ -1,5 +1,5 @@
 :root {
-  /* GSU starter-kit tokens. Dos Hermanos changes business content, not the UI contract. */
+  /* Canonical Dos Hermanos design tokens. */
   --font-title: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
@@ -76,7 +76,7 @@
   --ui-focus-shadow: 0 0 0 3px rgba(38, 117, 91, 0.15);
   --ui-transition-fast: var(--motion-fast) ease;
 
-  /* Dos-specific semantic names map directly to the canonical GSU tokens. */
+  /* Dos Hermanos semantic aliases keep feature code readable. */
   --page-width: var(--layout-content-max);
   --surface-strong: var(--surface-solid);
   --text-muted: var(--muted);
