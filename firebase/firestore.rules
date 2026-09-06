@@ -34,7 +34,8 @@ service cloud.firestore {
 
     function validUserDocument() {
       return request.resource.data.keys().hasOnly([
-          'displayName', 'role', 'status', 'createdAt', 'updatedAt'
+          'displayName', 'role', 'status', 'lastAccessEventId',
+          'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasAll([
           'displayName', 'role', 'status', 'createdAt', 'updatedAt'
@@ -44,8 +45,86 @@ service cloud.firestore {
         && request.resource.data.displayName.size() <= 100
         && request.resource.data.role in ['customer', 'staff', 'admin']
         && request.resource.data.status in ['active', 'inactive', 'suspended']
+        && (
+          !request.resource.data.keys().hasAll(['lastAccessEventId'])
+          || (
+            request.resource.data.lastAccessEventId is string
+            && request.resource.data.lastAccessEventId.size() > 0
+            && request.resource.data.lastAccessEventId.size() <= 120
+          )
+        )
         && request.resource.data.createdAt is timestamp
         && request.resource.data.updatedAt is timestamp;
+    }
+
+    function validUserAccessEventDocument() {
+      return request.resource.data.keys().hasOnly([
+          'targetUserId', 'targetDisplayName', 'previousRole', 'newRole',
+          'previousStatus', 'newStatus', 'changedBy', 'changedByName', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'targetUserId', 'targetDisplayName', 'previousRole', 'newRole',
+          'previousStatus', 'newStatus', 'changedBy', 'changedByName', 'createdAt'
+        ])
+        && request.resource.data.targetUserId is string
+        && request.resource.data.targetUserId.size() > 0
+        && request.resource.data.targetUserId.size() <= 120
+        && request.resource.data.targetDisplayName is string
+        && request.resource.data.targetDisplayName.size() > 0
+        && request.resource.data.targetDisplayName.size() <= 100
+        && request.resource.data.previousRole in ['customer', 'staff', 'admin']
+        && request.resource.data.newRole in ['customer', 'staff', 'admin']
+        && request.resource.data.previousStatus in ['active', 'inactive', 'suspended']
+        && request.resource.data.newStatus in ['active', 'inactive', 'suspended']
+        && request.resource.data.changedBy is string
+        && request.resource.data.changedBy.size() > 0
+        && request.resource.data.changedBy.size() <= 120
+        && request.resource.data.changedByName is string
+        && request.resource.data.changedByName.size() > 0
+        && request.resource.data.changedByName.size() <= 100
+        && (
+          request.resource.data.previousRole != request.resource.data.newRole
+          || request.resource.data.previousStatus != request.resource.data.newStatus
+        )
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function userAccessUpdateHasMatchingEvent(userId) {
+      let eventId = request.resource.data.lastAccessEventId;
+      let eventPath = /databases/$(database)/documents/userAccessEvents/$(eventId);
+      let eventDocument = getAfter(eventPath);
+
+      return eventId is string
+        && eventId != resource.data.get('lastAccessEventId', '')
+        && existsAfter(eventPath)
+        && eventDocument.data.targetUserId == userId
+        && eventDocument.data.targetDisplayName == resource.data.displayName
+        && eventDocument.data.previousRole == resource.data.role
+        && eventDocument.data.newRole == request.resource.data.role
+        && eventDocument.data.previousStatus == resource.data.status
+        && eventDocument.data.newStatus == request.resource.data.status
+        && eventDocument.data.changedBy == request.auth.uid
+        && eventDocument.data.changedByName == currentUserProfile().data.displayName
+        && eventDocument.data.createdAt == request.time;
+    }
+
+    function userAccessEventMatchesTarget(eventId) {
+      let userPath = /databases/$(database)/documents/users/$(request.resource.data.targetUserId);
+      let previousUser = get(userPath);
+      let updatedUser = getAfter(userPath);
+
+      return exists(userPath)
+        && existsAfter(userPath)
+        && request.resource.data.changedBy == request.auth.uid
+        && request.resource.data.changedByName == currentUserProfile().data.displayName
+        && request.resource.data.createdAt == request.time
+        && previousUser.data.displayName == request.resource.data.targetDisplayName
+        && previousUser.data.role == request.resource.data.previousRole
+        && updatedUser.data.role == request.resource.data.newRole
+        && previousUser.data.status == request.resource.data.previousStatus
+        && updatedUser.data.status == request.resource.data.newStatus
+        && updatedUser.data.lastAccessEventId == eventId
+        && updatedUser.data.updatedAt == request.time;
     }
 
     function validPackageDocument() {
@@ -877,6 +956,7 @@ service cloud.firestore {
         && validUserDocument()
         && request.resource.data.role == 'customer'
         && request.resource.data.status == 'active'
+        && !request.resource.data.keys().hasAll(['lastAccessEventId'])
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
@@ -892,9 +972,28 @@ service cloud.firestore {
         && request.auth.uid != userId
         && validUserDocument()
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.lastAccessEventId is string
+        && (
+          request.resource.data.role != resource.data.role
+          || request.resource.data.status != resource.data.status
+        )
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'role', 'status', 'lastAccessEventId', 'updatedAt'
+        ])
+        && userAccessUpdateHasMatchingEvent(userId);
 
       allow delete: if false;
+    }
+
+    match /userAccessEvents/{eventId} {
+      allow get, list: if isAdmin();
+
+      allow create: if isAdmin()
+        && validUserAccessEventDocument()
+        && userAccessEventMatchesTarget(eventId);
+
+      allow update, delete: if false;
     }
 
     match /packages/{packageId} {
