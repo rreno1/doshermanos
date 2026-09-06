@@ -12,26 +12,35 @@ import {
 } from '../src/shared/ui/ManagementControls.tsx';
 
 const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
+const tabsPath = new URL('../src/shared/ui/Tabs.tsx', import.meta.url);
 const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
 });
 
-test('management tabs render as shared line tab controls', () => {
+test('management tabs render through the canonical GSU line-tab primitive', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementTabs, {
     value: 'registry',
     options: [
-      { value: 'registry', label: 'Registry' },
+      { value: 'registry', label: 'Registry', mobileLabel: 'Items' },
       { value: 'activity', label: 'Activity' },
     ],
     onChange: () => undefined,
     label: 'Views',
   }));
+  const tabsSource = await readFile(tabsPath, 'utf8');
 
-  assert.match(markup, /management-tabs/);
+  assert.match(markup, /class="tab-bar"/);
   assert.match(markup, /role="tablist"/);
-  assert.match(markup, /management-tab-active/);
+  assert.match(markup, /class="active"/);
+  assert.match(markup, /tab-label-full/);
+  assert.match(markup, /tab-label-mobile/);
+  assert.match(markup, />Items</);
+  assert.match(tabsSource, /event\.key === 'ArrowRight'/);
+  assert.match(tabsSource, /event\.key === 'ArrowLeft'/);
+  assert.match(tabsSource, /event\.key === 'Home'/);
+  assert.match(tabsSource, /event\.key === 'End'/);
 });
 
 test('management toolbar keeps summary search semantic filter control and primary action visible', () => {
