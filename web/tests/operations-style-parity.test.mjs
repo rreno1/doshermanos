@@ -16,7 +16,7 @@ const [
   readFile(new URL('../src/modules/operations/ReservationReviewPanel.tsx', import.meta.url), 'utf8'),
 ]);
 
-test('operations dialogs inherit the shared GSU modal contract', () => {
+test('operations dialogs inherit the shared Dos Hermanos modal contract', () => {
   assert.match(modalCss, /dialog\.package-management-dialog/);
   assert.match(modalCss, /dialog\.reservation-dialog/);
   assert.match(modalCss, /border-radius:\s*var\(--radius-lg\)/);
@@ -27,7 +27,7 @@ test('operations dialogs inherit the shared GSU modal contract', () => {
   assert.doesNotMatch(reservationCss, /border-radius:\s*(?:20|24|28)px/);
 });
 
-test('operations action buttons use GSU control radii instead of pill styling', () => {
+test('operations action buttons use Dos Hermanos control radii instead of pill styling', () => {
   assert.match(packageCss, /--ui-toolbar-control-size/);
   assert.match(packageCss, /border-radius:\s*var\(--radius-md\)/);
   assert.match(reservationCss, /min-height:\s*var\(--ui-toolbar-control-size\)/);
