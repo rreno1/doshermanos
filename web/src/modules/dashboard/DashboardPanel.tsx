@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AppLink } from '@core/app/navigation';
-import { subscribeToPendingReservations } from '../operations/reservation.service';
-import { subscribeToRecentPayments } from '../payments/payment.service';
-import { subscribeToEquipment } from '../resources/equipment.service';
-import { subscribeToInventory } from '../resources/inventory.service';
+import { subscribeToPendingReservations } from '@modules/operations/reservation.service';
+import { subscribeToRecentPayments } from '@modules/payments/payment.service';
+import { subscribeToEquipment } from '@modules/resources/equipment.service';
+import { subscribeToInventory } from '@modules/resources/inventory.service';
 import './dashboard.css';
 
 type DashboardPanelProps = {
