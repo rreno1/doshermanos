@@ -4,7 +4,6 @@ import {
   ManagementFilterField,
   ManagementSelect,
   ManagementTableFrame,
-  ManagementTabs,
   ManagementToolbar,
   useManagementPage,
 } from '@shared/ui/ManagementControls';
@@ -14,8 +13,6 @@ import './users.css';
 
 type UserSort = 'name' | 'role' | 'status';
 type SortDirection = 'asc' | 'desc';
-
-const tabs = [{ value: 'users', label: 'Users' }] as const;
 
 export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
   const { showToast } = useToast();
@@ -52,6 +49,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
     visibleUsers,
     `${queryText}|${roleFilter}|${statusFilter}|${sortBy}|${sortDirection}`,
   );
+  const emptyMessage = getUserEmptyMessage(users.length, visibleUsers.length);
 
   function updateDraft(userId: string, change: Partial<Pick<UserProfile, 'role' | 'status'>>) {
     setUsers((currentUsers) => currentUsers.map((user) => (user.id === userId ? { ...user, ...change } : user)));
@@ -69,16 +67,15 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
     }
   }
 
-  const emptyMessage = users.length === 0
-    ? 'No users yet.'
-    : visibleUsers.length === 0
-      ? 'No users match the current view.'
-      : undefined;
+  function resetFilters() {
+    setRoleFilter('all');
+    setStatusFilter('all');
+    setSortBy('name');
+    setSortDirection('asc');
+  }
 
   return (
     <section className="users-section" aria-label="Users and roles">
-      <ManagementTabs value="users" options={[...tabs]} onChange={() => undefined} label="User views" />
-
       <ManagementToolbar
         summary={[
           { label: 'profiles', value: users.length },
@@ -140,16 +137,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                 ariaLabel="User sort direction"
               />
             </ManagementFilterField>
-            <button
-              type="button"
-              className="management-secondary-button"
-              onClick={() => {
-                setRoleFilter('all');
-                setStatusFilter('all');
-                setSortBy('name');
-                setSortDirection('asc');
-              }}
-            >
+            <button type="button" className="management-secondary-button" onClick={resetFilters}>
               Reset filters
             </button>
           </>
@@ -222,7 +210,7 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
                           disabled={disabled}
                           onClick={() => void saveUser(user)}
                         >
-                          {savingUserId === user.id ? 'Saving…' : isCurrentUser ? 'Protected' : 'Save'}
+                          {getSaveButtonLabel(user.id, currentUserId, savingUserId)}
                         </button>
                       </div>
                     </td>
@@ -239,6 +227,24 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
   );
 }
 
+function getUserEmptyMessage(totalUsers: number, visibleUsers: number) {
+  if (totalUsers === 0) return 'No users yet.';
+  if (visibleUsers === 0) return 'No users match the current view.';
+  return undefined;
+}
+
+function getSaveButtonLabel(userId: string, currentUserId: string, savingUserId: string | null) {
+  if (savingUserId === userId) return 'Saving…';
+  if (userId === currentUserId) return 'Protected';
+  return 'Save';
+}
+
+function getUserSortValue(user: UserProfile, sortBy: UserSort) {
+  if (sortBy === 'role') return user.role;
+  if (sortBy === 'status') return user.status;
+  return user.displayName;
+}
+
 function filterUsers(users: UserProfile[], query: string, role: string, status: string, sortBy: UserSort, direction: SortDirection) {
   const text = query.trim().toLocaleLowerCase();
   return [...users]
@@ -246,8 +252,8 @@ function filterUsers(users: UserProfile[], query: string, role: string, status: 
     .filter((user) => status === 'all' || user.status === status)
     .filter((user) => !text || `${user.displayName} ${user.id} ${user.role} ${user.status}`.toLocaleLowerCase().includes(text))
     .sort((left, right) => {
-      const leftValue = sortBy === 'role' ? left.role : sortBy === 'status' ? left.status : left.displayName;
-      const rightValue = sortBy === 'role' ? right.role : sortBy === 'status' ? right.status : right.displayName;
+      const leftValue = getUserSortValue(left, sortBy);
+      const rightValue = getUserSortValue(right, sortBy);
       const result = leftValue.localeCompare(rightValue, 'en-PH', { sensitivity: 'base' });
       return direction === 'asc' ? result : -result;
     });
