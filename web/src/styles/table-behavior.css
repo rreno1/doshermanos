@@ -1,43 +1,7 @@
-/* Responsive table ownership follows the GSU semantic column contract. */
-.management-table-wrap {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--surface-translucent);
-}
-
-.management-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-  background: transparent;
-}
-
-.management-table th,
-.management-table td {
-  padding: var(--table-cell-py) var(--table-cell-px);
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: middle;
-}
-
-.management-table th {
-  background: var(--surface2);
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.management-table tbody tr:last-child td { border-bottom: 0; }
-.management-table tbody tr:hover { background: color-mix(in srgb, var(--surface2) 45%, transparent); }
-.management-table .col-primary { min-width: 190px; }
-.management-table .col-status { width: 1%; white-space: nowrap; }
-.management-table .col-actions { width: 1%; white-space: nowrap; text-align: right; }
+/* Responsive management tables follow the canonical GSU semantic column contract. */
+.management-table .col-primary { min-width: 0; }
+.management-table .col-status { white-space: nowrap; }
+.management-table .col-actions { white-space: nowrap; text-align: right; }
 .management-table td.col-actions .management-table-actions { justify-content: flex-end; }
 
 .management-row-button,
@@ -48,24 +12,94 @@
   border-radius: var(--radius-sm);
 }
 
-@media (max-width: 900px) {
+@media (min-width: 769px) and (max-width: 900px) {
+  .management-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .management-table {
+    min-width: 900px;
+    table-layout: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .management-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    margin-bottom: 8px;
+  }
+
+  .management-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .management-table th,
+  .management-table td {
+    padding: 7px 10px;
+    font-size: 13.5px;
+    vertical-align: middle;
+  }
+
+  .management-table-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-wrap: nowrap;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .management-status-badge {
+    max-width: 100%;
+    padding: 2.5px 6px;
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+
+  .management-table .col-hide-mobile { display: none; }
+
+  .management-table .col-primary {
+    width: 32%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .management-table .col-secondary {
+    width: 24%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .management-table .col-status { width: 22%; }
+
+  .management-table .col-actions {
+    display: table-cell;
+    width: 22%;
+    text-align: right;
+  }
+
+  .management-table .col-status .management-status-badge {
+    max-width: 100%;
+    white-space: normal;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.15;
+    padding-inline: 6px;
+  }
+
   .management-table .col-hide-tablet { display: none; }
 }
 
-@media (max-width: 640px) {
-  .management-table-wrap { overflow-x: clip; }
-  .management-table { min-width: 0; table-layout: fixed; }
-  .management-table .col-hide-mobile,
-  .management-table .col-secondary { display: none; }
-  .management-table .col-primary { width: auto; min-width: 0; }
-  .management-table .col-status { width: 96px; }
-  .management-table .col-actions { width: 92px; }
-  .management-table th,
-  .management-table td { overflow-wrap: anywhere; }
-}
-
-@media (max-width: 480px) {
-  /* Preserve the semantic header row for assistive technology while avoiding a cramped visual header grid. */
+@media (max-width: 620px) {
+  /* Preserve semantic headers for assistive technology without squeezing them visually. */
   .management-table thead {
     position: absolute;
     width: 1px;
@@ -79,8 +113,38 @@
     border: 0;
   }
 
-  .management-table .col-status { width: 84px; }
-  .management-table .col-actions { width: 72px; }
-  .management-table th,
-  .management-table td { padding: 10px 8px; }
+  .management-table .col-secondary,
+  .management-table .col-hide-mobile { display: none; }
+
+  .management-table .col-primary { width: 50%; }
+  .management-table .col-status { width: 24%; }
+
+  .management-table .col-actions {
+    display: table-cell;
+    width: 26%;
+    text-align: right;
+  }
+
+  /* Report rows intentionally retain two semantically important data columns. */
+  .reports-section .management-table .col-primary {
+    display: table-cell;
+    width: 44%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .reports-section .management-table .col-secondary {
+    display: table-cell;
+    width: 32%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .reports-section .management-table .col-hide-mobile { display: none; }
+
+  .reports-section .management-table .col-actions {
+    display: table-cell;
+    width: 24%;
+    text-align: right;
+  }
 }
