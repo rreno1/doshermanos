@@ -1,7 +1,7 @@
-import type { UserProfile } from '../auth/auth.types';
-import { MyPayments } from '../payments/MyPayments';
-import { MyReservations } from '../operations/MyReservations';
-import { PackageCatalog } from '../operations/PackageCatalog';
+import type { UserProfile } from '@modules/auth/auth.types';
+import { MyPayments } from '@modules/payments/MyPayments';
+import { MyReservations } from '@modules/operations/MyReservations';
+import { PackageCatalog } from '@modules/operations/PackageCatalog';
 import { LandingPage } from './LandingPage';
 import { PortalHomePage } from './PortalHomePage';
 import { PortalShell } from './PortalShell';
