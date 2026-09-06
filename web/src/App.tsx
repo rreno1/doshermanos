@@ -160,7 +160,9 @@ function renderManagementPage(
     case 'reports':
       return <ReportsPanel />;
     case 'users':
-      return role === 'admin' ? <UsersRolesPanel currentUserId={profile.id} /> : null;
+      return role === 'admin' ? (
+        <UsersRolesPanel currentUserId={profile.id} currentUserName={profile.displayName} />
+      ) : null;
     case 'audit':
       return role === 'admin' ? <AuditPanel /> : null;
   }
