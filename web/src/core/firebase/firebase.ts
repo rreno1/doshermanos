@@ -1,4 +1,8 @@
 import { getApps, initializeApp } from 'firebase/app';
+import {
+  ReCaptchaEnterpriseProvider,
+  initializeAppCheck,
+} from 'firebase/app-check';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -36,6 +40,15 @@ if (!isDeploymentMode && firebaseConfig.projectId === deploymentProjectId) {
 }
 
 const firebaseApp = getApps()[0] ?? initializeApp(firebaseConfig);
+const appCheckSiteKey = String(import.meta.env.VITE_FIREBASE_APP_CHECK_SITE_KEY ?? '').trim();
+
+if (isDeploymentMode && appCheckSiteKey) {
+  initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
+
 const storageBucket = `gs://${firebaseConfig.projectId}.firebasestorage.app`;
 
 export const firebaseAuth = getAuth(firebaseApp);
