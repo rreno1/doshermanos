@@ -1,8 +1,8 @@
 # Dos Hermanos Codebase and UI/UX Standard
 
-This document defines the **Dos Hermanos Standard**: the canonical frontend architecture, human-readable code conventions, shared UI contracts, responsive behavior, and presentation rules for the Dos Hermanos Catering System.
+This document defines the **Dos Hermanos Standard**: the canonical frontend architecture, human-readable code conventions, shared UI contracts, responsive behavior, presentation rules, and security expectations for the Dos Hermanos Catering System.
 
-During the standardization project, GSU Waste was used as the external reference implementation for the visual and interaction benchmark. That provenance does not make GSU the owner or name of this standard. From this point forward, the implementation, tests, documentation, and review gates are named for **Dos Hermanos**. Dos Hermanos keeps its catering domain and Firebase backend.
+During the standardization project, an external production-style implementation was used as the visual and interaction benchmark. That provenance does not make the benchmark the owner or name of this standard. From this point forward, the implementation, tests, documentation, and review gates are named for **Dos Hermanos**. Dos Hermanos keeps its catering domain and Firebase backend.
 
 ## Canonical source structure
 
@@ -108,6 +108,23 @@ The Dos Hermanos public portal owns these baseline details:
 - 12px public content-card radius where the portal design calls for it
 - 8px public control radius
 
+## Security contract
+
+The Dos Hermanos Standard treats frontend security, Firebase authorization, browser policy, and release controls as one system rather than separate afterthoughts.
+
+- Firebase Security Rules are the authoritative authorization boundary; hidden controls and route guards never substitute for rules.
+- Authenticated sessions accept only non-anonymous, email-verified Google identities.
+- Staff and administrator browser sessions use session-scoped persistence; customers retain local persistence.
+- The existing inactivity timeout remains active, and sensitive access/payment operations use recent-authentication step-up.
+- Firebase App Check with score-based reCAPTCHA Enterprise is supported for staging/production and must be rolled out through metrics before enforcement.
+- Resource image uploads are MIME/size constrained and bound to existing Firestore resource records.
+- Hosting applies strict CSP, clickjacking protection, cross-origin isolation-compatible headers, HSTS, restrictive browser permissions, and safe cache policy.
+- CI includes Firestore rules tests, Storage policy checks, Hosting security checks, environment separation, production dependency auditing, behavior tests, and readability/architecture guards.
+- Dependabot monitors dependency and GitHub Actions updates.
+- No service-account key, private key, App Check debug token, privileged credential, or other secret belongs in the repository.
+
+Operational details and the App Check rollout procedure are defined in `docs/security-hardening.md`.
+
 ## Legacy-path policy
 
 The Dos Hermanos migration boundary is closed. The frontend must not contain compatibility aliases or duplicate legacy trees for `src/app`, `src/features`, or root `src/firebase`.
@@ -126,8 +143,9 @@ The Dos Hermanos Standard preserves the approved backend:
 - Cloud Firestore
 - Firebase Storage where required by approved workflows
 - Firebase Hosting
+- Firebase App Check as an additional deployment attestation layer when configured/enforced
 
-Frontend standardization must never weaken Firestore Security Rules, introduce privileged client credentials, or substitute another backend merely to imitate the reference implementation.
+Frontend standardization must never weaken Firestore or Storage Security Rules, introduce privileged client credentials, or substitute another backend merely to imitate a frontend benchmark.
 
 ## Review gate
 
@@ -136,8 +154,9 @@ A change is not complete merely because it works or looks correct. Review it aga
 1. Is the code in the correct Dos Hermanos architectural layer?
 2. Is the implementation readable to another developer without reconstructing hidden conventions?
 3. Does it reuse the canonical Dos Hermanos shared UI/data/navigation contract instead of creating a parallel system?
-4. Does it preserve Firebase security and data integrity?
+4. Does it preserve Firebase authorization, security, and data integrity?
 5. Does it preserve the exact Dos Hermanos geometry, interaction, responsive, accessibility, and public-portal standards?
 6. Has replaced or competing presentation code been removed rather than overridden indefinitely?
+7. Does the change keep identity, session, App Check, Hosting, Storage, and dependency-security guardrails intact?
 
-The regression suite enforces the **Dos Hermanos Standard** for architecture, presentation ownership, responsive behavior, semantic controls, and domain behavior. Issue #14 remains the acceptance gate for this parity project until every applicable screen has been independently verified against the benchmark and the exact final head passes CI.
+The regression suite enforces the **Dos Hermanos Standard** for architecture, presentation ownership, responsive behavior, semantic controls, security controls, and domain behavior. Issue #14 remains the acceptance gate for this standardization project until every applicable screen has been independently verified against the benchmark and the exact final head passes CI.
