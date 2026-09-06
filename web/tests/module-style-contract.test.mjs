@@ -43,7 +43,7 @@ test('module CSS does not revive oversized custom corner radii', () => {
   assert.deepEqual(
     offenders,
     [],
-    `Feature CSS must use GSU radius tokens instead of custom radii above 10px:\n${offenders.join('\n')}`,
+    `Feature CSS must use Dos Hermanos radius tokens instead of custom radii above 10px:\n${offenders.join('\n')}`,
   );
 });
 
@@ -61,7 +61,7 @@ test('module CSS uses semantic palette tokens instead of local hard-coded colors
   assert.deepEqual(
     offenders,
     [],
-    `Feature CSS must use shared GSU semantic color tokens:\n${offenders.join('\n')}`,
+    `Feature CSS must use shared Dos Hermanos semantic color tokens:\n${offenders.join('\n')}`,
   );
 });
 
@@ -74,6 +74,6 @@ test('module CSS does not create independent numeric shadow systems', () => {
   assert.deepEqual(
     offenders,
     [],
-    `Feature CSS must use shared GSU shadow tokens:\n${offenders.join('\n')}`,
+    `Feature CSS must use shared Dos Hermanos shadow tokens:\n${offenders.join('\n')}`,
   );
 });
