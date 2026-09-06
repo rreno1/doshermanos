@@ -14,7 +14,12 @@ import './users.css';
 type UserSort = 'name' | 'role' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
+type UsersRolesPanelProps = {
+  currentUserId: string;
+  currentUserName: string;
+};
+
+export function UsersRolesPanel({ currentUserId, currentUserName }: UsersRolesPanelProps) {
   const { showToast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +63,12 @@ export function UsersRolesPanel({ currentUserId }: { currentUserId: string }) {
   async function saveUser(user: UserProfile) {
     setSavingUserId(user.id);
     try {
-      await updateUserAccess(user.id, user.role, user.status);
+      await updateUserAccess(
+        user.id,
+        user.role,
+        user.status,
+        { id: currentUserId, displayName: currentUserName },
+      );
       showToast({ message: `${user.displayName}'s access was updated.`, tone: 'success' });
     } catch {
       showToast({ message: 'Access change could not be saved.', tone: 'error' });
