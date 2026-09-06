@@ -1,4 +1,4 @@
-/* Cross-feature GSU parity for Dos Hermanos management and public surfaces. */
+/* Cross-feature Dos Hermanos presentation contract for management and public surfaces. */
 .admin-view .management-page {
   display: contents;
   --management-surface: var(--surface-translucent);
@@ -20,7 +20,7 @@
     transform var(--motion-standard) var(--ease-standard);
 }
 
-/* GSU distinguishes 42px form controls from 40px toolbar controls. */
+/* Dos Hermanos distinguishes 42px form controls from 40px toolbar controls. */
 .admin-view .management-page .management-data-controls .management-search input,
 .admin-view .management-page .management-data-controls .management-filter-trigger,
 .admin-view .management-page .management-data-controls > .management-primary-button,
@@ -60,7 +60,7 @@
   border-color: var(--line) !important;
 }
 
-/* PageHeader → tabs → toolbar/data uses the same compact 12px GSU rhythm. */
+/* PageHeader → tabs → toolbar/data uses the same compact 12px Dos Hermanos rhythm. */
 .management-page > .users-section,
 .management-page > .payments-section,
 .management-page > .reports-section,
@@ -109,7 +109,7 @@
   margin-top: 0;
 }
 
-/* Catering content keeps its semantics while inheriting GSU surface restraint. */
+/* Catering content keeps its semantics while inheriting Dos Hermanos surface restraint. */
 .public-view .primary-link,
 .app-shell .primary-link {
   border-radius: var(--radius-md) !important;
