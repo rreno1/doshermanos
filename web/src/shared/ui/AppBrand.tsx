@@ -19,7 +19,7 @@ export function AppBrand({
   const content = (
     <span className="app-brand-copy">
       <strong className="app-brand-title">{title}</strong>
-      <small className="app-brand-subtitle">{subtitle}</small>
+      {subtitle ? <small className="app-brand-subtitle">{subtitle}</small> : null}
     </span>
   );
 
