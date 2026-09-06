@@ -9,7 +9,7 @@ const responsiveCss = await readFile(new URL('../src/styles/responsive-contract.
 const authMenuSource = await readFile(new URL('../src/modules/auth/AuthMenu.tsx', import.meta.url), 'utf8');
 const packageCatalogSource = await readFile(new URL('../src/modules/operations/PackageCatalog.tsx', import.meta.url), 'utf8');
 
-test('mobile responsive actions hide text labels and show icons at GSU toolbar size', () => {
+test('mobile responsive actions hide text labels and show icons at Dos Hermanos toolbar size', () => {
   assert.match(responsiveCss, /@media \(max-width: 620px\)/);
   assert.match(responsiveCss, /\.responsive-button-icon[\s\S]*display:\s*inline-flex/);
   assert.match(responsiveCss, /\.responsive-button-label[\s\S]*display:\s*none/);
