@@ -98,8 +98,8 @@ export function ManagementSelect<T extends string>({
         onClick={() => setIsOpen((open) => !open)}
       >
         <span>{selectedOption?.label ?? placeholder ?? 'Select'}</span>
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path d="m6 8 4 4 4-4" />
+        <svg className="management-select-arrow" viewBox="0 0 10 6" fill="currentColor" aria-hidden="true">
+          <path d="M0 0l5 6 5-6z" />
         </svg>
       </button>
 
@@ -111,26 +111,39 @@ export function ManagementSelect<T extends string>({
           aria-label={ariaLabel}
           style={menuPosition}
         >
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={option.value === value}
-              className={option.value === value ? 'management-select-option management-select-option-active' : 'management-select-option'}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-            >
-              <span>{option.label}</span>
-              {option.value === value ? <span aria-hidden="true">✓</span> : null}
-            </button>
-          ))}
+          {options.map((option) => {
+            const selected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                className={selected ? 'management-select-option management-select-option-active' : 'management-select-option'}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>{option.label}</span>
+                <span className="management-select-option-check" aria-hidden="true">
+                  {selected ? <CheckIcon /> : null}
+                </span>
+              </button>
+            );
+          })}
         </div>,
         document.body,
       ) : null}
     </div>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m5 12 4 4L19 6" />
+    </svg>
   );
 }
 
