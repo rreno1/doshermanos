@@ -89,7 +89,7 @@ The CI Hosting security guard fails if required headers or CSP directives are re
 
 ## Supply-chain and credential controls
 
-- CI performs `npm audit --omit=dev --audit-level=high` for production web dependencies.
+- CI performs `npm audit --omit=dev --audit-level=high` independently for the production web and mobile dependency trees.
 - Dependabot monitors web, mobile, Firebase test dependencies, and GitHub Actions weekly.
 - A repository secret-leak guard rejects tracked real `.env` files, private-key containers, PEM private-key material, Google service-account credentials, and recognizable high-risk provider tokens without printing the suspected value into CI logs.
 - Only `.env*.example` templates belong in source control; deployment secrets and App Check operational values belong in the deployment environment.
