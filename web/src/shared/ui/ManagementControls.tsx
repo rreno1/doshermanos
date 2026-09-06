@@ -12,6 +12,7 @@ import {
   ResponsiveButtonContent,
   type ActionIconName,
 } from './ResponsiveButtonContent';
+import { TabBar } from './Tabs';
 
 export { ManagementSelect } from './ManagementSelect';
 
@@ -20,6 +21,7 @@ export const MANAGEMENT_PAGE_SIZE = 7;
 type TabOption<T extends string> = {
   value: T;
   label: string;
+  mobileLabel?: string;
 };
 
 type SummaryItem = {
@@ -53,20 +55,16 @@ export function ManagementTabs<T extends string>({
   label: string;
 }) {
   return (
-    <div className="management-tabs" role="tablist" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          role="tab"
-          aria-selected={value === option.value}
-          className={value === option.value ? 'management-tab management-tab-active' : 'management-tab'}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <TabBar
+      tabs={options.map((option) => ({
+        key: option.value,
+        label: option.label,
+        mobileLabel: option.mobileLabel,
+      }))}
+      active={value}
+      onChange={(key) => onChange(key as T)}
+      ariaLabel={label}
+    />
   );
 }
 
