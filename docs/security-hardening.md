@@ -44,7 +44,8 @@ Important invariants include:
 
 - customers cannot promote their own role;
 - administrators cannot use a custom client to change their own role or access status; their self-service write remains limited to display-name metadata;
-- administrators can manage another user's access only through the validated user-document contract;
+- administrator changes to another user's role or status must atomically create a matching immutable `userAccessEvents` record containing the target, previous/new access values, authenticated administrator identity, and server timestamp;
+- an access-change event cannot be forged independently of the corresponding user update and cannot be edited or deleted afterward;
 - package records cannot be hard-deleted; operational removal uses the retained active/inactive state so historical reservation references remain stable;
 - customer reservation reads are owner-scoped;
 - reservation rejection requires its immutable decision record;
@@ -103,7 +104,8 @@ Before a release or merge to `main`, verify all of the following:
 2. Firestore and Storage retain explicit default-deny fallbacks.
 3. New writes validate fields, attribution, timestamps, ownership, and state transitions server-side where applicable.
 4. Sensitive staff/admin actions use recent authentication when appropriate.
-5. No secret, service-account credential, App Check debug token, private key, or privileged API credential is committed, and the secret-leak CI guard passes.
-6. The production build targets only the approved Firebase project.
-7. App Check metrics are healthy before enforcement is enabled or tightened.
-8. All exact-head CI security jobs pass.
+5. Privileged access-control changes are coupled to immutable, attributable audit records.
+6. No secret, service-account credential, App Check debug token, private key, or privileged API credential is committed, and the secret-leak CI guard passes.
+7. The production build targets only the approved Firebase project.
+8. App Check metrics are healthy before enforcement is enabled or tightened.
+9. All exact-head CI security jobs pass.
