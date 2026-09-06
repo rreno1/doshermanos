@@ -1,26 +1,40 @@
+/* Management select/filter interaction layer using the canonical GSU control contract. */
 .management-filter-menu,
-.management-select {
-  position: relative;
-}
+.management-select { position: relative; }
 
 .management-filter-trigger,
 .management-select-trigger {
-  min-height: var(--management-control-height);
+  min-height: var(--ui-form-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--management-border-strong);
-  border-radius: var(--ui-control-radius);
-  background: var(--management-surface);
-  color: #31423d;
-  box-shadow: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
 }
 
 .management-filter-trigger {
-  width: var(--management-control-height);
-  height: var(--management-control-height);
+  width: var(--ui-toolbar-control-size);
+  min-width: var(--ui-toolbar-control-size);
+  height: var(--ui-toolbar-control-size);
+  min-height: var(--ui-toolbar-control-size);
   padding: 0;
+}
+
+.management-filter-trigger:hover,
+.management-select-trigger:hover {
+  border-color: var(--primary);
 }
 
 .management-filter-trigger svg,
@@ -42,7 +56,7 @@
 .management-select-trigger {
   width: 100%;
   justify-content: space-between;
-  padding: 8px 10px 8px 12px;
+  padding: 0 10px 0 12px;
   text-align: left;
 }
 
@@ -54,18 +68,19 @@
 
 .management-filter-trigger[aria-expanded='true'],
 .management-select-trigger[aria-expanded='true'] {
-  border-color: rgba(23, 107, 91, 0.42);
-  box-shadow: 0 0 0 3px rgba(23, 107, 91, 0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--ui-focus-shadow);
 }
 
 .management-filter-panel,
 .management-select-menu {
   position: absolute;
   z-index: 90;
-  border: 1px solid var(--management-border);
-  border-radius: var(--radius-lg);
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(20, 42, 36, 0.14);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
 }
 
 .management-filter-panel {
@@ -83,7 +98,7 @@
   width: 100%;
   max-height: 260px;
   overflow-y: auto;
-  padding: 5px;
+  padding: 6px;
 }
 
 .management-select-menu-portal {
@@ -105,26 +120,27 @@
   gap: 12px;
   padding: 8px 10px;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #31423d;
+  color: var(--text);
   text-align: left;
-  font-weight: 620;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .management-select-option:hover,
 .management-select-option:focus-visible {
-  background: #f4f8f6;
+  background: var(--surface2);
+  color: var(--primary);
 }
 
 .management-select-option-active {
-  color: var(--accent-dark);
-  background: var(--accent-soft);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
-.management-select-disabled {
-  opacity: 0.58;
-}
+.management-select-disabled { opacity: 0.58; }
 
 .management-filter-field {
   display: grid;
@@ -132,23 +148,25 @@
 }
 
 .management-filter-field > span {
-  color: var(--text-muted);
-  font-size: 0.74rem;
-  font-weight: 700;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
 }
 
+/* The data surface owns its own border. The frame is orchestration only. */
 .management-table-frame {
+  min-width: 0;
+  max-width: 100%;
   overflow: visible;
-  border: 1px solid var(--management-border);
-  border-radius: var(--management-radius);
-  background: var(--management-surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
 .management-table-frame-content {
   min-width: 0;
-  overflow: hidden;
-  border-radius: calc(var(--management-radius) - 1px) calc(var(--management-radius) - 1px) 0 0;
+  overflow: visible;
 }
 
 .management-table-frame .management-table-wrap,
@@ -158,79 +176,26 @@
 .management-table-frame .audit-list,
 .management-table-frame .reservation-review-list {
   margin: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
 }
 
-.management-table-frame .management-table-wrap {
-  overflow-x: auto;
-}
+.management-table-frame .management-table-wrap { overflow-x: auto; }
 
 .management-table-frame .management-pagination {
-  min-height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin: 0;
-  padding: 10px 14px;
-  border: 0;
-  border-top: 1px solid var(--management-border);
-  border-radius: 0 0 calc(var(--management-radius) - 1px) calc(var(--management-radius) - 1px);
-  background: var(--management-surface-muted);
+  margin-top: 16px;
 }
 
 .management-pagination > span,
 .management-pagination-actions > span {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 620;
-}
-
-.management-pagination-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.management-pagination-actions button {
-  min-height: 34px;
-  padding: 7px 10px;
-  border: 1px solid var(--management-border);
-  border-radius: var(--radius-md);
-  background: #ffffff;
-  color: #31423d;
-  font-size: 0.78rem;
-  font-weight: 680;
-}
-
-.management-loading-state,
-.management-table-state {
-  min-height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.management-loading-state {
-  flex-direction: column;
-}
-
-.management-table-state-error {
-  color: #843838;
-  background: #fffafa;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .management-spinner {
   width: 26px;
   height: 26px;
-  border: 3px solid rgba(23, 107, 91, 0.14);
-  border-top-color: var(--accent);
+  border: 3px solid var(--primary-light);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: management-spinner-rotate 720ms linear infinite;
 }
@@ -238,65 +203,32 @@
 .management-data-controls .management-primary-button,
 .management-data-controls .management-secondary-button,
 .management-filter-trigger,
-.management-select-trigger {
-  flex: 0 0 auto;
-}
+.management-select-trigger { flex: 0 0 auto; }
 
-.management-table td .management-select {
-  min-width: 132px;
-}
+.management-table td .management-select { min-width: 132px; }
 
 @keyframes management-spinner-rotate {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-@media (max-width: 760px) {
-  .management-data-toolbar {
-    align-items: stretch;
-  }
-
+@media (max-width: 768px) {
   .management-data-controls {
     width: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
   }
 
   .management-search {
     min-width: 0;
-    width: 100%;
+    width: auto;
+    flex: 1 1 0%;
   }
 
-  .management-data-controls .management-primary-button {
-    white-space: nowrap;
-  }
-
-  .management-table-frame .management-pagination {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .management-pagination-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-}
-
-@media (max-width: 520px) {
-  .management-data-controls {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .management-data-controls .management-primary-button {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
+  .management-data-controls .management-primary-button { white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .management-spinner {
-    animation-duration: 1.6s;
-  }
+  .management-spinner { animation-duration: 1.6s; }
 }
