@@ -59,6 +59,20 @@ Aliases communicate ownership. Prefer them over long filesystem-relative imports
 7. **Keep presentation out of JSX when static.** Reusable visual rules belong in named CSS classes and shared style contracts. Inline style objects are for genuine runtime-calculated values only.
 8. **Remove replaced code.** Do not leave an old implementation beside its replacement.
 
+## Presentation ownership contract
+
+Feature modules may own layout and domain-specific presentation, but they must not recreate the visual system already defined by the shared GSU contracts.
+
+- Shared geometry follows the GSU `6px / 8px / 10px` radius system through `--radius-sm`, `--radius-md`, and `--radius-lg`. Fully rounded geometry is reserved for semantic status pills or genuinely circular affordances.
+- Shared control geometry follows the GSU `36px / 40px / 42px` compact, toolbar, and form-control sizes.
+- Shared semantic colors, surfaces, borders, shadows, focus treatment, and motion come from `src/styles` tokens. Feature CSS must not introduce an independent hard-coded palette or shadow system.
+- Management modules compose `ManagementToolbar`, `ManagementTableFrame`, `ManagementSelect`, shared status badges, and shared responsive actions instead of maintaining feature-specific table or toolbar systems.
+- Dialog shells, backdrops, viewport sizing, and mobile action footers are owned by the shared modal contract. A feature dialog owns only its domain-specific fields and internal layout.
+- The public portal visual language is owned by `src/styles/public-portal-v2.css`; portal module CSS is limited to catering content layout and semantics.
+- Replaced feature styles are deleted rather than left as inactive overrides. Compatibility wrappers and orphan styles are treated as debt, not as harmless fallbacks.
+
+The module-level style regression tests enforce this ownership boundary by rejecting oversized custom radii, independent hard-coded feature palettes, custom numeric shadow systems, and retired feature-specific visual subsystems.
+
 ## Legacy-path policy
 
 The GSU-style migration boundary is closed. The frontend must not contain compatibility aliases or duplicate legacy trees for `src/app`, `src/features`, or root `src/firebase`.
@@ -78,4 +92,4 @@ A change is not complete merely because it works or looks correct. Review it aga
 3. Does it reuse the canonical shared UI/data/navigation contract instead of creating a parallel system?
 4. Does it preserve Firebase security, data integrity, tests, and the GSU UI/UX standards?
 
-The structural and readability regression tests in `tests/gsu-architecture-parity.test.mjs` enforce the minimum mechanical part of this contract. Issue #14 remains the final acceptance gate until codebase, readability, responsive behavior, and UI/UX parity are all verified.
+The regression suite covers architecture, presentation ownership, responsive behavior, semantic controls, and domain behavior. Issue #14 remains the final acceptance gate until codebase, readability, cross-screen responsive behavior, and UI/UX parity are all verified against the current GSU Waste source of truth.
