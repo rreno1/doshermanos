@@ -49,7 +49,7 @@ test('inventory and equipment dialogs defer outer surfaces to the shared modal c
   }
 });
 
-test('resource cards use semantic GSU colors and geometry', () => {
+test('resource cards use semantic Dos Hermanos colors and geometry', () => {
   assert.match(cardCss, /var\(--management-radius\)/);
   assert.match(cardCss, /var\(--surface2\)/);
   assert.match(cardCss, /var\(--text\)/);
@@ -62,7 +62,7 @@ test('resource cards use semantic GSU colors and geometry', () => {
   assert.doesNotMatch(equipmentCardCss, /#[0-9a-f]{3,8}\b/i);
 });
 
-test('resource image and scroll affordances use shared GSU tokens', () => {
+test('resource image and scroll affordances use shared Dos Hermanos tokens', () => {
   assert.match(resourceImageCss, /var\(--radius-lg\)/);
   assert.match(resourceImageCss, /var\(--line-strong\)/);
   assert.match(resourceImageCss, /var\(--surface2\)/);
