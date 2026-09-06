@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from '@modules/auth/AuthProvider';
 import { subscribeToOwnReservations } from './reservation.service';
 import type { ReservationRecord, ReservationStatus } from './reservation.types';
 import './reservations.css';
