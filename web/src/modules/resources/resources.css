@@ -3,7 +3,7 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  gap: 20px;
+  gap: var(--management-section-stack-gap, var(--space-3));
   margin: 0;
   padding: 0;
   scroll-margin-top: 0;
