@@ -11,6 +11,7 @@ import {
 import {
   Timestamp,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -230,6 +231,36 @@ test('active staff can create a valid package', async () => {
       updatedAt: serverTimestamp(),
     }),
   );
+});
+
+test('an administrator cannot change their own role or access status', async () => {
+  const database = testEnvironment.authenticatedContext('admin-a').firestore();
+
+  await assertFails(
+    updateDoc(doc(database, 'users', 'admin-a'), {
+      role: 'customer',
+      status: 'inactive',
+      updatedAt: serverTimestamp(),
+    }),
+  );
+});
+
+test('an administrator can still manage another user access record', async () => {
+  const database = testEnvironment.authenticatedContext('admin-a').firestore();
+
+  await assertSucceeds(
+    updateDoc(doc(database, 'users', 'customer-a'), {
+      role: 'staff',
+      status: 'active',
+      updatedAt: serverTimestamp(),
+    }),
+  );
+});
+
+test('package records are retained and cannot be hard-deleted by administrators', async () => {
+  const database = testEnvironment.authenticatedContext('admin-a').firestore();
+
+  await assertFails(deleteDoc(doc(database, 'packages', 'inactive-package')));
 });
 
 test('suspended administrators cannot use administrator package access', async () => {
