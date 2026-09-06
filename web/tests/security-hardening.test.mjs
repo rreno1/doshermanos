@@ -33,9 +33,12 @@ test('authenticated sessions accept only verified Google identities', () => {
   assert.match(authProvider, /closeRejectedSession/);
 });
 
-test('all Firebase Auth sessions begin tab-scoped and only verified customers gain local persistence', () => {
+test('Firebase Auth starts session-first and only verified customers gain durable persistence', () => {
   assert.match(firebaseCore, /initializeAuth\(firebaseApp/);
-  assert.match(firebaseCore, /persistence:\s*browserSessionPersistence/);
+  assert.match(
+    firebaseCore,
+    /persistence:\s*\[browserSessionPersistence, browserLocalPersistence\]/,
+  );
   assert.match(firebaseCore, /popupRedirectResolver:\s*browserPopupRedirectResolver/);
   assert.doesNotMatch(firebaseCore, /getAuth\(firebaseApp\)/);
 
