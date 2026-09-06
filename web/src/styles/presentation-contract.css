@@ -72,10 +72,8 @@
   gap: var(--management-section-stack-gap);
 }
 
-.management-page > .users-section > .tab-bar,
 .management-page > .payments-section > .tab-bar,
-.management-page > .reports-section > .tab-bar,
-.management-page > .audit-section > .tab-bar {
+.management-page > .reports-section > .tab-bar {
   margin-bottom: 0;
 }
 
