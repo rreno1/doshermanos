@@ -1,29 +1,46 @@
 import assert from 'node:assert/strict';
-import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync } from 'node:fs';
 import test from 'node:test';
 
-function textFiles(directory) {
-  if (!existsSync(directory)) return [];
+const sourceRoots = ['src', 'tests'];
+const forbiddenBenchmarkPattern = /\b(?:gsu[-_ ]?waste|gsu[-_ ]?parity|gsu[-_ ]?starter[-_ ]?kit)\b/i;
+const forbiddenBackendPattern = /\bsupabase\b|@supabase\//i;
 
+function files(directory) {
   return readdirSync(directory).flatMap((name) => {
     const path = `${directory}/${name}`;
     const stats = lstatSync(path);
     if (stats.isSymbolicLink()) return [];
-    if (stats.isDirectory()) return textFiles(path);
-    return /\.(?:ts|tsx|js|jsx|mjs|css|md)$/.test(name) ? [path] : [];
+    if (stats.isDirectory()) return files(path);
+    return /\.(?:ts|tsx|js|jsx|mjs|css|json)$/.test(name) ? [path] : [];
   });
 }
 
-test('source and regression contracts are named for Dos Hermanos', () => {
-  const retiredReferenceName = ['G', 'S', 'U'].join('');
-  const retiredReferencePattern = new RegExp(`\\b${retiredReferenceName}\\b`);
-  const offenders = [...textFiles('src'), ...textFiles('tests')]
-    .filter((path) => retiredReferencePattern.test(readFileSync(path, 'utf8')))
+test('production source and regression tests name the standard as Dos Hermanos', () => {
+  const offenders = sourceRoots
+    .flatMap(files)
+    .filter((path) => forbiddenBenchmarkPattern.test(readFileSync(path, 'utf8')))
     .sort();
 
   assert.deepEqual(
     offenders,
     [],
-    `The canonical standard is Dos Hermanos; remove retired reference naming from these files:\n${offenders.join('\n')}`,
+    `Production source/tests must use Dos Hermanos naming rather than benchmark branding:\n${offenders.join('\n')}`,
   );
+});
+
+test('web production source and manifest keep Firebase as the only backend SDK boundary', () => {
+  const productionFiles = files('src');
+  const offenders = productionFiles
+    .filter((path) => forbiddenBackendPattern.test(readFileSync(path, 'utf8')))
+    .sort();
+  const packageManifest = readFileSync('package.json', 'utf8');
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `Unexpected non-Firebase backend reference found in web production source:\n${offenders.join('\n')}`,
+  );
+  assert.doesNotMatch(packageManifest, forbiddenBackendPattern);
+  assert.match(packageManifest, /"firebase"\s*:/);
 });
