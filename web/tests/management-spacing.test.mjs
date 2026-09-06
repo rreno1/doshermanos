@@ -8,7 +8,7 @@ const widgetsPath = new URL('../src/styles/widgets.css', import.meta.url);
 const usersPath = new URL('../src/modules/users/UsersRolesPanel.tsx', import.meta.url);
 const auditPath = new URL('../src/modules/audit/AuditPanel.tsx', import.meta.url);
 
-test('management tabs use the canonical GSU twelve-pixel content rhythm', async () => {
+test('management tabs use the canonical Dos Hermanos twelve-pixel content rhythm', async () => {
   const [styleIndexSource, presentationSource, widgetsSource, usersSource, auditSource] = await Promise.all([
     readFile(styleIndexPath, 'utf8'),
     readFile(presentationPath, 'utf8'),
