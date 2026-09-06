@@ -66,6 +66,19 @@
   white-space: nowrap;
 }
 
+.management-select-trigger .management-select-arrow {
+  width: 10px;
+  height: 6px;
+  flex: 0 0 auto;
+  fill: currentColor;
+  stroke: none;
+  transition: transform var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.management-select-trigger[aria-expanded='true'] .management-select-arrow {
+  transform: rotate(180deg);
+}
+
 .management-filter-trigger[aria-expanded='true'],
 .management-select-trigger[aria-expanded='true'] {
   border-color: var(--primary);
@@ -138,6 +151,21 @@
 .management-select-option-active {
   color: var(--primary);
   background: var(--primary-light);
+}
+
+.management-select-option-check {
+  width: 15px;
+  height: 15px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 15px;
+}
+
+.management-select-option-check svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
 }
 
 .management-select-disabled { opacity: 0.58; }
