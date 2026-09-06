@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useToast } from '@core/app/ToastProvider';
+import { ensureRecentGoogleAuthentication } from '@modules/auth/auth-security';
 import {
   createPaymentId,
   getPaymentErrorMessage,
@@ -68,6 +69,7 @@ function CashPaymentForm({ reservation, recordedBy, recordedByName, onClose }: {
 
     setIsSaving(true);
     try {
+      await ensureRecentGoogleAuthentication();
       await recordCashPayment(paymentOperationId, reservation.id, validation.value, recordedBy, recordedByName);
       showToast({ message: 'Cash payment recorded.', tone: 'success' });
       onClose();
