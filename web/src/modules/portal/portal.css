@@ -1,6 +1,6 @@
 /* Catering-specific public layout only.
  * Visual language, control geometry, colors, surfaces, and responsive polish
- * belong to the canonical GSU public contract in src/styles/public-portal-v2.css. */
+ * belong to the canonical Dos Hermanos public contract in src/styles/public-portal-v2.css. */
 .portal-shell {
   min-height: 100vh;
   display: flex;
