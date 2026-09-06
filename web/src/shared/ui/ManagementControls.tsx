@@ -95,7 +95,7 @@ export function ManagementToolbar({
         />
         {filterContent ? (
           <>
-            <div className="management-toolbar-filters" aria-label="Filters and sorting">
+            <div className="management-toolbar-filters" role="group" aria-label="Filters and sorting">
               {filterContent}
             </div>
             <div className="management-toolbar-mobile-filter">
@@ -337,7 +337,11 @@ function useDismissibleLayer(
     if (!isOpen) return;
 
     function handlePointerDown(event: PointerEvent) {
-      if (!ref.current?.contains(event.target as Node)) onDismiss();
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (ref.current?.contains(target)) return;
+      if (target.closest('.management-select-menu-portal')) return;
+      onDismiss();
     }
 
     function handleKeyDown(event: KeyboardEvent) {
