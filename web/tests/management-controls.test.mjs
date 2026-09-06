@@ -13,6 +13,7 @@ import {
 
 const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
 const tabsPath = new URL('../src/shared/ui/Tabs.tsx', import.meta.url);
+const controlsPath = new URL('../src/shared/ui/ManagementControls.tsx', import.meta.url);
 const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
 const widgetsCssPath = new URL('../src/styles/widgets.css', import.meta.url);
 
@@ -53,7 +54,10 @@ test('management toolbar exposes desktop filters and collapses them to the mobil
     filterContent: createElement('span', null, 'Sort controls'),
     primaryAction: createElement('button', { type: 'button' }, 'Add record'),
   }));
-  const widgetsCss = await readFile(widgetsCssPath, 'utf8');
+  const [widgetsCss, controlsSource] = await Promise.all([
+    readFile(widgetsCssPath, 'utf8'),
+    readFile(controlsPath, 'utf8'),
+  ]);
 
   assert.match(markup, /management-summary/);
   assert.match(markup, /type="search"/);
@@ -70,9 +74,10 @@ test('management toolbar exposes desktop filters and collapses them to the mobil
   assert.match(widgetsCss, /\.management-toolbar-mobile-filter\s*\{\s*display:\s*none/);
   assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-filters\s*\{\s*display:\s*none/);
   assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-mobile-filter\s*\{\s*display:\s*block/);
+  assert.match(controlsSource, /target\.closest\('\.management-select-menu-portal'\)/);
 });
 
-test('management select is custom and does not render a native select control', () => {
+test('management select matches the Dos Hermanos arrow check and compact option details', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementSelect, {
     value: 'active',
     options: [
@@ -82,10 +87,20 @@ test('management select is custom and does not render a native select control', 
     onChange: () => undefined,
     ariaLabel: 'Status',
   }));
+  const [selectSource, controlSystemCss] = await Promise.all([
+    readFile(selectPath, 'utf8'),
+    readFile(controlSystemCssPath, 'utf8'),
+  ]);
 
   assert.match(markup, /management-select-trigger/);
   assert.match(markup, /aria-haspopup="listbox"/);
   assert.equal(markup.includes('<select'), false);
+  assert.match(selectSource, /M0 0l5 6 5-6z/);
+  assert.match(selectSource, /function CheckIcon/);
+  assert.doesNotMatch(selectSource, /✓/);
+  assert.match(controlSystemCss, /\.management-select-option[\s\S]*min-height:\s*var\(--ui-compact-control-size\)/);
+  assert.match(controlSystemCss, /\.management-select-arrow[\s\S]*width:\s*10px[\s\S]*height:\s*6px/);
+  assert.match(controlSystemCss, /\.management-select-option-check[\s\S]*width:\s*15px/);
 });
 
 test('management select menus use a body portal so table overflow cannot clip them', async () => {
