@@ -64,7 +64,7 @@ test('pending requests use the management workspace width without legacy section
   assert.doesNotMatch(layoutSource, /padding:\s*72px/);
 });
 
-test('equipment registry shares inventory cards and GSU control geometry', async () => {
+test('equipment registry shares inventory cards and Dos Hermanos control geometry', async () => {
   const [panelSource, gridSource, presentationSource, formSource, tokensSource] = await Promise.all([
     readFile(equipmentPanelPath, 'utf8'),
     readFile(equipmentGridPath, 'utf8'),
