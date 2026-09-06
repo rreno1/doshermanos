@@ -1,4 +1,4 @@
-/* Responsive management tables follow the canonical GSU semantic column contract. */
+/* Responsive management tables follow the canonical Dos Hermanos semantic column contract. */
 .management-table .col-primary { min-width: 0; }
 .management-table .col-status { white-space: nowrap; }
 .management-table .col-actions { white-space: nowrap; text-align: right; }
