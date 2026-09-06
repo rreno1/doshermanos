@@ -7,10 +7,17 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { firebaseAuth } from '@core/firebase/firebase';
+import {
+  applyRoleAuthPersistence,
+  isTrustedGoogleUser,
+} from './auth-security';
 import { loadUserProfile } from './auth.service';
-import { useSessionInactivity } from './session-inactivity';
+import {
+  clearSessionActivity,
+  useSessionInactivity,
+} from './session-inactivity';
 import type { UserProfile } from './auth.types';
 
 type AuthStatus =
@@ -63,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthState({ status: 'loading', profile: null });
 
     try {
+      if (!isTrustedGoogleUser(user)) {
+        await closeRejectedSession();
+        return;
+      }
+
       const profile = await loadProfileAfterAuthChange(user);
 
       if (resolutionNumber.current !== currentResolution) {
@@ -72,6 +84,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!profile) {
         setLoadingMessage(null);
         setAuthState({ status: 'error', profile: null });
+        return;
+      }
+
+      try {
+        await applyRoleAuthPersistence(profile.role);
+      } catch {
+        await closeRejectedSession();
+        return;
+      }
+
+      if (resolutionNumber.current !== currentResolution) {
         return;
       }
 
@@ -146,6 +169,11 @@ async function loadProfileAfterAuthChange(user: User): Promise<UserProfile | nul
   }
 
   return null;
+}
+
+async function closeRejectedSession(): Promise<void> {
+  clearSessionActivity();
+  await signOut(firebaseAuth);
 }
 
 function wait(milliseconds: number): Promise<void> {
