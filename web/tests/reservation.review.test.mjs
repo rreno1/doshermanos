@@ -23,9 +23,9 @@ test('staff reservation review keeps confirmation disabled until capacity rules 
 
 test('operations keeps manual reservation first and package management in the same module', async () => {
   const source = await readFile(operationsPanelPath, 'utf8');
-  const manualIndex = source.indexOf("{ value: 'manual', label: 'Manual reservation' }");
-  const pendingIndex = source.indexOf("{ value: 'pending', label: 'Pending requests' }");
-  const packageIndex = source.indexOf("{ value: 'packages', label: 'Manage Packages' }");
+  const manualIndex = source.indexOf("value: 'manual', label: 'Manual reservation'");
+  const pendingIndex = source.indexOf("value: 'pending', label: 'Pending requests'");
+  const packageIndex = source.indexOf("value: 'packages', label: 'Manage Packages'");
 
   assert.ok(manualIndex >= 0);
   assert.ok(pendingIndex > manualIndex);
