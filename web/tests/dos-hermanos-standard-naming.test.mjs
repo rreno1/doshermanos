@@ -15,13 +15,15 @@ function textFiles(directory) {
 }
 
 test('source and regression contracts are named for Dos Hermanos', () => {
+  const retiredReferenceName = ['G', 'S', 'U'].join('');
+  const retiredReferencePattern = new RegExp(`\\b${retiredReferenceName}\\b`);
   const offenders = [...textFiles('src'), ...textFiles('tests')]
-    .filter((path) => /\bGSU\b/.test(readFileSync(path, 'utf8')))
+    .filter((path) => retiredReferencePattern.test(readFileSync(path, 'utf8')))
     .sort();
 
   assert.deepEqual(
     offenders,
     [],
-    `The canonical standard is Dos Hermanos; remove GSU naming from these files:\n${offenders.join('\n')}`,
+    `The canonical standard is Dos Hermanos; remove retired reference naming from these files:\n${offenders.join('\n')}`,
   );
 });
