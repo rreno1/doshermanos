@@ -1,4 +1,4 @@
-/* Authentication content uses the shared GSU modal, form, control, and focus contracts. */
+/* Authentication content uses the shared Dos Hermanos modal, form, control, and focus contracts. */
 .auth-trigger {
   max-width: 220px;
   min-height: var(--ui-toolbar-control-size);
