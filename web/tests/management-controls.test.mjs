@@ -14,12 +14,13 @@ import {
 const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
 const tabsPath = new URL('../src/shared/ui/Tabs.tsx', import.meta.url);
 const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
+const widgetsCssPath = new URL('../src/styles/widgets.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
 });
 
-test('management tabs render through the canonical GSU line-tab primitive', async () => {
+test('management tabs render through the canonical Dos Hermanos line-tab primitive', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementTabs, {
     value: 'registry',
     options: [
@@ -43,7 +44,7 @@ test('management tabs render through the canonical GSU line-tab primitive', asyn
   assert.match(tabsSource, /event\.key === 'End'/);
 });
 
-test('management toolbar keeps summary search semantic filter control and primary action visible', () => {
+test('management toolbar exposes desktop filters and collapses them to the mobile funnel', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementToolbar, {
     summary: [{ label: 'records', value: 12 }],
     searchValue: '',
@@ -52,15 +53,23 @@ test('management toolbar keeps summary search semantic filter control and primar
     filterContent: createElement('span', null, 'Sort controls'),
     primaryAction: createElement('button', { type: 'button' }, 'Add record'),
   }));
+  const widgetsCss = await readFile(widgetsCssPath, 'utf8');
 
   assert.match(markup, /management-summary/);
   assert.match(markup, /type="search"/);
+  assert.match(markup, /management-toolbar-filters/);
+  assert.match(markup, /management-toolbar-mobile-filter/);
   assert.match(markup, /management-filter-menu/);
   assert.match(markup, /management-filter-trigger/);
   assert.match(markup, /22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3/);
   assert.doesNotMatch(markup, /M4 7h12M4 13h12/);
   assert.equal(markup.includes('<details'), false);
   assert.match(markup, /Add record/);
+
+  assert.match(widgetsCss, /\.management-toolbar-filters\s*\{[\s\S]*display:\s*flex/);
+  assert.match(widgetsCss, /\.management-toolbar-mobile-filter\s*\{\s*display:\s*none/);
+  assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-filters\s*\{\s*display:\s*none/);
+  assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-mobile-filter\s*\{\s*display:\s*block/);
 });
 
 test('management select is custom and does not render a native select control', () => {
