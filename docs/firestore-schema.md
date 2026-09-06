@@ -11,6 +11,7 @@ Fields:
 - `displayName`: string, 1-100 characters
 - `role`: `customer | staff | admin`
 - `status`: `active | inactive | suspended`
+- `lastAccessEventId`: optional latest linked `userAccessEvents` document ID; absent until the first administrator access change
 - `createdAt`: Firestore timestamp
 - `updatedAt`: Firestore timestamp
 
@@ -19,8 +20,44 @@ Security:
 - a signed-in user may read only their own profile unless they are an administrator;
 - a new user may create only their own profile and only as an active customer;
 - a user may update only their own `displayName` and `updatedAt`;
-- only an active administrator may change protected role or status fields;
+- an administrator cannot change their own protected role or status fields;
+- an active administrator may change another user's role/status only when the same atomic write creates the matching immutable `userAccessEvents` record and advances `lastAccessEventId`;
 - profile deletion is denied to clients.
+
+## `userAccessEvents/{eventId}`
+
+Purpose: immutable administrator-attributed history for role and access-status changes.
+
+Fields:
+
+- `targetUserId`: user document ID whose access changed
+- `targetDisplayName`: display-name snapshot from the target profile before the change
+- `previousRole`: `customer | staff | admin`
+- `newRole`: `customer | staff | admin`
+- `previousStatus`: `active | inactive | suspended`
+- `newStatus`: `active | inactive | suspended`
+- `changedBy`: authenticated administrator UID
+- `changedByName`: administrator display-name snapshot verified against the current profile
+- `createdAt`: Firestore server timestamp
+
+Security and integrity:
+
+- only an active administrator can read or create access-event records;
+- the event must describe a real role or status change, not a no-op;
+- the target's stored previous role/status and post-write role/status must match the event snapshots;
+- `changedBy` and `changedByName` must match the authenticated administrator;
+- `createdAt` must equal the request server time;
+- the target user update must point `lastAccessEventId` to the newly created event;
+- the user update and event creation must succeed atomically;
+- access events cannot be updated or deleted afterward.
+
+Recent administrator audit read pattern:
+
+```text
+userAccessEvents
+order by createdAt descending
+limit 30
+```
 
 ## `packages/{packageId}`
 
@@ -45,6 +82,8 @@ where isActive == true
 order by sortOrder ascending
 limit 24
 ```
+
+Package documents are retained rather than hard-deleted. Operational removal uses `isActive = false` so historical reservation package snapshots and administrative history remain stable.
 
 ## `reservations/{reservationId}`
 
@@ -357,10 +396,9 @@ Firestore Rules cross-check all linked documents with `get()` and `getAfter()`. 
 
 ## Unified operational audit view
 
-The administrator audit trail does not use a separate generic `auditLogs` collection. It derives one bounded chronological view from the existing append-only `inventoryMovements`, `payments`, and `equipmentTransactions` collections so the audit presentation does not duplicate operational business data.
+The administrator audit trail does not use a separate generic `auditLogs` collection. It derives one bounded chronological view from the workflow-specific append-only `inventoryMovements`, `payments`, `reservationDecisions`, `equipmentTransactions`, and `userAccessEvents` collections so the audit presentation does not duplicate operational business data.
 
-Future reservation decisions, package administration, user role/status changes, hosted-payment events, inventory allocation, and equipment-adjustment workflows must introduce their own immutable actor-attributed histories before those workflows are considered production-complete. See `docs/audit-trail.md` for the coverage boundary.
-
+Future package-administration, reservation-confirmation, hosted-payment, inventory-allocation, and equipment-adjustment workflows must introduce their own immutable actor-attributed histories before those workflows are considered production-complete. See `docs/audit-trail.md` for the coverage boundary.
 
 ## `reservationDecisions/{decisionId}`
 
