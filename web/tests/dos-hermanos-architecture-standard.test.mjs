@@ -97,8 +97,17 @@ test('shared UI has one canonical Dos Hermanos implementation tree', () => {
 
 test('styles use canonical Dos Hermanos ownership layers and responsive contract stays last', () => {
   const styleIndex = read('src/styles/index.css');
+  const baseReset = read('src/styles/base-reset.css');
+  const uiConsistency = read('src/styles/ui-consistency.css');
+
   assert.doesNotMatch(styleIndex, /\{/);
   assert.match(styleIndex, /@import '\.\/responsive-contract\.css';\s*$/);
+  assert.match(baseReset, /(?:^|\n)\.shell\s*\{/);
+  assert.doesNotMatch(
+    uiConsistency,
+    /(?:^|\n)\.shell\s*\{/,
+    'Shared content measure belongs only to base-reset.css; shell/navigation CSS must not redeclare it.',
+  );
 
   const canonicalStyles = [
     'tokens.css',
