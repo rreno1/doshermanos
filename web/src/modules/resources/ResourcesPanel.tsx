@@ -14,12 +14,12 @@ type ResourcesTab =
   | 'equipment-activity';
 
 const tabs = [
-  { value: 'inventory-items', label: 'Inventory Items' },
-  { value: 'inventory-activity', label: 'Inventory Activity' },
-  { value: 'equipment-registry', label: 'Equipment Registry' },
-  { value: 'assignments', label: 'Assignments' },
-  { value: 'equipment-activity', label: 'Equipment Activity' },
-] satisfies { value: ResourcesTab; label: string }[];
+  { value: 'inventory-items', label: 'Inventory Items', mobileLabel: 'Items' },
+  { value: 'inventory-activity', label: 'Inventory Activity', mobileLabel: 'Inventory' },
+  { value: 'equipment-registry', label: 'Equipment Registry', mobileLabel: 'Equipment' },
+  { value: 'assignments', label: 'Assignments', mobileLabel: 'Assigned' },
+  { value: 'equipment-activity', label: 'Equipment Activity', mobileLabel: 'Activity' },
+] satisfies { value: ResourcesTab; label: string; mobileLabel?: string }[];
 
 export function ResourcesPanel({ staffId, staffName }: { staffId: string; staffName: string }) {
   const [tab, setTab] = useState<ResourcesTab>('inventory-items');
