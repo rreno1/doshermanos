@@ -9,7 +9,7 @@ const [authCss, modalCss, authMenu, authForm] = await Promise.all([
   readFile(new URL('../src/modules/auth/AuthForm.tsx', import.meta.url), 'utf8'),
 ]);
 
-test('authentication dialog uses the shared GSU modal contract', () => {
+test('authentication dialog uses the shared Dos Hermanos modal contract', () => {
   assert.match(authMenu, /className="auth-dialog"/);
   assert.match(modalCss, /dialog\.auth-dialog/);
   assert.doesNotMatch(authCss, /::backdrop/);
@@ -17,7 +17,7 @@ test('authentication dialog uses the shared GSU modal contract', () => {
   assert.doesNotMatch(authCss, /box-shadow:\s*0 28px 90px/);
 });
 
-test('authentication controls use GSU geometry focus and motion tokens', () => {
+test('authentication controls use Dos Hermanos geometry focus and motion tokens', () => {
   assert.match(authCss, /min-height:\s*var\(--ui-toolbar-control-size\)/);
   assert.match(authCss, /border-radius:\s*var\(--radius-md\)/);
   assert.match(authCss, /outline:\s*var\(--ui-focus-outline\)/);
