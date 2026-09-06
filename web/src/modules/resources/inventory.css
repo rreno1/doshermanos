@@ -1,4 +1,4 @@
-/* Inventory management is composed from shared GSU toolbar/table primitives
+/* Inventory management is composed from shared Dos Hermanos toolbar/table primitives
  * and the dedicated inventory card/dialog styles. */
 .inventory-section {
   display: grid;
