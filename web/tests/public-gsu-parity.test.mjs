@@ -20,12 +20,17 @@ test('public portal uses the same GSU header and navigation primitives as manage
   assert.doesNotMatch(portalShell, /public-portal-contract\.css/);
 });
 
-test('public content CSS no longer carries the replaced custom header and mobile menu system', () => {
+test('portal module CSS keeps layout semantics instead of a second visual system', () => {
   assert.doesNotMatch(portalCss, /\.portal-header\b/);
   assert.doesNotMatch(portalCss, /\.portal-navigation\b/);
   assert.doesNotMatch(portalCss, /\.portal-menu-button\b/);
   assert.doesNotMatch(portalCss, /\.portal-mobile-navigation\b/);
-  assert.doesNotMatch(portalCss, /border-radius:\s*(?:18|22)px/);
+  assert.doesNotMatch(portalCss, /border-radius\s*:/);
+  assert.doesNotMatch(portalCss, /box-shadow\s*:/);
+  assert.doesNotMatch(portalCss, /#[0-9a-f]{3,8}\b/i);
+  assert.doesNotMatch(portalCss, /rgba?\(/i);
+  assert.match(portalCss, /var\(--portal-line\)/);
+  assert.match(portalCss, /var\(--portal-muted\)/);
 });
 
 test('public portal foundation follows the current GSU contract', () => {
@@ -38,6 +43,8 @@ test('public portal foundation follows the current GSU contract', () => {
   assert.match(publicContract, /border-top:\s*3px solid var\(--portal-green\)/);
   assert.match(publicContract, /backdrop-filter:\s*saturate\(1\.1\) blur\(18px\)/);
   assert.match(publicContract, /primary-nav-horizontal \.primary-nav-item::after/);
+  assert.match(publicContract, /\.public-view \.landing-package-card/);
+  assert.match(publicContract, /\.public-view \.portal-home-hero/);
   assert.match(publicContract, /border-radius:\s*8px/);
   assert.match(publicContract, /border-radius:\s*12px !important/);
   assert.match(publicContract, /prefers-reduced-motion:\s*reduce/);
