@@ -8,10 +8,10 @@ import './operations-layout.css';
 type OperationsTab = 'manual' | 'pending' | 'packages';
 
 const tabs = [
-  { value: 'manual', label: 'Manual reservation' },
-  { value: 'pending', label: 'Pending requests' },
-  { value: 'packages', label: 'Manage Packages' },
-] satisfies { value: OperationsTab; label: string }[];
+  { value: 'manual', label: 'Manual reservation', mobileLabel: 'Manual' },
+  { value: 'pending', label: 'Pending requests', mobileLabel: 'Pending' },
+  { value: 'packages', label: 'Manage Packages', mobileLabel: 'Packages' },
+] satisfies { value: OperationsTab; label: string; mobileLabel?: string }[];
 
 export function OperationsPanel({ staffId, staffName }: { staffId: string; staffName: string }) {
   const [tab, setTab] = useState<OperationsTab>('manual');
