@@ -34,6 +34,8 @@ dialog.reservation-dialog::backdrop {
   max-height: inherit;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-top: 24px;
+  scroll-padding-bottom: 92px;
   background: var(--surface-raised);
 }
 
@@ -70,7 +72,7 @@ dialog.reservation-dialog::backdrop {
   gap: var(--space-2);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 620px) {
   dialog.auth-dialog,
   dialog.inventory-dialog,
   dialog.equipment-dialog,
@@ -79,7 +81,18 @@ dialog.reservation-dialog::backdrop {
   dialog.reservation-dialog {
     width: min(100% - 20px, 680px);
     max-width: none;
-    max-height: calc(100dvh - 20px);
+    max-height: calc(100vh - 20px);
+  }
+
+  @supports (height: 100dvh) {
+    dialog.auth-dialog,
+    dialog.inventory-dialog,
+    dialog.equipment-dialog,
+    dialog.payment-dialog,
+    dialog.package-management-dialog,
+    dialog.reservation-dialog {
+      max-height: calc(100dvh - 20px);
+    }
   }
 
   .inventory-dialog-actions,
