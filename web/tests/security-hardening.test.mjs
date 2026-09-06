@@ -33,7 +33,12 @@ test('authenticated sessions accept only verified Google identities', () => {
   assert.match(authProvider, /closeRejectedSession/);
 });
 
-test('privileged roles use tab-scoped Firebase Auth persistence', () => {
+test('all Firebase Auth sessions begin tab-scoped and only verified customers gain local persistence', () => {
+  assert.match(firebaseCore, /initializeAuth\(firebaseApp/);
+  assert.match(firebaseCore, /persistence:\s*browserSessionPersistence/);
+  assert.match(firebaseCore, /popupRedirectResolver:\s*browserPopupRedirectResolver/);
+  assert.doesNotMatch(firebaseCore, /getAuth\(firebaseApp\)/);
+
   assert.match(authSecurity, /role === 'admin' \|\| role === 'staff'/);
   assert.match(authSecurity, /browserSessionPersistence/);
   assert.match(authSecurity, /browserLocalPersistence/);
