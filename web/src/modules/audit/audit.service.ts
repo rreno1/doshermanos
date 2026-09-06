@@ -6,6 +6,8 @@ import { subscribeToEquipmentTransactions } from '@modules/resources/equipment.s
 import type { EquipmentTransactionRecord } from '@modules/resources/equipment.types';
 import { subscribeToRecentInventoryMovements } from '@modules/resources/inventory.service';
 import type { InventoryMovement } from '@modules/resources/inventory.types';
+import { subscribeToRecentUserAccessEvents } from '@modules/users/users.service';
+import type { UserAccessEvent } from '@modules/users/users.service';
 import type { AuditActivity, AuditActivityKind } from './audit.types';
 
 const maximumAuditActivities = 60;
@@ -18,6 +20,7 @@ export function subscribeToAuditActivity(
   let payments: PaymentRecord[] = [];
   let reservationDecisions: ReservationDecision[] = [];
   let equipmentTransactions: EquipmentTransactionRecord[] = [];
+  let userAccessEvents: UserAccessEvent[] = [];
   let hasFailed = false;
 
   function publish() {
@@ -26,6 +29,7 @@ export function subscribeToAuditActivity(
       ...payments.map(paymentToAuditActivity),
       ...reservationDecisions.map(reservationDecisionToAuditActivity),
       ...equipmentTransactions.map(equipmentTransactionToAuditActivity),
+      ...userAccessEvents.map(userAccessEventToAuditActivity),
     ]
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
       .slice(0, maximumAuditActivities);
@@ -34,10 +38,7 @@ export function subscribeToAuditActivity(
   }
 
   function handleError() {
-    if (hasFailed) {
-      return;
-    }
-
+    if (hasFailed) return;
     hasFailed = true;
     onError();
   }
@@ -62,11 +63,17 @@ export function subscribeToAuditActivity(
     publish();
   }, handleError);
 
+  const unsubscribeAccess = subscribeToRecentUserAccessEvents((records) => {
+    userAccessEvents = records;
+    publish();
+  }, handleError);
+
   return () => {
     unsubscribeInventory();
     unsubscribePayments();
     unsubscribeReservations();
     unsubscribeEquipment();
+    unsubscribeAccess();
   };
 }
 
@@ -135,6 +142,22 @@ function equipmentTransactionToAuditActivity(
     actorName: transaction.recordedByName,
     createdAt: transaction.createdAt,
   };
+}
+
+function userAccessEventToAuditActivity(event: UserAccessEvent): AuditActivity {
+  return {
+    id: `access-${event.id}`,
+    kind: 'access_changed',
+    title: 'User access changed',
+    detail: `${event.targetDisplayName}: ${formatAccessRole(event.previousRole)} → ${formatAccessRole(event.newRole)} · ${event.previousStatus} → ${event.newStatus}`,
+    actorName: event.changedByName,
+    createdAt: event.createdAt,
+  };
+}
+
+function formatAccessRole(role: UserAccessEvent['newRole']) {
+  if (role === 'admin') return 'administrator';
+  return role;
 }
 
 function formatPeso(amountInCentavos: number): string {
