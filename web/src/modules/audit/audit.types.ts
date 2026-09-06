@@ -5,7 +5,8 @@ export type AuditActivityKind =
   | 'payment_recorded'
   | 'reservation_rejected'
   | 'equipment_released'
-  | 'equipment_returned';
+  | 'equipment_returned'
+  | 'access_changed';
 
 export type AuditActivity = {
   id: string;
