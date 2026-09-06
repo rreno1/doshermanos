@@ -16,22 +16,22 @@
   background: var(--management-surface);
   box-shadow: none;
   transition:
-    border-color 150ms ease,
-    transform 150ms ease,
-    box-shadow 150ms ease;
+    border-color var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard),
+    box-shadow var(--motion-fast) ease;
 }
 
 .inventory-card:hover {
-  border-color: rgba(23, 107, 91, 0.2);
+  border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(23, 33, 31, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .inventory-card-image-wrap {
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-bottom: 1px solid var(--management-border);
-  background: #eef2ef;
+  background: var(--surface2);
 }
 
 .inventory-card-image,
@@ -48,10 +48,8 @@
 .inventory-card-placeholder {
   display: grid;
   place-items: center;
-  color: #8a9793;
-  background:
-    radial-gradient(circle at 50% 20%, rgba(23, 107, 91, 0.08), transparent 48%),
-    #eef2ef;
+  color: var(--muted);
+  background: var(--surface2);
 }
 
 .inventory-card-placeholder svg {
@@ -90,7 +88,7 @@
 .inventory-card-eyebrow {
   display: block;
   margin-bottom: 5px;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -99,7 +97,7 @@
 .inventory-card-heading h3 {
   overflow: hidden;
   margin: 0;
-  color: #17211f;
+  color: var(--text);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -118,14 +116,14 @@
 }
 
 .inventory-card-stock-value {
-  color: #17211f;
+  color: var(--text);
   font-size: 1.28rem;
   font-weight: 600;
   letter-spacing: -0.025em;
 }
 
 .inventory-card-threshold {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.76rem;
   font-weight: 400;
 }
@@ -184,7 +182,7 @@
   }
 
   .inventory-card-actions button {
-    min-height: 36px;
+    min-height: var(--ui-compact-control-size);
     padding-inline: 8px;
   }
 }
@@ -192,5 +190,11 @@
 @media (max-width: 420px) {
   .inventory-card-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-card {
+    transition: none;
   }
 }
