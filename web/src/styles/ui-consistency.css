@@ -34,12 +34,6 @@
   min-height: var(--app-header-height);
   background: inherit;
 }
-.shell {
-  width: min(100%, calc(var(--layout-content-max) + var(--layout-gutter) + var(--layout-gutter)));
-  margin-inline: auto;
-  padding-inline: var(--layout-gutter);
-  box-sizing: border-box;
-}
 .desktop-header-nav { display: flex; align-items: center; gap: 8px; }
 .header-menu-toggle {
   display: none;
