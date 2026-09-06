@@ -9,32 +9,43 @@ import {
   ManagementTableFrame,
   ManagementTabs,
   ManagementToolbar,
-} from '../src/app/ManagementControls.tsx';
+} from '../src/shared/ui/ManagementControls.tsx';
 
-const selectPath = new URL('../src/app/ManagementSelect.tsx', import.meta.url);
-const interactionsCssPath = new URL('../src/app/management-interactions.css', import.meta.url);
+const selectPath = new URL('../src/shared/ui/ManagementSelect.tsx', import.meta.url);
+const tabsPath = new URL('../src/shared/ui/Tabs.tsx', import.meta.url);
+const controlsPath = new URL('../src/shared/ui/ManagementControls.tsx', import.meta.url);
+const controlSystemCssPath = new URL('../src/styles/control-system.css', import.meta.url);
+const widgetsCssPath = new URL('../src/styles/widgets.css', import.meta.url);
 
 test('management tables default to seven rows per page', () => {
   assert.equal(MANAGEMENT_PAGE_SIZE, 7);
 });
 
-test('management tabs render as shared line tab controls', () => {
+test('management tabs render through the canonical Dos Hermanos line-tab primitive', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementTabs, {
     value: 'registry',
     options: [
-      { value: 'registry', label: 'Registry' },
+      { value: 'registry', label: 'Registry', mobileLabel: 'Items' },
       { value: 'activity', label: 'Activity' },
     ],
     onChange: () => undefined,
     label: 'Views',
   }));
+  const tabsSource = await readFile(tabsPath, 'utf8');
 
-  assert.match(markup, /management-tabs/);
+  assert.match(markup, /class="tab-bar"/);
   assert.match(markup, /role="tablist"/);
-  assert.match(markup, /management-tab-active/);
+  assert.match(markup, /class="active"/);
+  assert.match(markup, /tab-label-full/);
+  assert.match(markup, /tab-label-mobile/);
+  assert.match(markup, />Items</);
+  assert.match(tabsSource, /event\.key === 'ArrowRight'/);
+  assert.match(tabsSource, /event\.key === 'ArrowLeft'/);
+  assert.match(tabsSource, /event\.key === 'Home'/);
+  assert.match(tabsSource, /event\.key === 'End'/);
 });
 
-test('management toolbar keeps summary search two-line filter control and primary action visible', () => {
+test('management toolbar exposes desktop filters and collapses them to the mobile funnel', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementToolbar, {
     summary: [{ label: 'records', value: 12 }],
     searchValue: '',
@@ -43,17 +54,30 @@ test('management toolbar keeps summary search two-line filter control and primar
     filterContent: createElement('span', null, 'Sort controls'),
     primaryAction: createElement('button', { type: 'button' }, 'Add record'),
   }));
+  const [widgetsCss, controlsSource] = await Promise.all([
+    readFile(widgetsCssPath, 'utf8'),
+    readFile(controlsPath, 'utf8'),
+  ]);
 
   assert.match(markup, /management-summary/);
   assert.match(markup, /type="search"/);
+  assert.match(markup, /management-toolbar-filters/);
+  assert.match(markup, /management-toolbar-mobile-filter/);
   assert.match(markup, /management-filter-menu/);
   assert.match(markup, /management-filter-trigger/);
-  assert.match(markup, /M4 7h12M4 13h12/);
+  assert.match(markup, /22 3 2 3 10 12\.46 10 19 14 21 14 12\.46 22 3/);
+  assert.doesNotMatch(markup, /M4 7h12M4 13h12/);
   assert.equal(markup.includes('<details'), false);
   assert.match(markup, /Add record/);
+
+  assert.match(widgetsCss, /\.management-toolbar-filters\s*\{[\s\S]*display:\s*flex/);
+  assert.match(widgetsCss, /\.management-toolbar-mobile-filter\s*\{\s*display:\s*none/);
+  assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-filters\s*\{\s*display:\s*none/);
+  assert.match(widgetsCss, /@media \(max-width: 768px\)[\s\S]*\.management-toolbar-mobile-filter\s*\{\s*display:\s*block/);
+  assert.match(controlsSource, /target\.closest\('\.management-select-menu-portal'\)/);
 });
 
-test('management select is custom and does not render a native select control', () => {
+test('management select matches the Dos Hermanos arrow check and compact option details', async () => {
   const markup = renderToStaticMarkup(createElement(ManagementSelect, {
     value: 'active',
     options: [
@@ -63,16 +87,26 @@ test('management select is custom and does not render a native select control', 
     onChange: () => undefined,
     ariaLabel: 'Status',
   }));
+  const [selectSource, controlSystemCss] = await Promise.all([
+    readFile(selectPath, 'utf8'),
+    readFile(controlSystemCssPath, 'utf8'),
+  ]);
 
   assert.match(markup, /management-select-trigger/);
   assert.match(markup, /aria-haspopup="listbox"/);
   assert.equal(markup.includes('<select'), false);
+  assert.match(selectSource, /M0 0l5 6 5-6z/);
+  assert.match(selectSource, /function CheckIcon/);
+  assert.doesNotMatch(selectSource, /✓/);
+  assert.match(controlSystemCss, /\.management-select-option[\s\S]*min-height:\s*var\(--ui-compact-control-size\)/);
+  assert.match(controlSystemCss, /\.management-select-arrow[\s\S]*width:\s*10px[\s\S]*height:\s*6px/);
+  assert.match(controlSystemCss, /\.management-select-option-check[\s\S]*width:\s*15px/);
 });
 
 test('management select menus use a body portal so table overflow cannot clip them', async () => {
-  const [selectSource, interactionsCss] = await Promise.all([
+  const [selectSource, controlSystemCss] = await Promise.all([
     readFile(selectPath, 'utf8'),
-    readFile(interactionsCssPath, 'utf8'),
+    readFile(controlSystemCssPath, 'utf8'),
   ]);
 
   assert.match(selectSource, /createPortal/);
@@ -80,8 +114,8 @@ test('management select menus use a body portal so table overflow cannot clip th
   assert.match(selectSource, /management-select-menu-portal/);
   assert.match(selectSource, /getBoundingClientRect/);
   assert.match(selectSource, /spaceBelow < minimumUsefulHeight/);
-  assert.match(interactionsCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
-  assert.match(interactionsCss, /z-index:\s*1000/);
+  assert.match(controlSystemCss, /\.management-select-menu-portal[\s\S]*position:\s*fixed/);
+  assert.match(controlSystemCss, /z-index:\s*1000/);
 });
 
 test('management table frame owns pagination and dynamic loading state', () => {

@@ -3,19 +3,19 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const imageServiceSource = await readFile(
-  new URL('../src/features/resources/resource-image.service.ts', import.meta.url),
+  new URL('../src/modules/resources/resource-image.service.ts', import.meta.url),
   'utf8',
 );
 const inventoryDialogSource = await readFile(
-  new URL('../src/features/resources/InventoryItemDialog.tsx', import.meta.url),
+  new URL('../src/modules/resources/InventoryItemDialog.tsx', import.meta.url),
   'utf8',
 );
 const equipmentDialogSource = await readFile(
-  new URL('../src/features/resources/EquipmentItemDialog.tsx', import.meta.url),
+  new URL('../src/modules/resources/EquipmentItemDialog.tsx', import.meta.url),
   'utf8',
 );
 const firebaseSource = await readFile(
-  new URL('../src/firebase/firebase.ts', import.meta.url),
+  new URL('../src/core/firebase/firebase.ts', import.meta.url),
   'utf8',
 );
 const storageRulesSource = await readFile(
@@ -59,10 +59,15 @@ test('Firebase Storage retries are bounded so failures cannot spin for minutes',
   assert.match(firebaseSource, /maxUploadRetryTime = 30_000/);
 });
 
-test('Storage rules allow only authenticated staff and admin to list resource image folders', () => {
+test('Storage rules bind staff image access to real resource records', () => {
   assert.match(storageRulesSource, /match \/inventory\/\{allPaths=\*\*\}[\s\S]*allow list: if isStaffOrAdmin\(\)/);
   assert.match(storageRulesSource, /match \/equipment\/\{allPaths=\*\*\}[\s\S]*allow list: if isStaffOrAdmin\(\)/);
-  assert.match(storageRulesSource, /allow create, update: if isStaffOrAdmin\(\) && isAllowedImage\(\)/);
+  assert.match(storageRulesSource, /inventoryItemExists\(inventoryItemId\)/);
+  assert.match(storageRulesSource, /equipmentItemAcceptsImage\(equipmentItemId\)/);
+  assert.match(storageRulesSource, /firestore\.exists/);
+  assert.match(storageRulesSource, /data\.get\('isDeleted', false\) != true/);
+  assert.match(storageRulesSource, /request\.resource\.contentType\.matches\('image\/\(jpeg\|png\|webp\)'\)/);
+  assert.match(storageRulesSource, /request\.resource\.size <= 5 \* 1024 \* 1024/);
 });
 
 test('bucket CORS policy is restricted to the deployed Firebase Hosting origins', () => {

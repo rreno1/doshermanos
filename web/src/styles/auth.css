@@ -1,0 +1,258 @@
+/* Authentication content uses the shared Dos Hermanos modal, form, control, and focus contracts. */
+.auth-trigger {
+  max-width: 220px;
+  min-height: var(--ui-toolbar-control-size);
+  overflow: hidden;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  background: var(--surface-raised);
+  font: 600 13.5px/1 var(--font-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard);
+}
+
+.auth-trigger:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.auth-trigger:focus-visible,
+.auth-close:focus-visible,
+.auth-primary-button:focus-visible,
+.auth-secondary-button:focus-visible,
+.auth-google-button:focus-visible,
+.auth-mode-actions button:focus-visible {
+  outline: var(--ui-focus-outline);
+  outline-offset: var(--ui-focus-offset);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+.auth-trigger:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.auth-dialog {
+  width: min(520px, calc(100vw - 32px));
+  overflow: hidden;
+}
+
+.auth-panel {
+  padding: 28px;
+}
+
+.auth-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.auth-panel-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.65rem, 5vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.auth-eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.auth-close {
+  flex: 0 0 auto;
+  border: 0;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.auth-close:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.auth-form,
+.auth-account-summary {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-account-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.auth-primary-button,
+.auth-secondary-button,
+.auth-google-button {
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font: 600 13.5px/1 var(--font-title);
+  cursor: pointer;
+  transition:
+    transform var(--motion-standard) var(--ease-standard),
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
+.auth-primary-button {
+  border: 1px solid var(--primary);
+  color: #fff;
+  background: var(--primary);
+}
+
+.auth-primary-button:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.auth-secondary-button {
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.auth-secondary-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.auth-google-button {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: -0.01em;
+}
+
+.auth-google-button::after {
+  width: 24px;
+  height: 24px;
+  content: '';
+}
+
+.auth-google-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.auth-google-logo {
+  width: 20px;
+  height: 20px;
+  justify-self: center;
+}
+
+.auth-primary-button:disabled,
+.auth-secondary-button:disabled,
+.auth-google-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.auth-provider-note {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.auth-mode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.auth-mode-actions button {
+  padding: 0;
+  border: 0;
+  color: var(--primary);
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-message {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  background: var(--primary-light);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.auth-message-error {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.auth-account-summary strong {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.auth-account-role {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .auth-panel {
+    padding: 22px;
+  }
+
+  .auth-trigger {
+    max-width: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-trigger,
+  .auth-primary-button,
+  .auth-secondary-button,
+  .auth-google-button {
+    transition: none;
+  }
+}

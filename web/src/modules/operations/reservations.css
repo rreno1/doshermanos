@@ -1,0 +1,325 @@
+/* Reservation-domain layout. Shared Dos Hermanos contracts own dialog surfaces,
+ * controls, focus treatment, management tables, and responsive shell behavior. */
+.package-action,
+.primary-button,
+.quiet-button {
+  min-height: var(--ui-toolbar-control-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: 600 13.5px/1 var(--font-title);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard);
+}
+
+.package-action,
+.primary-button {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.package-action {
+  margin-top: var(--space-6);
+}
+
+.package-action:hover:not(:disabled),
+.primary-button:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.quiet-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.package-action:focus-visible,
+.primary-button:focus-visible,
+.quiet-button:focus-visible,
+.reservation-form input:focus-visible,
+.reservation-form textarea:focus-visible {
+  outline: var(--ui-focus-outline);
+  outline-offset: var(--ui-focus-offset);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+.reservation-dialog {
+  width: min(680px, calc(100vw - 32px));
+  overflow: hidden;
+}
+
+.reservation-dialog-content {
+  padding: 24px;
+}
+
+.reservation-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.reservation-dialog-heading h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.reservation-dialog-heading p:not(.eyebrow) {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.reservation-access-note,
+.reservation-success {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-tint);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.reservation-success p {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.reservation-form {
+  display: grid;
+  gap: 18px;
+  margin-top: var(--space-6);
+}
+
+.reservation-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.reservation-form label {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.reservation-form label span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.reservation-form label em {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.reservation-form input,
+.reservation-form textarea {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.reservation-form input:not([type='checkbox']):not([type='radio']) {
+  min-height: var(--ui-form-control-height);
+}
+
+.reservation-form textarea {
+  min-height: var(--ui-form-textarea-min-height);
+}
+
+.reservation-form input[aria-invalid='true'],
+.reservation-form textarea[aria-invalid='true'] {
+  border-color: var(--red);
+  background: var(--red-bg);
+}
+
+.reservation-form small,
+.reservation-submit-message {
+  color: var(--red);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.reservation-form-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.reservation-submit-message {
+  margin: 0;
+}
+
+.primary-button {
+  justify-self: start;
+}
+
+.primary-button:disabled,
+.quiet-button:disabled,
+.package-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.my-reservations {
+  width: min(100%, var(--layout-content-max));
+  margin-inline: auto;
+}
+
+.my-reservations h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-weight: 620;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+}
+
+.reservation-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.reservation-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-6);
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-translucent);
+  box-shadow: var(--shadow-sm);
+}
+
+.reservation-row-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.reservation-row h3,
+.reservation-row p {
+  margin: 0;
+}
+
+.reservation-row h3 {
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.reservation-row p {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.reservation-row time {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.reservation-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: var(--radius-round);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.reservation-status-confirmed,
+.reservation-status-completed {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.reservation-status-rejected,
+.reservation-status-cancelled {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.reservation-requirements {
+  max-width: 760px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The pending-review screen is composed from shared Management* primitives.
+ * This root owns only its feature position inside Operations. */
+.reservation-review-section {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap, var(--space-3));
+}
+
+@media (max-width: 760px) {
+  .reservation-form-grid,
+  .reservation-row {
+    grid-template-columns: 1fr;
+  }
+
+  .reservation-dialog-content {
+    padding: 20px;
+  }
+
+  .reservation-dialog-heading {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .quiet-button {
+    justify-self: start;
+  }
+
+  .reservation-row {
+    gap: var(--space-3);
+    padding: 18px;
+  }
+
+  .reservation-row time {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .package-action,
+  .primary-button,
+  .quiet-button {
+    transition: none;
+  }
+}

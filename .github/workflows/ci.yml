@@ -32,6 +32,23 @@ jobs:
       - name: Check source structure and readability
         run: node scripts/check-readability.mjs
 
+  secret-leak-guard:
+    name: Secret leak guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Reject committed credentials and private keys
+        run: node scripts/check-secret-leaks.mjs
+
   firebase-environments:
     name: Firebase environment guard
     runs-on: ubuntu-latest
@@ -65,6 +82,59 @@ jobs:
 
       - name: Check Firebase Hosting security headers and cache policy
         run: node scripts/check-hosting-security.mjs
+
+  storage-security:
+    name: Firebase Storage security guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Firebase Storage authorization and upload policy
+        run: node scripts/check-storage-security.mjs
+
+  web-dependency-audit:
+    name: Web production dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit web production dependencies for high severity vulnerabilities
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=high
+
+  mobile-dependency-audit:
+    name: Mobile production dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit mobile production dependencies for high severity vulnerabilities
+        working-directory: mobile
+        run: npm audit --omit=dev --audit-level=high
 
   web:
     name: Web typecheck and build

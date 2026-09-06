@@ -1,0 +1,12 @@
+/* Users/Roles is composed from shared Dos Hermanos management primitives. */
+.users-section {
+  display: grid;
+  gap: var(--management-section-stack-gap, var(--space-3));
+}
+
+.users-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}

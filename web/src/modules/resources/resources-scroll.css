@@ -1,0 +1,79 @@
+.resources-progressive-list {
+  display: grid;
+  gap: 10px;
+}
+
+.resources-progressive-sentinel {
+  min-height: 1px;
+}
+
+.resources-progressive-status {
+  margin: 0;
+  padding: 2px 4px 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 400;
+  text-align: center;
+}
+
+.resources-back-to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 80;
+  min-height: var(--ui-toolbar-control-size);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font: 500 0.78rem/1 var(--font-title);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
+.resources-back-to-top svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.resources-back-to-top:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.resources-back-to-top:focus-visible {
+  outline: var(--ui-focus-outline);
+  outline-offset: var(--ui-focus-offset);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+@media (max-width: 620px) {
+  .resources-back-to-top {
+    right: 14px;
+    bottom: 14px;
+    width: var(--ui-toolbar-control-size);
+    min-width: var(--ui-toolbar-control-size);
+    padding: 0;
+    justify-content: center;
+  }
+
+  .resources-back-to-top span {
+    display: none;
+  }
+}

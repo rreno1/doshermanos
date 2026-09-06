@@ -1,0 +1,37 @@
+/* Small shared UI utilities; feature layout belongs with the owning module. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.management-table-primary { display: grid; gap: 3px; min-width: 0; }
+.management-table-primary strong { color: var(--text); overflow-wrap: anywhere; }
+.management-table-primary span,
+.management-table-muted { color: var(--muted); font-size: 0.78rem; overflow-wrap: anywhere; }
+.management-table-actions { display: flex; justify-content: flex-end; align-items: center; gap: 7px; white-space: nowrap; }
+
+.management-status-badge {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-round);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.management-status-badge-active,
+.management-status-badge-good { color: var(--primary-hover); background: var(--primary-light); }
+.management-status-badge-warn { color: var(--amber); background: var(--amber-bg); }
+.management-status-badge-danger { color: var(--red); background: var(--red-bg); }
+.management-status-badge-muted { color: var(--muted); background: var(--surface2); }

@@ -1,0 +1,168 @@
+import { subscribeToReservationDecisions } from '@modules/operations/reservation.service';
+import type { ReservationDecision } from '@modules/operations/reservation.types';
+import { subscribeToRecentPayments } from '@modules/payments/payment.service';
+import type { PaymentRecord } from '@modules/payments/payment.types';
+import { subscribeToEquipmentTransactions } from '@modules/resources/equipment.service';
+import type { EquipmentTransactionRecord } from '@modules/resources/equipment.types';
+import { subscribeToRecentInventoryMovements } from '@modules/resources/inventory.service';
+import type { InventoryMovement } from '@modules/resources/inventory.types';
+import { subscribeToRecentUserAccessEvents } from '@modules/users/users.service';
+import type { UserAccessEvent } from '@modules/users/users.service';
+import type { AuditActivity, AuditActivityKind } from './audit.types';
+
+const maximumAuditActivities = 60;
+
+export function subscribeToAuditActivity(
+  onActivities: (activities: AuditActivity[]) => void,
+  onError: () => void,
+) {
+  let inventoryMovements: InventoryMovement[] = [];
+  let payments: PaymentRecord[] = [];
+  let reservationDecisions: ReservationDecision[] = [];
+  let equipmentTransactions: EquipmentTransactionRecord[] = [];
+  let userAccessEvents: UserAccessEvent[] = [];
+  let hasFailed = false;
+
+  function publish() {
+    const activities = [
+      ...inventoryMovements.map(inventoryMovementToAuditActivity),
+      ...payments.map(paymentToAuditActivity),
+      ...reservationDecisions.map(reservationDecisionToAuditActivity),
+      ...equipmentTransactions.map(equipmentTransactionToAuditActivity),
+      ...userAccessEvents.map(userAccessEventToAuditActivity),
+    ]
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .slice(0, maximumAuditActivities);
+
+    onActivities(activities);
+  }
+
+  function handleError() {
+    if (hasFailed) return;
+    hasFailed = true;
+    onError();
+  }
+
+  const unsubscribeInventory = subscribeToRecentInventoryMovements((movements) => {
+    inventoryMovements = movements;
+    publish();
+  }, handleError);
+
+  const unsubscribePayments = subscribeToRecentPayments((records) => {
+    payments = records;
+    publish();
+  }, handleError);
+
+  const unsubscribeReservations = subscribeToReservationDecisions((records) => {
+    reservationDecisions = records;
+    publish();
+  }, handleError);
+
+  const unsubscribeEquipment = subscribeToEquipmentTransactions((records) => {
+    equipmentTransactions = records;
+    publish();
+  }, handleError);
+
+  const unsubscribeAccess = subscribeToRecentUserAccessEvents((records) => {
+    userAccessEvents = records;
+    publish();
+  }, handleError);
+
+  return () => {
+    unsubscribeInventory();
+    unsubscribePayments();
+    unsubscribeReservations();
+    unsubscribeEquipment();
+    unsubscribeAccess();
+  };
+}
+
+function inventoryMovementToAuditActivity(movement: InventoryMovement): AuditActivity {
+  const labels: Record<InventoryMovement['type'], { kind: AuditActivityKind; title: string }> = {
+    stock_in: { kind: 'inventory_stock_in', title: 'Inventory stock added' },
+    stock_out: { kind: 'inventory_stock_out', title: 'Inventory stock removed' },
+    correction: { kind: 'inventory_correction', title: 'Inventory count corrected' },
+  };
+  const label = labels[movement.type];
+  const signedChange = movement.quantityChange > 0
+    ? `+${movement.quantityChange}`
+    : String(movement.quantityChange);
+
+  return {
+    id: `inventory-${movement.id}`,
+    kind: label.kind,
+    title: label.title,
+    detail: `${movement.itemName}: ${signedChange} ${movement.unit} · ${movement.previousQuantity} → ${movement.newQuantity}`,
+    actorName: movement.recordedByName,
+    createdAt: movement.createdAt,
+  };
+}
+
+function paymentToAuditActivity(payment: PaymentRecord): AuditActivity {
+  return {
+    id: `payment-${payment.id}`,
+    kind: 'payment_recorded',
+    title: 'Cash payment recorded',
+    detail: `${payment.packageName}: ${formatPeso(payment.amountInCentavos)}`,
+    actorName: payment.recordedByName,
+    createdAt: payment.createdAt,
+  };
+}
+
+function reservationDecisionToAuditActivity(decision: ReservationDecision): AuditActivity {
+  return {
+    id: `reservation-${decision.id}`,
+    kind: 'reservation_rejected',
+    title: 'Reservation request rejected',
+    detail: `Reservation ${decision.reservationId}`,
+    actorName: decision.decidedByName,
+    createdAt: decision.createdAt,
+  };
+}
+
+function equipmentTransactionToAuditActivity(
+  transaction: EquipmentTransactionRecord,
+): AuditActivity {
+  if (transaction.type === 'release') {
+    return {
+      id: `equipment-${transaction.id}`,
+      kind: 'equipment_released',
+      title: 'Equipment released',
+      detail: `${transaction.equipmentName}: ${transaction.quantity} ${transaction.unit}`,
+      actorName: transaction.recordedByName,
+      createdAt: transaction.createdAt,
+    };
+  }
+
+  return {
+    id: `equipment-${transaction.id}`,
+    kind: 'equipment_returned',
+    title: 'Equipment returned',
+    detail: `${transaction.equipmentName}: ${transaction.returnedGoodQuantity} usable, ${transaction.damagedQuantity} damaged, ${transaction.missingQuantity} missing`,
+    actorName: transaction.recordedByName,
+    createdAt: transaction.createdAt,
+  };
+}
+
+function userAccessEventToAuditActivity(event: UserAccessEvent): AuditActivity {
+  return {
+    id: `access-${event.id}`,
+    kind: 'access_changed',
+    title: 'User access changed',
+    detail: `${event.targetDisplayName}: ${formatAccessRole(event.previousRole)} → ${formatAccessRole(event.newRole)} · ${event.previousStatus} → ${event.newStatus}`,
+    actorName: event.changedByName,
+    createdAt: event.createdAt,
+  };
+}
+
+function formatAccessRole(role: UserAccessEvent['newRole']) {
+  if (role === 'admin') return 'administrator';
+  return role;
+}
+
+function formatPeso(amountInCentavos: number): string {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amountInCentavos / 100);
+}

@@ -23,13 +23,27 @@ service firebase.storage {
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
 
+    function inventoryItemExists(inventoryItemId) {
+      return firestore.exists(
+        /databases/(default)/documents/inventory/$(inventoryItemId)
+      );
+    }
+
+    function equipmentItemAcceptsImage(equipmentItemId) {
+      let itemPath = /databases/(default)/documents/equipment/$(equipmentItemId);
+      return firestore.exists(itemPath)
+        && firestore.get(itemPath).data.get('isDeleted', false) != true;
+    }
+
     match /inventory/{allPaths=**} {
       allow list: if isStaffOrAdmin();
     }
 
     match /inventory/{inventoryItemId}/item-image {
-      allow get: if isStaffOrAdmin();
-      allow create, update: if isStaffOrAdmin() && isAllowedImage();
+      allow get: if isStaffOrAdmin() && inventoryItemExists(inventoryItemId);
+      allow create, update: if isStaffOrAdmin()
+        && inventoryItemExists(inventoryItemId)
+        && isAllowedImage();
       allow delete: if isStaffOrAdmin();
     }
 
@@ -38,8 +52,10 @@ service firebase.storage {
     }
 
     match /equipment/{equipmentItemId}/item-image {
-      allow get: if isStaffOrAdmin();
-      allow create, update: if isStaffOrAdmin() && isAllowedImage();
+      allow get: if isStaffOrAdmin() && equipmentItemAcceptsImage(equipmentItemId);
+      allow create, update: if isStaffOrAdmin()
+        && equipmentItemAcceptsImage(equipmentItemId)
+        && isAllowedImage();
       allow delete: if isStaffOrAdmin();
     }
 

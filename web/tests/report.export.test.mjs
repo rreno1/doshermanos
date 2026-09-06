@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCsv } from '../src/features/reports/report.export.ts';
+import { createCsv } from '../src/modules/reports/report.export.ts';
 
 test('CSV export is UTF-8 Excel-compatible and escapes punctuation', () => {
   const csv = createCsv(

@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const inventoryPanelPath = new URL('../src/features/resources/InventoryPanel.tsx', import.meta.url);
-const inventoryGridPath = new URL('../src/features/resources/InventoryItemGrid.tsx', import.meta.url);
-const equipmentPanelPath = new URL('../src/features/resources/EquipmentPanel.tsx', import.meta.url);
-const equipmentGridPath = new URL('../src/features/resources/EquipmentRegistryGrid.tsx', import.meta.url);
-const equipmentDialogPath = new URL('../src/features/resources/EquipmentItemDialog.tsx', import.meta.url);
-const imageServicePath = new URL('../src/features/resources/resource-image.service.ts', import.meta.url);
-const progressivePath = new URL('../src/features/resources/useProgressiveItems.ts', import.meta.url);
-const cardsCssPath = new URL('../src/features/resources/inventory-cards.css', import.meta.url);
+const inventoryPanelPath = new URL('../src/modules/resources/InventoryPanel.tsx', import.meta.url);
+const inventoryGridPath = new URL('../src/modules/resources/InventoryItemGrid.tsx', import.meta.url);
+const equipmentPanelPath = new URL('../src/modules/resources/EquipmentPanel.tsx', import.meta.url);
+const equipmentGridPath = new URL('../src/modules/resources/EquipmentRegistryGrid.tsx', import.meta.url);
+const equipmentDialogPath = new URL('../src/modules/resources/EquipmentItemDialog.tsx', import.meta.url);
+const imageServicePath = new URL('../src/modules/resources/resource-image.service.ts', import.meta.url);
+const progressivePath = new URL('../src/modules/resources/useProgressiveItems.ts', import.meta.url);
+const cardsCssPath = new URL('../src/modules/resources/inventory-cards.css', import.meta.url);
 const storageRulesPath = new URL('../../firebase/storage.rules', import.meta.url);
 
 test('inventory and equipment registries use matching cards with scroll driven reveal', async () => {

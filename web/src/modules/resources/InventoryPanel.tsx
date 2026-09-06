@@ -1,0 +1,405 @@
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ManagementFilterField,
+  ManagementLoadingState,
+  ManagementSelect,
+  ManagementTableFrame,
+  ManagementToolbar,
+  useManagementPage,
+} from '@shared/ui/ManagementControls';
+import { InventoryItemDialog } from './InventoryItemDialog';
+import { InventoryItemGrid } from './InventoryItemGrid';
+import { InventoryMovementDialog } from './InventoryMovementDialog';
+import {
+  subscribeToInventory,
+  subscribeToRecentInventoryMovements,
+} from './inventory.service';
+import type { InventoryItem, InventoryMovement } from './inventory.types';
+import { useProgressiveItems } from './useProgressiveItems';
+import './inventory.css';
+import './inventory-cards.css';
+
+export type InventoryView = 'items' | 'activity';
+type SortDirection = 'asc' | 'desc';
+type InventorySort = 'name' | 'quantity' | 'threshold' | 'date' | 'type';
+
+type InventoryPanelProps = {
+  staffId: string;
+  staffName: string;
+  view: InventoryView;
+};
+
+export function InventoryPanel({ staffId, staffName, view }: InventoryPanelProps) {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [movements, setMovements] = useState<InventoryMovement[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [isLoadingMovements, setIsLoadingMovements] = useState(true);
+  const [inventoryError, setInventoryError] = useState(false);
+  const [movementError, setMovementError] = useState(false);
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [stockItem, setStockItem] = useState<InventoryItem | null>(null);
+  const [queryText, setQueryText] = useState('');
+  const [filterValue, setFilterValue] = useState('all');
+  const [sortBy, setSortBy] = useState<InventorySort>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  useEffect(() => {
+    setIsLoadingItems(true);
+    setInventoryError(false);
+    return subscribeToInventory(
+      (nextItems) => {
+        setItems(nextItems);
+        setIsLoadingItems(false);
+      },
+      () => {
+        setInventoryError(true);
+        setIsLoadingItems(false);
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    setIsLoadingMovements(true);
+    setMovementError(false);
+    return subscribeToRecentInventoryMovements(
+      (nextMovements) => {
+        setMovements(nextMovements);
+        setIsLoadingMovements(false);
+      },
+      () => {
+        setMovementError(true);
+        setIsLoadingMovements(false);
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    setQueryText('');
+    setFilterValue('all');
+    setSortBy(view === 'items' ? 'name' : 'date');
+    setSortDirection(view === 'items' ? 'asc' : 'desc');
+  }, [view]);
+
+  const activeItems = useMemo(() => items.filter((item) => item.isActive), [items]);
+  const inStockItems = useMemo(
+    () => activeItems.filter((item) => item.quantity > item.lowStockThreshold),
+    [activeItems],
+  );
+  const lowStockItems = useMemo(
+    () => activeItems.filter(
+      (item) => item.quantity > 0 && item.quantity <= item.lowStockThreshold,
+    ),
+    [activeItems],
+  );
+  const outOfStockItems = useMemo(
+    () => activeItems.filter((item) => item.quantity === 0),
+    [activeItems],
+  );
+  const visibleItems = useMemo(
+    () => filterItems(items, queryText, filterValue, sortBy, sortDirection),
+    [items, queryText, filterValue, sortBy, sortDirection],
+  );
+  const visibleMovements = useMemo(
+    () => filterMovements(movements, queryText, filterValue, sortBy, sortDirection),
+    [movements, queryText, filterValue, sortBy, sortDirection],
+  );
+
+  const resetKey = `${queryText}|${filterValue}|${sortBy}|${sortDirection}`;
+  const itemScroll = useProgressiveItems(visibleItems, `items|${resetKey}`);
+  const movementPage = useManagementPage(visibleMovements, `activity|${resetKey}`);
+
+  function openNewItemDialog() {
+    setEditingItem(null);
+    setIsItemDialogOpen(true);
+  }
+
+  function openEditItemDialog(item: InventoryItem) {
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
+  }
+
+  function closeItemDialog() {
+    setIsItemDialogOpen(false);
+    setEditingItem(null);
+  }
+
+  return (
+    <div className="inventory-section" id="inventory" aria-label={view === 'items' ? 'Inventory items' : 'Inventory activity'}>
+      <ManagementToolbar
+        summary={view === 'items' ? [
+          { label: 'items', value: items.length },
+          { label: 'in stock', value: inStockItems.length },
+          { label: 'low stock', value: lowStockItems.length, warn: lowStockItems.length > 0 },
+          { label: 'out of stock', value: outOfStockItems.length, warn: outOfStockItems.length > 0 },
+        ] : [
+          { label: 'recent movements', value: movements.length },
+        ]}
+        searchValue={queryText}
+        searchPlaceholder={view === 'items' ? 'Search inventory' : 'Search stock activity'}
+        onSearchChange={setQueryText}
+        filterContent={(
+          <InventoryFilters
+            view={view}
+            filterValue={filterValue}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onFilterChange={setFilterValue}
+            onSortChange={setSortBy}
+            onDirectionChange={setSortDirection}
+            onReset={() => {
+              setFilterValue('all');
+              setSortBy(view === 'items' ? 'name' : 'date');
+              setSortDirection(view === 'items' ? 'asc' : 'desc');
+            }}
+          />
+        )}
+        primaryAction={view === 'items' ? (
+          <button type="button" className="management-primary-button" onClick={openNewItemDialog}>
+            Add item
+          </button>
+        ) : undefined}
+      />
+
+      {view === 'items' ? renderItems() : renderActivity()}
+
+      <InventoryItemDialog isOpen={isItemDialogOpen} item={editingItem} onClose={closeItemDialog} />
+      <InventoryMovementDialog
+        item={stockItem}
+        recordedBy={staffId}
+        recordedByName={staffName}
+        onClose={() => setStockItem(null)}
+      />
+    </div>
+  );
+
+  function renderItems() {
+    const emptyMessage = items.length === 0
+      ? 'No inventory items yet.'
+      : visibleItems.length === 0
+        ? 'No inventory items match the current view.'
+        : undefined;
+
+    if (isLoadingItems) {
+      return <ManagementLoadingState message="Loading pantry inventory…" />;
+    }
+
+    if (inventoryError) {
+      return <div className="management-empty-state management-empty-state-error" role="alert">Inventory items could not be loaded.</div>;
+    }
+
+    if (emptyMessage) {
+      return <div className="management-empty-state" role="status">{emptyMessage}</div>;
+    }
+
+    return (
+      <div className="resources-progressive-list">
+        <InventoryItemGrid
+          items={itemScroll.visibleItems}
+          onEdit={openEditItemDialog}
+          onUpdateStock={setStockItem}
+        />
+        {itemScroll.hasMore ? (
+          <div ref={itemScroll.sentinelRef} className="resources-progressive-sentinel" aria-hidden="true" />
+        ) : null}
+        <p className="resources-progressive-status" role="status">
+          Showing {itemScroll.visibleCount.toLocaleString('en-PH')} of {visibleItems.length.toLocaleString('en-PH')} items
+          {itemScroll.hasMore ? ' · Scroll down to show more' : ''}
+        </p>
+      </div>
+    );
+  }
+
+  function renderActivity() {
+    const emptyMessage = movements.length === 0
+      ? 'No stock activity yet.'
+      : visibleMovements.length === 0
+        ? 'No stock activity matches the current view.'
+        : undefined;
+
+    return (
+      <ManagementTableFrame
+        loadingMessage={isLoadingMovements ? 'Loading stock activity…' : undefined}
+        errorMessage={!isLoadingMovements && movementError ? 'Stock activity could not be loaded.' : undefined}
+        emptyMessage={!isLoadingMovements && !movementError ? emptyMessage : undefined}
+        pagination={!isLoadingMovements && !movementError && visibleMovements.length > 0 ? {
+          page: movementPage.page,
+          totalItems: visibleMovements.length,
+          onPageChange: movementPage.setPage,
+        } : undefined}
+      >
+        <div className="management-table-wrap">
+          <table className="management-table">
+            <thead>
+              <tr>
+                <th scope="col" className="col-primary">Item</th>
+                <th scope="col" className="col-status">Movement</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Previous</th>
+                <th scope="col" className="col-secondary">New quantity</th>
+                <th scope="col" className="col-hide-tablet">Recorded by</th>
+                <th scope="col" className="col-secondary col-hide-mobile">Recorded at</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movementPage.pageItems.map((movement) => (
+                <tr key={movement.id}>
+                  <td className="col-primary"><div className="management-table-primary"><strong>{movement.itemName}</strong><span>{movement.note || movement.unit}</span></div></td>
+                  <td className="col-status"><MovementBadge movement={movement} /></td>
+                  <td className="col-secondary col-hide-mobile">{movement.previousQuantity.toLocaleString('en-PH')}</td>
+                  <td className="col-secondary">{movement.newQuantity.toLocaleString('en-PH')} {movement.unit}</td>
+                  <td className="col-hide-tablet">{movement.recordedByName}</td>
+                  <td className="col-secondary col-hide-mobile">{formatMovementTime(movement.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ManagementTableFrame>
+    );
+  }
+}
+
+function InventoryFilters({
+  view,
+  filterValue,
+  sortBy,
+  sortDirection,
+  onFilterChange,
+  onSortChange,
+  onDirectionChange,
+  onReset,
+}: {
+  view: InventoryView;
+  filterValue: string;
+  sortBy: InventorySort;
+  sortDirection: SortDirection;
+  onFilterChange: (value: string) => void;
+  onSortChange: (value: InventorySort) => void;
+  onDirectionChange: (value: SortDirection) => void;
+  onReset: () => void;
+}) {
+  const filterOptions = view === 'items'
+    ? [
+      { value: 'all', label: 'All statuses' },
+      { value: 'in_stock', label: 'In stock' },
+      { value: 'low', label: 'Low stock' },
+      { value: 'out', label: 'Out of stock' },
+      { value: 'inactive', label: 'Inactive' },
+    ]
+    : [
+      { value: 'all', label: 'All movement types' },
+      { value: 'stock_in', label: 'Stock in' },
+      { value: 'stock_out', label: 'Stock out' },
+      { value: 'correction', label: 'Correction' },
+    ];
+  const sortOptions = view === 'items'
+    ? [
+      { value: 'name', label: 'Name' },
+      { value: 'quantity', label: 'Quantity' },
+      { value: 'threshold', label: 'Low-stock threshold' },
+    ]
+    : [
+      { value: 'date', label: 'Recorded date' },
+      { value: 'name', label: 'Item name' },
+      { value: 'type', label: 'Movement type' },
+    ];
+
+  return (
+    <>
+      <ManagementFilterField label={view === 'items' ? 'Stock status' : 'Movement type'}>
+        <ManagementSelect
+          value={filterValue}
+          options={filterOptions}
+          onChange={onFilterChange}
+          ariaLabel={view === 'items' ? 'Filter inventory by stock status' : 'Filter stock activity by type'}
+        />
+      </ManagementFilterField>
+      <ManagementFilterField label="Sort by">
+        <ManagementSelect
+          value={sortBy}
+          options={sortOptions as { value: InventorySort; label: string }[]}
+          onChange={onSortChange}
+          ariaLabel="Sort inventory view by"
+        />
+      </ManagementFilterField>
+      <ManagementFilterField label="Direction">
+        <ManagementSelect
+          value={sortDirection}
+          options={[
+            { value: 'asc', label: 'Ascending' },
+            { value: 'desc', label: 'Descending' },
+          ]}
+          onChange={onDirectionChange}
+          ariaLabel="Sort direction"
+        />
+      </ManagementFilterField>
+      <button type="button" className="management-secondary-button" onClick={onReset}>Reset filters</button>
+    </>
+  );
+}
+
+function MovementBadge({ movement }: { movement: InventoryMovement }) {
+  const label = movement.type === 'stock_in' ? 'Stock in' : movement.type === 'stock_out' ? 'Stock out' : 'Correction';
+  const className = movement.type === 'correction'
+    ? 'management-status-badge management-status-badge-warn'
+    : 'management-status-badge management-status-badge-active';
+  return <span className={className}>{label} · {movement.quantityChange > 0 ? '+' : ''}{movement.quantityChange}</span>;
+}
+
+function filterItems(
+  items: InventoryItem[],
+  query: string,
+  status: string,
+  sortBy: InventorySort,
+  direction: SortDirection,
+) {
+  const text = query.trim().toLocaleLowerCase();
+
+  return [...items]
+    .filter((item) => matchesItemStatus(item, status))
+    .filter((item) => !text || `${item.name} ${item.unit}`.toLocaleLowerCase().includes(text))
+    .sort((left, right) => compare(
+      sortBy === 'quantity' ? left.quantity : sortBy === 'threshold' ? left.lowStockThreshold : left.name,
+      sortBy === 'quantity' ? right.quantity : sortBy === 'threshold' ? right.lowStockThreshold : right.name,
+      direction,
+    ));
+}
+
+function matchesItemStatus(item: InventoryItem, status: string) {
+  if (status === 'all') return true;
+  if (status === 'inactive') return !item.isActive;
+  if (!item.isActive) return false;
+  if (status === 'out') return item.quantity === 0;
+  if (status === 'low') return item.quantity > 0 && item.quantity <= item.lowStockThreshold;
+  if (status === 'in_stock') return item.quantity > item.lowStockThreshold;
+  return true;
+}
+
+function filterMovements(
+  movements: InventoryMovement[],
+  query: string,
+  type: string,
+  sortBy: InventorySort,
+  direction: SortDirection,
+) {
+  const text = query.trim().toLocaleLowerCase();
+  return [...movements]
+    .filter((movement) => type === 'all' || movement.type === type)
+    .filter((movement) => !text || `${movement.itemName} ${movement.recordedByName} ${movement.note}`.toLocaleLowerCase().includes(text))
+    .sort((left, right) => compare(
+      sortBy === 'name' ? left.itemName : sortBy === 'type' ? left.type : left.createdAt.getTime(),
+      sortBy === 'name' ? right.itemName : sortBy === 'type' ? right.type : right.createdAt.getTime(),
+      direction,
+    ));
+}
+
+function compare(left: string | number, right: string | number, direction: SortDirection) {
+  const result = typeof left === 'number' && typeof right === 'number'
+    ? left - right
+    : String(left).localeCompare(String(right), 'en-PH', { sensitivity: 'base' });
+  return direction === 'asc' ? result : -result;
+}
+
+function formatMovementTime(date: Date): string {
+  return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}

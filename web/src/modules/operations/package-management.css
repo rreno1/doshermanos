@@ -1,0 +1,167 @@
+.package-management-section {
+  display: grid;
+  gap: var(--management-section-stack-gap, var(--space-3));
+}
+
+.package-management-primary,
+.package-management-close,
+.package-management-editor-actions button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.package-management-primary {
+  min-height: var(--ui-toolbar-control-size);
+  padding: 0 14px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.package-management-primary:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.package-management-dialog {
+  width: min(680px, calc(100vw - 32px));
+  overflow: hidden;
+}
+
+.package-management-editor {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.package-management-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.package-management-editor-heading h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.package-management-editor-heading p {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.package-management-close {
+  flex: 0 0 auto;
+  border: 0;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.package-management-close:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.package-management-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(140px, 0.7fr) minmax(110px, 0.5fr);
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.package-management-editor label {
+  display: grid;
+  gap: 7px;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.package-management-editor textarea {
+  resize: vertical;
+}
+
+.package-management-editor small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.package-management-checkbox {
+  grid-column: 1 / -1;
+  display: flex !important;
+  align-items: center;
+  gap: 9px !important;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface2);
+}
+
+.package-management-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.package-management-error {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--red) 25%, var(--line));
+  border-radius: var(--radius-md);
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.package-management-editor-actions {
+  padding-top: var(--space-1);
+}
+
+.package-management-editor-actions > button:not(.package-management-primary) {
+  min-height: var(--ui-toolbar-control-size);
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.package-management-editor-actions > button:not(.package-management-primary):hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.package-management-primary:disabled,
+.package-management-close:disabled,
+.package-management-editor-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@media (max-width: 900px) {
+  .package-management-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .package-management-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .package-management-editor {
+    padding: 20px;
+  }
+}

@@ -2,21 +2,23 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const appSource = await readFile(new URL('../src/app/App.tsx', import.meta.url), 'utf8');
-const shellSource = await readFile(new URL('../src/features/portal/PortalShell.tsx', import.meta.url), 'utf8');
-const portalSource = await readFile(new URL('../src/features/portal/PublicPortal.tsx', import.meta.url), 'utf8');
-const landingSource = await readFile(new URL('../src/features/portal/LandingPage.tsx', import.meta.url), 'utf8');
+const appSource = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const navigationSource = await readFile(new URL('../src/core/app/nav.ts', import.meta.url), 'utf8');
+const shellSource = await readFile(new URL('../src/modules/portal/PortalShell.tsx', import.meta.url), 'utf8');
+const portalSource = await readFile(new URL('../src/modules/portal/PublicPortal.tsx', import.meta.url), 'utf8');
+const landingSource = await readFile(new URL('../src/modules/portal/LandingPage.tsx', import.meta.url), 'utf8');
 
 test('signed-out visitors are restricted to the landing route', () => {
-  assert.match(appSource, /status !== 'active' \|\| !profile/);
+  assert.match(navigationSource, /status !== 'active' \|\| !role/);
+  assert.match(appSource, /isAllowedPublicPath/);
   assert.match(portalSource, /status === 'signed_out'/);
   assert.match(portalSource, /<LandingPage \/>/);
 });
 
 test('active customers receive routed portal pages', () => {
-  assert.match(appSource, /pathname === '\/packages'/);
-  assert.match(appSource, /pathname === '\/reservations'/);
-  assert.match(appSource, /pathname === '\/payments'/);
+  assert.match(navigationSource, /pathname === '\/packages'/);
+  assert.match(navigationSource, /pathname === '\/reservations'/);
+  assert.match(navigationSource, /pathname === '\/payments'/);
   assert.match(shellSource, /My Reservations/);
   assert.match(shellSource, /Payments/);
 });

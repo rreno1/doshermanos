@@ -1,0 +1,224 @@
+/* Inventory-specific dialog content. The shared modal and form contracts own
+ * the outer surface, backdrop, focus geometry, and mobile action footer. */
+.inventory-dialog {
+  width: min(560px, calc(100vw - 32px));
+  overflow: hidden;
+}
+
+.inventory-dialog-panel {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.inventory-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.inventory-kicker {
+  margin: 0 0 var(--space-2);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.inventory-dialog-heading h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.inventory-dialog-copy {
+  max-width: 650px;
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.inventory-close-button {
+  flex: 0 0 auto;
+  border: 0;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.inventory-close-button:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.inventory-field {
+  display: grid;
+  gap: 7px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.inventory-field textarea {
+  resize: vertical;
+}
+
+.inventory-field small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.inventory-checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface2);
+  cursor: pointer;
+}
+
+.inventory-checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--primary);
+}
+
+.inventory-checkbox-field span,
+.inventory-checkbox-field strong,
+.inventory-checkbox-field small {
+  display: block;
+}
+
+.inventory-checkbox-field strong {
+  font-weight: 600;
+}
+
+.inventory-checkbox-field small {
+  margin-top: var(--space-1);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.inventory-movement-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.inventory-movement-options legend {
+  margin-bottom: var(--space-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.inventory-movement-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.inventory-movement-option span {
+  display: grid;
+  min-height: var(--ui-form-control-height);
+  place-items: center;
+  padding: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  background: var(--surface-raised);
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.inventory-movement-option input:checked + span {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.inventory-movement-option input:focus-visible + span {
+  outline: var(--ui-focus-outline);
+  outline-offset: var(--ui-focus-offset);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+.inventory-message {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.inventory-message-error {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.inventory-primary-button,
+.inventory-secondary-button {
+  min-height: var(--ui-toolbar-control-size);
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: 600 13.5px/1 var(--font-title);
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.inventory-primary-button {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.inventory-secondary-button {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.inventory-primary-button:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.inventory-secondary-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.inventory-primary-button:disabled,
+.inventory-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 620px) {
+  .inventory-movement-options {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-dialog-panel {
+    padding: 20px;
+  }
+}

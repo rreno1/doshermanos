@@ -1,0 +1,262 @@
+/* Management select/filter interaction layer using the canonical Dos Hermanos control contract. */
+.management-filter-menu,
+.management-select { position: relative; }
+
+.management-filter-trigger,
+.management-select-trigger {
+  min-height: var(--ui-form-control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition:
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
+.management-filter-trigger {
+  width: var(--ui-toolbar-control-size);
+  min-width: var(--ui-toolbar-control-size);
+  height: var(--ui-toolbar-control-size);
+  min-height: var(--ui-toolbar-control-size);
+  padding: 0;
+}
+
+.management-filter-trigger:hover,
+.management-select-trigger:hover {
+  border-color: var(--primary);
+}
+
+.management-filter-trigger svg,
+.management-select-trigger svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.management-select {
+  width: 100%;
+  min-width: 150px;
+}
+
+.management-select-trigger {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 10px 0 12px;
+  text-align: left;
+}
+
+.management-select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.management-select-trigger .management-select-arrow {
+  width: 10px;
+  height: 6px;
+  flex: 0 0 auto;
+  fill: currentColor;
+  stroke: none;
+  transition: transform var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.management-select-trigger[aria-expanded='true'] .management-select-arrow {
+  transform: rotate(180deg);
+}
+
+.management-filter-trigger[aria-expanded='true'],
+.management-select-trigger[aria-expanded='true'] {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--ui-focus-shadow);
+}
+
+.management-filter-panel,
+.management-select-menu {
+  position: absolute;
+  z-index: 90;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+}
+
+.management-filter-panel {
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(320px, calc(100vw - 28px));
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.management-select-menu {
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.management-select-menu-portal {
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: auto;
+  z-index: 1000;
+}
+
+.management-select-option {
+  width: 100%;
+  min-height: var(--ui-compact-control-size);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.management-select-option:hover,
+.management-select-option:focus-visible {
+  background: var(--surface2);
+  color: var(--primary);
+}
+
+.management-select-option-active {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.management-select-option-check {
+  width: 15px;
+  height: 15px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 15px;
+}
+
+.management-select-option-check svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+}
+
+.management-select-disabled { opacity: 0.58; }
+
+.management-filter-field {
+  display: grid;
+  gap: 6px;
+}
+
+.management-filter-field > span {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* The data surface owns its own border. The frame is orchestration only. */
+.management-table-frame {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.management-table-frame-content {
+  min-width: 0;
+  overflow: visible;
+}
+
+.management-table-frame .management-table-wrap,
+.management-table-frame .equipment-item-list,
+.management-table-frame .equipment-assignment-list,
+.management-table-frame .equipment-activity-list,
+.management-table-frame .audit-list,
+.management-table-frame .reservation-review-list {
+  margin: 0;
+}
+
+.management-table-frame .management-table-wrap { overflow-x: auto; }
+
+.management-table-frame .management-pagination {
+  margin-top: 16px;
+}
+
+.management-pagination > span,
+.management-pagination-actions > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.management-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--primary-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: management-spinner-rotate 720ms linear infinite;
+}
+
+.management-data-controls .management-primary-button,
+.management-data-controls .management-secondary-button,
+.management-filter-trigger,
+.management-select-trigger { flex: 0 0 auto; }
+
+.management-table td .management-select { min-width: 132px; }
+
+@keyframes management-spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .management-data-controls {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .management-search {
+    min-width: 0;
+    width: auto;
+    flex: 1 1 0%;
+  }
+
+  .management-data-controls .management-primary-button { white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-spinner { animation-duration: 1.6s; }
+}

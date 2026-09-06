@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import {
   CustomerPaymentLinkCard,
   StaffPaymentLinkCard,
-} from '../src/features/payments/PaymentLinkCards.tsx';
+} from '../src/modules/payments/PaymentLinkCards.tsx';
 
 function assertNoLiveCheckout(markup) {
   assert.equal(markup.includes('href='), false);

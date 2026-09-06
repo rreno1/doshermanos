@@ -1,0 +1,158 @@
+/* Cross-feature Dos Hermanos presentation contract for management and public surfaces. */
+.admin-view .management-page {
+  display: contents;
+  --management-surface: var(--surface-translucent);
+  --management-surface-muted: var(--surface-tint);
+  --management-border: var(--line);
+  --management-border-strong: var(--line-strong);
+  --management-radius: var(--radius-lg);
+  --management-control-height: var(--ui-form-control-height);
+  --management-tab-content-gap: 12px;
+  --management-section-stack-gap: 12px;
+}
+
+.admin-view .management-page button {
+  border-radius: var(--ui-control-radius);
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    transform var(--motion-standard) var(--ease-standard);
+}
+
+/* Dos Hermanos distinguishes 42px form controls from 40px toolbar controls. */
+.admin-view .management-page .management-data-controls .management-search input,
+.admin-view .management-page .management-data-controls .management-filter-trigger,
+.admin-view .management-page .management-data-controls > .management-primary-button,
+.admin-view .management-page .management-data-controls > .management-secondary-button {
+  box-sizing: border-box;
+  height: var(--ui-toolbar-control-size) !important;
+  min-height: var(--ui-toolbar-control-size) !important;
+  max-height: var(--ui-toolbar-control-size) !important;
+}
+
+.admin-view .management-page .inventory-primary-button,
+.admin-view .management-page .equipment-primary-button,
+.admin-view .management-page .package-management-primary,
+.admin-view .management-page .users-save-button,
+.admin-view .management-page .inventory-secondary-button,
+.admin-view .management-page .equipment-secondary-button,
+.admin-view .management-page .payment-secondary-button,
+.admin-view .management-page .inventory-text-button,
+.admin-view .management-page .report-actions button,
+.admin-view .management-page .package-management-actions button,
+.admin-view .management-page .package-management-editor-heading button,
+.admin-view .management-page .reservation-review-actions button {
+  min-height: var(--ui-toolbar-control-size) !important;
+  border-radius: var(--ui-control-radius) !important;
+}
+
+.admin-view .management-page .management-filter-panel,
+.admin-view .management-page .management-select-menu {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-raised) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.admin-view .management-page table th,
+.admin-view .management-page table td {
+  border-color: var(--line) !important;
+}
+
+/* PageHeader → tabs → toolbar/data uses the same compact 12px Dos Hermanos rhythm. */
+.management-page > .users-section,
+.management-page > .payments-section,
+.management-page > .reports-section,
+.management-page > .audit-section {
+  width: 100%;
+  margin-inline: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
+}
+
+.management-page > .payments-section > .tab-bar,
+.management-page > .reports-section > .tab-bar {
+  margin-bottom: 0;
+}
+
+.management-page > .operations-section,
+.management-page > .resources-section { display: block; }
+
+.management-page > .operations-section > .tab-bar,
+.management-page > .resources-section > .tab-bar {
+  margin-bottom: var(--management-tab-content-gap);
+}
+
+.management-page > .operations-section > .reservation-review-section,
+.management-page > .operations-section > .package-management-section,
+.management-page > .resources-section > .inventory-section,
+.management-page > .resources-section > .equipment-section {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-top: 0;
+  display: grid;
+  gap: var(--management-section-stack-gap);
+}
+
+.management-page > .operations-section > .manual-reservation-flow {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.management-page > .operations-section > .reservation-review-section > .management-data-toolbar,
+.management-page > .operations-section > .package-management-section > .management-data-toolbar,
+.management-page > .resources-section > .inventory-section > .management-data-toolbar,
+.management-page > .resources-section > .equipment-section > .management-data-toolbar {
+  margin-top: 0;
+}
+
+/* Catering content keeps its semantics while inheriting Dos Hermanos surface restraint. */
+.public-view .primary-link,
+.app-shell .primary-link {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow) !important;
+  transition:
+    background-color var(--motion-standard) ease,
+    box-shadow var(--motion-standard) ease,
+    transform var(--motion-standard) var(--ease-standard) !important;
+}
+
+.public-view .primary-link:hover,
+.app-shell .primary-link:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.public-view .package-card,
+.app-shell .package-card {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-translucent) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.public-view .package-card:hover,
+.app-shell .package-card:hover {
+  transform: translateY(-1px) !important;
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.public-view .catalog-status,
+.app-shell .catalog-status {
+  border-color: var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-raised) !important;
+}
+
+@media (max-width: 640px) {
+  .admin-view .management-page { --management-section-stack-gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-page-stage,
+  .navigation-overlay-panel { animation: none !important; }
+}
