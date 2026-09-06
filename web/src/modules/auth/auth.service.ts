@@ -7,6 +7,10 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '@core/firebase/firebase';
+import {
+  isTrustedGoogleUser,
+  UNTRUSTED_IDENTITY_MESSAGE,
+} from './auth-security';
 import { clearSessionActivity, markSessionActivity } from './session-inactivity';
 import type { UserProfile, UserRole, UserStatus } from './auth.types';
 
@@ -88,6 +92,10 @@ export async function signInWithGoogle(): Promise<void> {
   const credential = await signInWithPopup(firebaseAuth, googleProvider);
 
   try {
+    if (!isTrustedGoogleUser(credential.user)) {
+      throw new Error(UNTRUSTED_IDENTITY_MESSAGE);
+    }
+
     await createCustomerProfile(credential.user);
     markSessionActivity();
   } catch (error) {
@@ -103,6 +111,10 @@ export async function signOutCurrentUser(): Promise<void> {
 }
 
 export function getSafeAuthErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message === UNTRUSTED_IDENTITY_MESSAGE) {
+    return UNTRUSTED_IDENTITY_MESSAGE;
+  }
+
   if (!(error instanceof FirebaseError)) {
     return 'Something went wrong. Please try again.';
   }
